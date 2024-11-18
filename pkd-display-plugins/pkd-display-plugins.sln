@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DisplayEmulator", "DisplayEmulator\DisplayEmulator.csproj", "{48EB1A38-F7D9-4233-B2FC-6EB2D9067158}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NecMultisyncDisplay", "NecMultisyncDisplay\NecMultisyncDisplay.csproj", "{76176A2C-B05C-4FE3-8F63-A6876AEA54F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NecProjector", "NecProjector\NecProjector.csproj", "{9B927796-F370-43A4-AC4A-55ABCEF07563}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanasonicProjector", "PanasonicProjector\PanasonicProjector.csproj", "{59223CD3-C94C-4E50-BFA7-46FE19978C75}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanarSimplicityDisplay", "PlanarSimplicityDisplay\PlanarSimplicityDisplay.csproj", "{88D53247-A3F7-48D5-B396-41B10E519978}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{48EB1A38-F7D9-4233-B2FC-6EB2D9067158}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48EB1A38-F7D9-4233-B2FC-6EB2D9067158}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48EB1A38-F7D9-4233-B2FC-6EB2D9067158}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48EB1A38-F7D9-4233-B2FC-6EB2D9067158}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76176A2C-B05C-4FE3-8F63-A6876AEA54F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76176A2C-B05C-4FE3-8F63-A6876AEA54F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76176A2C-B05C-4FE3-8F63-A6876AEA54F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76176A2C-B05C-4FE3-8F63-A6876AEA54F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B927796-F370-43A4-AC4A-55ABCEF07563}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B927796-F370-43A4-AC4A-55ABCEF07563}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B927796-F370-43A4-AC4A-55ABCEF07563}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B927796-F370-43A4-AC4A-55ABCEF07563}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59223CD3-C94C-4E50-BFA7-46FE19978C75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59223CD3-C94C-4E50-BFA7-46FE19978C75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59223CD3-C94C-4E50-BFA7-46FE19978C75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59223CD3-C94C-4E50-BFA7-46FE19978C75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88D53247-A3F7-48D5-B396-41B10E519978}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88D53247-A3F7-48D5-B396-41B10E519978}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88D53247-A3F7-48D5-B396-41B10E519978}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88D53247-A3F7-48D5-B396-41B10E519978}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {07E35CEB-943C-4A9C-8E22-FEAF22ADE11A}
+	EndGlobalSection
+EndGlobal
