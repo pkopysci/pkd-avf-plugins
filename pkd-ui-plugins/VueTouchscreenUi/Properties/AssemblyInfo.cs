@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("pkd-ui-plugins")]
+[assembly: AssemblyTitle("VueTouchscreenUi")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Grand Canyon Education")]
-[assembly: AssemblyProduct("pkd-ui-plugins")]
+[assembly: AssemblyProduct("VueTouchscreenUi")]
 [assembly: AssemblyCopyright("Copyright © Grand Canyon Education 2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("ef9ce1e4-3b58-42d1-8ba8-b7d4791ff710")]
+[assembly: Guid("58a93242-a7b0-4cda-83ee-b4b8289da860")]
 
 // Version information for an assembly consists of the following four values:
 //
