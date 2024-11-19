@@ -21,7 +21,7 @@
 		private static readonly string COMMAND_FREEZE = "GLOBALFREEZE";
 		private static readonly string COMMAND_BLANK = "GLOBALBLANK";
 		private ReadOnlyCollection<AvSourceInfoContainer> sources;
-		private List<GcuVueVideoDestinationInfo> destinations;
+		private List<VideoDestinationInfo> destinations;
 		private ReadOnlyCollection<InfoContainer> avrs;
 		private bool globalBlankState;
 		private bool globalFreezeState;
@@ -127,10 +127,10 @@
 
 			this.sources = sources;
 			this.avrs = avRouters;
-			this.destinations = new List<GcuVueVideoDestinationInfo>();
+			this.destinations = new List<VideoDestinationInfo>();
 			foreach (var dest in destinations)
 			{
-				this.destinations.Add(new GcuVueVideoDestinationInfo(dest.Id, dest.Label, dest.Icon, dest.Tags)
+				this.destinations.Add(new VideoDestinationInfo(dest.Id, dest.Label, dest.Icon, dest.Tags)
 				{
 					CurrentSourceId = string.Empty,
 				});

@@ -3,9 +3,9 @@
 	using pkd_application_service.Base;
 	using System.Collections.Generic;
 	
-	internal class GcuVueVideoDestinationInfo : InfoContainer
+	internal class VideoDestinationInfo : InfoContainer
 	{
-		public GcuVueVideoDestinationInfo(string id, string label, string icon, List<string> tags)
+		public VideoDestinationInfo(string id, string label, string icon, List<string> tags)
 		: base(id, label, icon, tags)
 		{
 		}

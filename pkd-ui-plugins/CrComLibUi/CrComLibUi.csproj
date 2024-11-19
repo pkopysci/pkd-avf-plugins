@@ -165,7 +165,7 @@
     <Compile Include="Components\TransportControl\TransportComponent.cs" />
     <Compile Include="Components\TransportControl\TransportData.cs" />
     <Compile Include="Components\VideoControl\DisplayControlComponent.cs" />
-    <Compile Include="Components\VideoControl\GcuVueVideoDestinationInfo.cs" />
+    <Compile Include="Components\VideoControl\VideoDestinationInfo.cs" />
     <Compile Include="Components\VideoControl\VideoConfigData.cs" />
     <Compile Include="Components\VideoControl\VideoControlComponent.cs" />
     <Compile Include="ICrComLibComponent.cs" />
