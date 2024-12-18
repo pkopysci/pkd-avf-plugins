@@ -98,8 +98,15 @@
 			Initialized = true;
 		}
 
-		/// <inheritdoc/>
-		public void SetRoutingData(
+        public override void SendConfig()
+        {
+			Logger.Debug("CrComLibUserInterface - VideoControlComponent.SendConfig()");
+
+			HandleGetConfigRequest(MessageFactory.CreateGetResponseObject());
+        }
+
+        /// <inheritdoc/>
+        public void SetRoutingData(
 			ReadOnlyCollection<AvSourceInfoContainer> sources,
 			ReadOnlyCollection<InfoContainer> destinations,
 			ReadOnlyCollection<InfoContainer> avRouters)

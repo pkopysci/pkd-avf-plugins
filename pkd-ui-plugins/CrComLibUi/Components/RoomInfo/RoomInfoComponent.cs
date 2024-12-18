@@ -116,6 +116,15 @@
 			Send(command, ApiHooks.RoomConfig);
 		}
 
+		public override void SendConfig()
+		{
+			Logger.Debug("CrComLibUserInterface - RoomInfoComponent.SendConfig()");
+
+			ResponseBase rxObj = MessageFactory.CreateGetResponseObject();
+			rxObj.Command = "CONFIG";
+			HandleRequestGetConfig(rxObj);
+		}
+
 		private void HandleGetRequest(ResponseBase rxObj)
 		{
 			if (GetHandlers.TryGetValue(rxObj.Command, out var handler))

@@ -8,7 +8,7 @@
 	using System;
 	using System.Collections.Generic;
 
-	internal abstract class BaseComponent : IUiComponent, ISerialResponseHandler
+	internal abstract class BaseComponent : IVueUiComponent, ISerialResponseHandler
 	{
 		protected readonly Dictionary<string, Action<ResponseBase>> GetHandlers = new Dictionary<string, Action<ResponseBase>>();
 		protected readonly Dictionary<string, Action<ResponseBase>> PostHandlers = new Dictionary<string, Action<ResponseBase>>();
@@ -36,6 +36,9 @@
 
 		/// <inheritdoc/>
 		public virtual void SetStandbyDefaults() { }
+
+        /// <inheritdoc/>
+        public virtual void SendConfig() { }
 
 		protected void Send(ResponseBase data, ApiHooks hook)
 		{

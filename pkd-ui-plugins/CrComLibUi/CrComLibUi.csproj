@@ -169,6 +169,7 @@
     <Compile Include="Components\VideoControl\VideoConfigData.cs" />
     <Compile Include="Components\VideoControl\VideoControlComponent.cs" />
     <Compile Include="ICrComLibComponent.cs" />
+    <Compile Include="IVueUiComponent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CrComLibUserInterface.cs" />
   </ItemGroup>

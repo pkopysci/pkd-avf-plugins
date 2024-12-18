@@ -94,7 +94,14 @@
 			Initialized = true;
 		}
 
-		public void SetDisplayData(ReadOnlyCollection<DisplayInfoContainer> displayData)
+        public override void SendConfig()
+        {
+			Logger.Debug("CrComLibUserInterface -DisplayControlComponent.SendConfig()");
+
+			HandleGetConfigRequest(MessageFactory.CreateGetResponseObject());
+        }
+
+        public void SetDisplayData(ReadOnlyCollection<DisplayInfoContainer> displayData)
 		{
 			if (displayData == null)
 			{

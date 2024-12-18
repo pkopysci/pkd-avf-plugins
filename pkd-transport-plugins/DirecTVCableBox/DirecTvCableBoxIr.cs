@@ -389,7 +389,7 @@
 				Assembly assembly = Assembly.GetExecutingAssembly();
 
 				// Read the embedded resource stream
-				string resourceName = string.Format("DirecTvCableBox.{0}", DRIVER_NAME);
+				string resourceName = string.Format("DirecTVCableBox.{0}", DRIVER_NAME);
 				using (Stream resourceStream = assembly.GetManifestResourceStream(resourceName))
 				{
 					if (resourceStream == null)

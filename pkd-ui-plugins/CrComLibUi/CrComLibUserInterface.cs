@@ -46,7 +46,7 @@
 		IDisposable
 	{
 		private readonly Dictionary<uint, Action<string>> apiHandlerActions;
-		private readonly List<IUiComponent> uiComponents;
+		private readonly List<IVueUiComponent> uiComponents;
 		private BasicTriListWithSmartObject ui;
 		private CrestronControlSystem parent;
 		private UserInterfaceDataContainer uiData;
@@ -59,7 +59,7 @@
 		/// </summary>
 		public CrComLibUserInterface()
 		{
-			uiComponents = new List<IUiComponent>();
+			uiComponents = new List<IVueUiComponent>();
 			apiHandlerActions = new Dictionary<uint, Action<string>>();
 		}
 
@@ -248,7 +248,7 @@
 			if (ui.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
 			{
 				Logger.Error(
-					"CrComLibUi.CrComLibUserInterface.RebuildInterface() - failed to register UI: {0}",
+                    "CrComLibUi.CrComLibUserInterface.Initialize() - failed to register UI: {0}",
 					ui.RegistrationFailureReason);
 				return;
 			}
@@ -605,10 +605,12 @@
 			switch (uiData.Model.ToUpper())
 			{
 				case "TSW770":
+				case "TSW-770":
 				case "TSW770-HTML": // backwards compatability with old configs
 					ui = new Tsw770(ipId, parent);
 					break;
 				case "TSW1070":
+				case "TSW-1070":
 					ui = new Tsw1070(ipId, parent);
 					break;
 				default:
@@ -824,6 +826,14 @@
 			IsOnline = args.DeviceOnLine;
 			var temp = this.OnlineStatusChanged;
 			temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
+
+			if (IsOnline)
+			{
+				foreach( var component in uiComponents)
+				{
+					component.SendConfig();
+				}
+			}
 		}
 
 		private void SystemStateChangeRequestHandler(object sender, GenericSingleEventArgs<bool> e)
