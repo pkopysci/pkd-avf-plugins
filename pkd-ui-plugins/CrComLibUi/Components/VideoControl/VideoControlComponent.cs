@@ -13,8 +13,9 @@
 	using System.Collections.ObjectModel;
 	using System.Dynamic;
 	using System.Linq;
+    using Newtonsoft.Json.Linq;
 
-	internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
+    internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 	{
 		private static readonly string COMMAND_CONFIG = "CONFIG";
 		private static readonly string COMMAND_ROUTE = "ROUTE";
@@ -232,10 +233,16 @@
 
 		private void HandlePostRouteRequest(ResponseBase response)
 		{
+			var temp = AvRouteChangeRequest;
+			if (temp == null) return;
+
 			try
 			{
-				var temp = AvRouteChangeRequest;
-				temp?.Invoke(this, new GenericDualEventArgs<string, string>(response.Data.SrcId, response.Data.DestId));
+				JObject data = response.Data as JObject;
+				temp?.Invoke(this, new GenericDualEventArgs<string, string>(
+					data["SrcId"].ToString(),
+					data["DestId"].ToString()
+				));
 			}
 			catch (Exception ex)
 			{

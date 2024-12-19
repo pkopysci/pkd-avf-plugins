@@ -153,6 +153,8 @@
 
 		private void HandleRequestGetConfig(ResponseBase rxObj)
 		{
+			Logger.Debug("RoomInfoComponent.HandleRequestGetConfig()");
+
 			List<MainMenuItem> menuItems = new List<MainMenuItem>();
 			foreach (var item in uiData.MenuItems)
 			{

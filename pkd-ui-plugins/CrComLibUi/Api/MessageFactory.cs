@@ -1,6 +1,7 @@
 ﻿namespace CrComLibUi.Api
 {
-	using Newtonsoft.Json;
+    using Crestron.SimplSharp;
+    using Newtonsoft.Json;
 	using pkd_common_utils.Logging;
 	using System;
 	using System.Dynamic;
@@ -18,8 +19,6 @@
 			if (string.IsNullOrEmpty(message))
 			{
 				Logger.Error("GcuVueUi.Api.MessageFactory.DeserializeMessage() - argument 'message' cannot be null or empty.");
-				dynamic data = new ExpandoObject();
-				data.Message = "Empty or null response string received.";
 				return null;
 			}
 
@@ -30,6 +29,7 @@
 				{
 					message = message.Substring(0, eofIdx);
 				}
+
 				return JsonConvert.DeserializeObject<ResponseBase>(message);
 			}
 			catch (Exception ex)

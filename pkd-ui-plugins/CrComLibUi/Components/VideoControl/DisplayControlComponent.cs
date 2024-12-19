@@ -11,8 +11,9 @@
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
 	using System.Linq;
+    using Newtonsoft.Json.Linq;
 
-	internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
+    internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 	{
 		private static readonly string SUBJECT = "DISPLAY";
 		private static readonly string COMMAND_POWER = "POWER";
@@ -96,7 +97,7 @@
 
         public override void SendConfig()
         {
-			Logger.Debug("CrComLibUserInterface -DisplayControlComponent.SendConfig()");
+			Logger.Debug("CrComLibUserInterface - DisplayControlComponent.SendConfig()");
 
 			HandleGetConfigRequest(MessageFactory.CreateGetResponseObject());
         }
@@ -280,8 +281,9 @@
 		{
 			try
 			{
-				var temp = response.Data.State ? DisplayScreenUpRequest : DisplayScreenDownRequest;
-				temp?.Invoke(this, new GenericSingleEventArgs<string>(response.Data.Id));
+				JObject data = response.Data as JObject;
+				var temp = data.Value<bool>("State") ? DisplayScreenUpRequest : DisplayScreenDownRequest;
+				temp?.Invoke(this, new GenericSingleEventArgs<string>(data.Value<string>("Id")));
 			}
 			catch (Exception ex)
 			{
@@ -293,10 +295,16 @@
 
 		private void HandlePostPowerResponse(ResponseBase response)
 		{
+			var temp = DisplayPowerChangeRequest;
+			if (temp == null) return;
+
 			try
 			{
-				var temp = DisplayPowerChangeRequest;
-				temp?.Invoke(this, new GenericDualEventArgs<string, bool>(response.Data.Id, response.Data.State));
+				JObject data = response.Data as JObject;
+				temp?.Invoke(this, new GenericDualEventArgs<string, bool>(
+					data["Id"].ToString(),
+					data.Value<bool>("State")
+				));
 			}
 			catch (Exception ex)
 			{
@@ -310,26 +318,30 @@
 		{
 			try
 			{
-				var display = displays.FirstOrDefault(x => x.Id == response.Data.Id);
+				JObject data = response.Data as JObject;
+				string targetId = data.Value<string>("Id");
+				string inputId = data.Value<string>("InputId");
+
+                var display = displays.FirstOrDefault(x => x.Id == targetId);
 				if (display == null)
 				{
 					Send(MessageFactory.CreateErrorResponse(
-						$"No display with ID {response.Data.Id}"),
+						$"No display with ID {targetId}"),
 						ApiHooks.DisplayChange);
 					return;
 				}
 
-				var input = display.Inputs.FirstOrDefault(x => x.Id == response.Data.InputId);
+				var input = display.Inputs.FirstOrDefault(x => x.Id == inputId);
 				if (input == null)
 				{
 					Send(MessageFactory.CreateErrorResponse(
-						$"display {display.Id} does not contain an input with ID {response.Data.InputId}"),
+						$"display {targetId} does not contain an input with ID {inputId}"),
 						ApiHooks.DisplayChange);
 					return;
 				}
 
 				var temp = input.Tags.Contains("lectern") ? StationLecternInputRequest : StationLocalInputRequest;
-				temp?.Invoke(this, new GenericSingleEventArgs<string>(display.Id));
+				temp?.Invoke(this, new GenericSingleEventArgs<string>(targetId));
 			}
 			catch (Exception ex)
 			{

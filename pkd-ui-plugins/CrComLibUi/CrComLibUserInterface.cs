@@ -826,14 +826,6 @@
 			IsOnline = args.DeviceOnLine;
 			var temp = this.OnlineStatusChanged;
 			temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
-
-			if (IsOnline)
-			{
-				foreach( var component in uiComponents)
-				{
-					component.SendConfig();
-				}
-			}
 		}
 
 		private void SystemStateChangeRequestHandler(object sender, GenericSingleEventArgs<bool> e)
