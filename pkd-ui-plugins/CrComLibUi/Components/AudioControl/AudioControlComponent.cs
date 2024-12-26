@@ -2,7 +2,8 @@
 {
 	using CrComLibUi.Api;
 	using Crestron.SimplSharpPro.DeviceSupport;
-	using pkd_application_service.AudioControl;
+    using Newtonsoft.Json.Linq;
+    using pkd_application_service.AudioControl;
 	using pkd_application_service.UserInterface;
 	using pkd_common_utils.GenericEventArgs;
 	using pkd_common_utils.Logging;
@@ -456,22 +457,24 @@
 		{
 			try
 			{
-				int level = (int)response.Data.Level;
-				string id = response.Data.Id;
+				JObject data = response.Data as JObject;
+				int level = data.Value<int>("Level"); //(int)response.Data.Level;
+				string id = data.Value<string>("Id"); //response.Data.Id;
+				string io = data.Value<string>("Io");
 
-				if (response.Data.Io.Equals("OUTPUT"))
+				if (io.Equals("OUTPUT"))
 				{
 					var temp = SetAudioOutputLevelRequest;
 					temp?.Invoke(this, new GenericDualEventArgs<string, int>(id, level));
 				}
-				else if (response.Data.Io.Equals("INPUT"))
+				else if (io.Equals("INPUT"))
 				{
 					var temp = SetAudioInputLevelRequest;
 					temp?.Invoke(this, new GenericDualEventArgs<string, int>(id, level));
 				}
 				else
 				{
-					ResponseBase errRx = MessageFactory.CreateErrorResponse($"Unsupported Io type: {response.Data.Io}");
+					ResponseBase errRx = MessageFactory.CreateErrorResponse($"Unsupported Io type: {io}");
 					Send(errRx, ApiHooks.AudioControl);
 				}
 			}
@@ -486,19 +489,24 @@
 		{
 			try
 			{
-				if (response.Data.Io.Equals("OUTPUT"))
+                JObject data = response.Data as JObject;
+                int level = data.Value<int>("Level"); //(int)response.Data.Level;
+                string id = data.Value<string>("Id"); //response.Data.Id;
+                string io = data.Value<string>("Io");
+
+                if (io.Equals("OUTPUT"))
 				{
 					var temp = AudioOutputMuteChangeRequest;
-					temp?.Invoke(this, new GenericSingleEventArgs<string>(response.Data.Id));
+					temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
 				}
-				else if (response.Data.Io.Equals("INPUT"))
+				else if (io.Equals("INPUT"))
 				{
 					var temp = AudioInputMuteChangeRequest;
-					temp?.Invoke(this, new GenericSingleEventArgs<string>(response.Data.Id));
+					temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
 				}
 				else
 				{
-					ResponseBase errRx = MessageFactory.CreateErrorResponse($"Unsupported Io type: {response.Data.Io}");
+					ResponseBase errRx = MessageFactory.CreateErrorResponse($"Unsupported Io type: {io}");
 					Send(errRx, ApiHooks.AudioControl);
 				}
 			}
@@ -513,10 +521,15 @@
 		{
 			try
 			{
-				var temp = AudioOutputRouteRequest;
+                JObject data = response.Data as JObject;
+				string outId = data.Value<string>("OutId");
+				string inId = data.Value<string>("InId");
+
+                var temp = AudioOutputRouteRequest;
 				temp?.Invoke(
 					this,
-					new GenericDualEventArgs<string, string>(response.Data.OutId, response.Data.InId));
+					new GenericDualEventArgs<string, string>(outId, inId)
+				);
 			}
 			catch (Exception e)
 			{
@@ -529,8 +542,12 @@
 		{
 			try
 			{
+				JObject data = response.Data as JObject;
+				string inId = data.Value<string>("InId");
+				string zoneId = data.Value<string>("ZoneId");
+
 				var temp = AudioZoneEnableToggleRequest;
-				temp?.Invoke(this, new GenericDualEventArgs<string, string>(response.Data.InId, response.Data.ZoneId));
+				temp?.Invoke(this, new GenericDualEventArgs<string, string>(inId, zoneId));
 			}
 			catch (Exception e)
 			{
