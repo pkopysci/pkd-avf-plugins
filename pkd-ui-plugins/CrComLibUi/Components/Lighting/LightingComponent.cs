@@ -38,6 +38,8 @@
 		/// <inheritdoc/>
 		public override void HandleSerialResponse(string response)
 		{
+			Logger.Debug($"CrComLibUi.HandleSerialRespponse({response})");
+
 			try
 			{
 				ResponseBase message = MessageFactory.DeserializeMessage(response);
@@ -65,7 +67,7 @@
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.LightingComponent.HandleSerialResponse() - {0}", ex);
+				Logger.Error("CrComLibUI.LightingComponent.HandleSerialResponse() - {0}", ex);
 				ResponseBase errMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
 				Send(errMessage, ApiHooks.LightingControl);
 				return;
@@ -78,11 +80,11 @@
 			Initialized = false;
 			if (lights == null)
 			{
-				Logger.Error("GcuVueUi.LightingComponent.Initialize() - Call SetLightingData() first.");
+				Logger.Error("CrComLibUI.LightingComponent.Initialize() - Call SetLightingData() first.");
 				return;
 			}
 
-			Logger.Debug("GcuVueUi.LightingComponent.Initialize()");
+			Logger.Debug("CrComLibUI.LightingComponent.Initialize()");
 
 			Initialized = true;
 		}
@@ -92,7 +94,7 @@
 		{
 			if (lightingData == null)
 			{
-				Logger.Error("GcuVueUi.LightingComponent.SetLightingData() - argument 'lightingData' cannot be null.");
+				Logger.Error("CrComLibUI.LightingComponent.SetLightingData() - argument 'lightingData' cannot be null.");
 				return;
 			}
 
@@ -140,7 +142,7 @@
 			var control = lights.FirstOrDefault(x => x.Id == controlId);
 			if (control == null)
 			{
-				Logger.Error("GcuVueUi.LightingComponent.UpdateActiveLightingScene() - No controller with ID {0}", controlId);
+				Logger.Error("CrComLibUi.LightingComponent.UpdateActiveLightingScene() - No controller with ID {0}", controlId);
 				return;
 			}
 
@@ -155,6 +157,9 @@
 			message.Data.Id = controlId;
 			message.Data.SceneId = sceneId;
 			message.Data.Set = true;
+
+			Logger.Debug($"CrComLibUi.LightingComponent.UpdateActiveLightingScene() - sending message: {message}");
+
 			Send(message, ApiHooks.LightingControl);
 		}
 
@@ -164,7 +169,7 @@
 			var control = lights.FirstOrDefault(x => x.Id == controlId);
 			if (control == null)
 			{
-				Logger.Error("GcuVueUi.LightingComponent.UpdateActiveLightingScene() - No controller with ID {0}", controlId);
+				Logger.Error("CrComLibUI.LightingComponent.UpdateActiveLightingScene() - No controller with ID {0}", controlId);
 				return;
 			}
 
@@ -213,6 +218,8 @@
 
 		private void HandlePostRequests(ResponseBase response)
 		{
+			Logger.Debug("CrComLibUi.HandlePostRequest() - Command: {0}", response.Command);
+
 			if (PostHandlers.TryGetValue(response.Command,out var handler))
 			{
 				handler.Invoke(response);
@@ -286,6 +293,8 @@
 
 		private void PostSceneHandler(ResponseBase response)
 		{
+			Logger.Debug($"CrComLibUi.PostSceneHandler() - COntroller ID: {response.Data.Id}, SceneId: {response.Data.SceneId}\n");
+
 			try
 			{
 				var temp = LightingSceneRecallRequest;
