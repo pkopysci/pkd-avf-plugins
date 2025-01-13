@@ -37,13 +37,13 @@
 			Initialized = false;
 			if (string.IsNullOrEmpty(SystemType))
 			{
-				Logger.Error("GcuVueUi.RoomInfoComponent.Initialize() - Set SystemType first.");
+				Logger.Error("CrComLibUi.RoomInfoComponent.Initialize() - Set SystemType first.");
 				return;
 			}
 
 			if (uiData == null)
 			{
-				Logger.Error("GcuVueUi.RoomInfoComponent.Initialize() - Set UiData first.");
+				Logger.Error("CrComLibUi.RoomInfoComponent.Initialize() - Set UiData first.");
 				return;
 			}
 
@@ -100,7 +100,7 @@
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.RoomInfoComponent.HandleSerialResponse() - {0}", ex);
+				Logger.Error("CrComLibUi.RoomInfoComponent.HandleSerialResponse() - {0}", ex);
 				ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
 				Send(errMessage, ApiHooks.RoomConfig);
 			}

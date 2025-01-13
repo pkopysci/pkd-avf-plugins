@@ -39,7 +39,7 @@
 			}
 			else
 			{
-				Logger.Error("GcuVueUi.CustomEventComponent.UpdateCustomEvent() - no event with ID {0}", eventTag);
+				Logger.Error("CrComLibUi.CustomEventComponent.UpdateCustomEvent() - no event with ID {0}", eventTag);
 			}
 		}
 
@@ -48,7 +48,7 @@
 		{
 			if (customEvents.ContainsKey(eventTag))
 			{
-				Logger.Error("GcuVueUi.CustomEventComponent.AddCustomEvent() - event with ID {0} aready exists.", eventTag);
+				Logger.Error("CrComLibUi.CustomEventComponent.AddCustomEvent() - event with ID {0} aready exists.", eventTag);
 				return;
 			}
 			else
@@ -97,7 +97,7 @@
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.CustomEventComponent.HandleSerialResponse() - {0}", ex);
+				Logger.Error("CrComLibUi.CustomEventComponent.HandleSerialResponse() - {0}", ex);
 				ResponseBase errMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
 				Send(errMessage, ApiHooks.Event);
 			}
@@ -141,7 +141,7 @@
 
 		private void HandleGetConfigRequest(ResponseBase responseBase)
 		{
-			Logger.Debug("GcuVueUi.CustomEventComponent.HandleGetConfigRequest()");
+			Logger.Debug("CrComLibUi.CustomEventComponent.HandleGetConfigRequest()");
 			responseBase.Data = customEvents.Values.ToList();
 			Send(responseBase, ApiHooks.Event);
 		}

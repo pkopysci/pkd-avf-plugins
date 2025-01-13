@@ -77,7 +77,7 @@
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.SecurityComponent.HandleSerialResponse() - {0}", ex);
+				Logger.Error("CrComLibUi.SecurityComponent.HandleSerialResponse() - {0}", ex);
 				ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
 				Send(errMessage, ApiHooks.Security);
 			}

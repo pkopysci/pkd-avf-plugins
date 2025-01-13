@@ -74,7 +74,7 @@
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.VideoControlComponent.HandleSerialResponse() - {0}", ex);
+				Logger.Error("CrComLibUi.VideoControlComponent.HandleSerialResponse() - {0}", ex);
 				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Failed to parse message: {ex.Message}");
 				Send(errRx, ApiHooks.VideoControl);
 			}
@@ -86,13 +86,13 @@
 			Initialized = false;
 			if (uiData == null)
 			{
-				Logger.Error("GcuVueUi.VideoControlComponent.Initialize() - Set UiData first.");
+				Logger.Error("CrComLibUi.VideoControlComponent.Initialize() - Set UiData first.");
 				return;
 			}
 
 			if (sources == null || destinations == null)
 			{
-				Logger.Error("GcuVueUi.VideoControlComponent.Initialize() - set source and destination data first (call SetRoutingData()).");
+				Logger.Error("CrComLibUi.VideoControlComponent.Initialize() - set source and destination data first (call SetRoutingData()).");
 				return;
 			}
 
@@ -116,19 +116,19 @@
 
 			if (sources == null)
 			{
-				Logger.Error("GcuVueUi.VideoControlComponent.SetRoutingData() - argument 'sources' cannot be null.");
+				Logger.Error("CrComLibUi.VideoControlComponent.SetRoutingData() - argument 'sources' cannot be null.");
 				return;
 			}
 
 			if (destinations == null)
 			{
-				Logger.Error("GcuVueUi.VideoControlComponent.SetRoutingData() - argument 'destinations' cannot be null.");
+				Logger.Error("CrComLibUi.VideoControlComponent.SetRoutingData() - argument 'destinations' cannot be null.");
 				return;
 			}
 
 			if (avRouters == null)
 			{
-				Logger.Error("GcuVueUi.VideoControlComponent.SetRoutingData() - argument 'avRouters' cannot be null.");
+				Logger.Error("CrComLibUi.VideoControlComponent.SetRoutingData() - argument 'avRouters' cannot be null.");
 				return;
 			}
 
@@ -173,7 +173,7 @@
 			var dest = destinations.FirstOrDefault(x => x.Id == outputId);
 			if (dest == null)
 			{
-				Logger.Error("GcuVueUi.VideoControlComponent.UpdateAvRoute() - No destination with id {0}", outputId);
+				Logger.Error("CrComLibUi.VideoControlComponent.UpdateAvRoute() - No destination with id {0}", outputId);
 				return;
 			}
 
@@ -225,7 +225,7 @@
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.VideoControlComponent.HandleGetConfigRequest() - {0}", ex);
+				Logger.Error("CrComLibUi.VideoControlComponent.HandleGetConfigRequest() - {0}", ex);
 				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Failed to parse config request: {ex.Message}");
 				Send(errRx, ApiHooks.VideoControl);
 			}
@@ -246,7 +246,7 @@
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.VideoControlComponent.HandlePostRouteRequest() - {0}", ex);
+				Logger.Error("CrComLibUi.VideoControlComponent.HandlePostRouteRequest() - {0}", ex);
 				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Failed to parse route POST request: {ex.Message}");
 				Send(errRx, ApiHooks.VideoControl);
 			}

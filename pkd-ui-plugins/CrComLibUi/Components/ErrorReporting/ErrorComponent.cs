@@ -75,7 +75,7 @@
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.ErrorComponent.HandleSerialResponse() - {0}", ex);
+				Logger.Error("CrComLibUi.ErrorComponent.HandleSerialResponse() - {0}", ex);
 				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Failed to parse message: {ex.Message}");
 				Send(errRx, ApiHooks.Errors);
 			}

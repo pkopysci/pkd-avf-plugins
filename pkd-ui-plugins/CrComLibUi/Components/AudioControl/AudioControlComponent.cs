@@ -104,13 +104,13 @@
 			Initialized = false;
 			if (uiData == null)
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.Initialize() - Set UiData first.");
+				Logger.Error("CrComLibUi.AudioControlComponent.Initialize() - Set UiData first.");
 				return;
 			}
 
 			if (inputs == null || outputs == null)
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.Initialize() - set inputs and outputs data first (call SetAudioData()).");
+				Logger.Error("CrComLibUi.AudioControlComponent.Initialize() - set inputs and outputs data first (call SetAudioData()).");
 				return;
 			}
 
@@ -124,12 +124,12 @@
 		{
 			if (inputs == null)
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.SetAudioData() - argument 'inputs' cannot be null.");
+				Logger.Error("CrComLibUi.AudioControlComponent.SetAudioData() - argument 'inputs' cannot be null.");
 				return;
 			}
 			if (outputs == null)
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.SetAudioData() - argument 'outputs' cannot be null.");
+				Logger.Error("CrComLibUi.AudioControlComponent.SetAudioData() - argument 'outputs' cannot be null.");
 				return;
 			}
 
@@ -146,14 +146,14 @@
 			if (!CheckInitialized("AudioControlComponent", "UpdateAudioInputLevel")) return;
 			if (string.IsNullOrEmpty(id))
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioInputLevel() - argument 'id' cannot be null or empty.");
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioInputLevel() - argument 'id' cannot be null or empty.");
 				return;
 			}
 
 			var found = inputs.FirstOrDefault(x => x.Id == id);
 			if (found == null)
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioInputLevel() - no input found with id {0}", id);
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioInputLevel() - no input found with id {0}", id);
 				return;
 			}
 
@@ -172,14 +172,14 @@
 			if (!CheckInitialized("AudioControlComponent", "UpdateAudioInputMute")) return;
 			if (string.IsNullOrEmpty(id))
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioInputMute() - argument 'id' cannot be null or empty.");
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioInputMute() - argument 'id' cannot be null or empty.");
 				return;
 			}
 
 			var found = inputs.FirstOrDefault(x => x.Id == id);
 			if (found == null)
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioInputMute() - no input found with id {0}", id);
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioInputMute() - no input found with id {0}", id);
 				return;
 			}
 
@@ -198,14 +198,14 @@
 			if (!CheckInitialized("AudioControlComponent", "UpdateAudioOutputLevel")) return;
 			if (string.IsNullOrEmpty(id))
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioOutputLevel() - argument 'id' cannot be null or empty.");
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioOutputLevel() - argument 'id' cannot be null or empty.");
 				return;
 			}
 
 			var found = outputs.FirstOrDefault(x => x.Id == id);
 			if (found == null)
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioOutputLevel() - no output found with id {0}", id);
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioOutputLevel() - no output found with id {0}", id);
 				return;
 			}
 
@@ -224,14 +224,14 @@
 			if (!CheckInitialized("AudioControlComponent", "UpdateAudioOutputMute")) return;
 			if (string.IsNullOrEmpty(id))
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioOutputMute() - argument 'id' cannot be null or empty.");
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioOutputMute() - argument 'id' cannot be null or empty.");
 				return;
 			}
 
 			var found = outputs.FirstOrDefault(x => x.Id == id);
 			if (found == null)
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioOutputMute() - no output found with id {0}", id);
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioOutputMute() - no output found with id {0}", id);
 				return;
 			}
 
@@ -251,20 +251,20 @@
 
 			if (string.IsNullOrEmpty(srcId))
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioOutputRoute() - argument 'srcId' cannot be null or empty.");
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioOutputRoute() - argument 'srcId' cannot be null or empty.");
 				return;
 			}
 
 			if (string.IsNullOrEmpty(destId))
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioOutputRoute() - argument 'destId' cannot be null or empty.");
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioOutputRoute() - argument 'destId' cannot be null or empty.");
 				return;
 			}
 
 			var found = outputs.FirstOrDefault(x => x.Id == destId);
 			if (found == null)
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioOutputRoute() - no output found with id {0}", destId);
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioOutputRoute() - no output found with id {0}", destId);
 				return;
 			}
 
@@ -283,20 +283,20 @@
 
 			if (string.IsNullOrEmpty(channelId))
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioZoneState() - argument 'channelId' cannot be null or empty.");
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioZoneState() - argument 'channelId' cannot be null or empty.");
 				return;
 			}
 
 			if (string.IsNullOrEmpty(zoneId))
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioZoneState() - argument 'zoneId' cannot be null or empty.");
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioZoneState() - argument 'zoneId' cannot be null or empty.");
 				return;
 			}
 
 			var channel = inputs.FirstOrDefault(x => x.Id.Equals(channelId, StringComparison.OrdinalIgnoreCase));
 			if (channel == null)
 			{
-				Logger.Error("GcuVueUi.AudioControlComponent.UpdateAudioZoneState() - no input found with id {0}", channelId);
+				Logger.Error("CrComLibUi.AudioControlComponent.UpdateAudioZoneState() - no input found with id {0}", channelId);
 				return;
 			}
 
@@ -521,14 +521,17 @@
 		{
 			try
 			{
+
                 JObject data = response.Data as JObject;
 				string outId = data.Value<string>("OutId");
 				string inId = data.Value<string>("InId");
+				
+				Logger.Debug($"CrComLibUI.AudioControlComponent.HandlePostRouteRequest() - OutId: {outId}, InId: {inId}");
 
                 var temp = AudioOutputRouteRequest;
 				temp?.Invoke(
 					this,
-					new GenericDualEventArgs<string, string>(outId, inId)
+					new GenericDualEventArgs<string, string>(inId, outId)
 				);
 			}
 			catch (Exception e)

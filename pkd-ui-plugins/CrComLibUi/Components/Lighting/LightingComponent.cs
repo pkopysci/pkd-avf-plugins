@@ -12,8 +12,11 @@
 	using System.Collections.ObjectModel;
 	using System.Dynamic;
 	using System.Linq;
+    using Newtonsoft.Json.Linq;
+    using Independentsoft.Exchange;
+    using Crestron.SimplSharpPro.Fusion;
 
-	internal class LightingComponent : BaseComponent, ILightingUserInterface
+    internal class LightingComponent : BaseComponent, ILightingUserInterface
 	{
 		private static readonly string COMMAND_CONFIG = "CONFIG";
 		private static readonly string COMMAND_ZONE = "LOAD";
@@ -38,8 +41,6 @@
 		/// <inheritdoc/>
 		public override void HandleSerialResponse(string response)
 		{
-			Logger.Debug($"CrComLibUi.HandleSerialRespponse({response})");
-
 			try
 			{
 				ResponseBase message = MessageFactory.DeserializeMessage(response);
@@ -211,23 +212,19 @@
 			}
 			else
 			{
-				var errRx = MessageFactory.CreateErrorResponse($"Unsupported GET command: {response.Command}");
-				Send(errRx, ApiHooks.LightingControl);
+				SendError($"Unsupported GET command: {response.Command}");
 			}
 		}
 
 		private void HandlePostRequests(ResponseBase response)
 		{
-			Logger.Debug("CrComLibUi.HandlePostRequest() - Command: {0}", response.Command);
-
 			if (PostHandlers.TryGetValue(response.Command,out var handler))
 			{
 				handler.Invoke(response);
 			}
 			else
 			{
-				var errRx = MessageFactory.CreateErrorResponse($"Unsupported POST command: {response.Command}");
-				Send(errRx, ApiHooks.LightingControl);
+				SendError($"Unsupported POST command: {response.Command}");
 			}
 		}
 
@@ -239,76 +236,119 @@
 
 		private void GetZoneHandler(ResponseBase response)
 		{
-			LightingData controller = FindController(response.Data.Id, COMMAND_ZONE);
-			if (controller == null) return;
-
-			var zone = controller.Zones.FirstOrDefault(x => x.Id.Equals(response.Data.ZoneId));
-			if (zone == null)
+			try
 			{
-				ResponseBase errRx = MessageFactory.CreateErrorResponse(
-					$"control {response.Data.Id} does not have a zone with ID {response.Data.ZoneId}.");
-				Send(errRx, ApiHooks.LightingControl);
-				return;
-			}
+				JObject data = response.Data as JObject;
+				string controlId = data?.Value<string>("Id") ?? string.Empty;
+				string zoneId = data?.Value<string>("ZoneId") ?? string.Empty;
 
-			response.Data = zone;
-			Send(response, ApiHooks.LightingControl);
+                LightingData controller = FindController(controlId, COMMAND_ZONE);
+                if (controller == null)
+				{
+					SendError("Unknown controller ID received.");
+					return;
+				}
+
+                var zone = controller.Zones.FirstOrDefault(x => x.Id.Equals(zoneId));
+                if (zone == null)
+                {
+					SendError($"unknown zone ID received for controller {controlId}");
+                    return;
+                }
+
+                response.Data = zone;
+                Send(response, ApiHooks.LightingControl);
+            }
+            catch (Exception ex)
+			{
+				SendError($"Invalid GET zone command: {ex.Message}");
+			}
 		}
 
 		private void GetSceneHandler(ResponseBase response)
 		{
-			LightingData controller = FindController(response.Data.Id, COMMAND_SCENE);
-			if (controller == null) return;
-
-			var scene = controller.Scenes.FirstOrDefault(x => x.Id.Equals(response.Data.SceneId));
-			if (scene == null)
+			try
 			{
-				ResponseBase errRx = MessageFactory.CreateErrorResponse(
-					$"control {response.Data.Id} does not have a scene with ID {response.Data.SceneId}.");
-				Send(errRx, ApiHooks.LightingControl);
-				return;
-			}
+				JObject data = response.Data as JObject;
+				string controlId = data?.Value<string>("Id") ?? string.Empty;
+				string sceneId = data?.Value<string>("SceneId") ?? string.Empty;
 
-			response.Data = scene;
-			Send(response, ApiHooks.LightingControl);
+                LightingData controller = FindController(controlId, COMMAND_SCENE);
+                if (controller == null)
+				{
+					SendError( "Unknown control ID received.");
+					return;
+				}
+
+                var scene = controller.Scenes.FirstOrDefault(x => x.Id.Equals(response.Data.SceneId));
+                if (scene == null)
+                {
+                    SendError($"Control {controlId} does not have a scene with ID {sceneId}.");
+                    return;
+                }
+
+                response.Data = scene;
+                Send(response, ApiHooks.LightingControl);
+            }
+            catch (Exception ex)
+			{
+                SendError( $"Invalid GET scene request: {ex.Message}");
+            }
 		}
 
 		private void PostZoneHandler(ResponseBase response)
 		{
 			try
 			{
+				JObject data = response.Data as JObject;
+				string controlId = data?.Value<string>("Id");
+				string zoneId = data?.Value<string>("ZoneId");
+				int load = data?.Value<int>("Load") ?? -1;
+
+				if (controlId == null || zoneId == null || load < 0)
+				{
+					SendError("data missing Id, ZoneId, or contains an invalid Load value");
+				}
+
 				var temp = LightingLoadChangeRequest;
 				temp?.Invoke(this, new GenericTrippleEventArgs<string, string, int>(
-					response.Data.Id,
-					response.Data.ZoneId,
-					response.Data.Load));
+                    controlId,
+                    zoneId,
+                    load));
 			}
 			catch (Exception ex)
 			{
-				var errRx = MessageFactory.CreateErrorResponse($"Invalid POST zone request: {ex.Message}");
-				errRx.Command = response.Command;
-				Send(errRx, ApiHooks.LightingControl);
+				SendError($"Invalid POST zone request: {ex.Message}");
 			}
 		}
 
 		private void PostSceneHandler(ResponseBase response)
 		{
-			Logger.Debug($"CrComLibUi.PostSceneHandler() - COntroller ID: {response.Data.Id}, SceneId: {response.Data.SceneId}\n");
-
 			try
 			{
+				JObject data = response.Data as JObject;
+				string controlId = data?.Value<string>("Id");
+				string sceneId = data?.Value<string>("SceneId");
+
+				if (controlId == null || sceneId == null)
+				{
+					SendError($"Invalid POST scene request: Id or SceneId not present.");
+					return;
+				}
+
 				var temp = LightingSceneRecallRequest;
-				temp?.Invoke(this, new GenericDualEventArgs<string, string>(
-					response.Data.Id,
-					response.Data.SceneId));
+				temp?.Invoke(this, new GenericDualEventArgs<string, string>(controlId, sceneId));
 			}
 			catch (Exception ex)
 			{
-				var errRx = MessageFactory.CreateErrorResponse($"Invalid POST scene request: {ex.Message}");
-				errRx.Command = response.Command;
-				Send(errRx, ApiHooks.LightingControl);
+				SendError($"Invalid POST scene request: {ex.Message}");
 			}
-
 		}
-	}
+
+		private void SendError(string message)
+		{
+            var errRx = MessageFactory.CreateErrorResponse(message);
+            Send(errRx, ApiHooks.LightingControl);
+        }
+    }
 }

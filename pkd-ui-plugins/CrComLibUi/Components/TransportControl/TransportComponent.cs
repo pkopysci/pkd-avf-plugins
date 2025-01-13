@@ -10,8 +10,9 @@
 	using CrComLibUi.Api;
 	using System;
 	using System.Collections.ObjectModel;
+    using Newtonsoft.Json.Linq;
 
-	internal class TransportComponent : BaseComponent, ITransportControlUserInterface
+    internal class TransportComponent : BaseComponent, ITransportControlUserInterface
 	{
 		private static readonly string COMMAND_CONFIG = "CONFIG";
 		private static readonly string COMMAND_TRANSPORT = "TRANSPORT";
@@ -68,7 +69,7 @@
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.TransportComponent.HandleSerialResponse() - {0}", ex);
+				Logger.Error("CrComLibUi.TransportComponent.HandleSerialResponse() - {0}", ex);
 				ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
 				Send(errMessage, ApiHooks.DeviceControl);
 			}
@@ -80,7 +81,7 @@
 			Initialized = false;
 			if(this.devices == null)
 			{
-				Logger.Error("GcuVueUi.TransportComponent.Initialize() - Call SetCableBoxData() first.");
+				Logger.Error("CrComLibUi.TransportComponent.Initialize() - Call SetCableBoxData() first.");
 				return;
 			}
 
@@ -92,7 +93,7 @@
 		{
 			if (data == null)
 			{
-				Logger.Error("GcuVueUi.TransportComponent.SetCableBoxData() - argument 'data' cannot be null.");
+				Logger.Error("CrComLibUi.TransportComponent.SetCableBoxData() - argument 'data' cannot be null.");
 				return;
 			}
 
@@ -146,14 +147,23 @@
 
 			try
 			{
+				JObject data = message.Data as JObject;
+				string deviceId = data?.Value<string>("Id") ?? string.Empty;
+				string favId = data?.Value<string>("FavId") ?? string.Empty;
+
+				if (deviceId == string.Empty || favId == string.Empty)
+				{
+					SendError($"CrComLibUi.TransportComponent.HandlePostFavoriteRequest() - Invalid data package received.");
+					return;
+				}
+
 				var temp = this.TransportDialFavoriteRequest;
-				temp?.Invoke(this, new GenericDualEventArgs<string, string>(message.Data.Id, message.Data.FavId));
+				temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, favId));
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.TransportComponent.HandlePostFavoriteRequest() - {0}", ex);
-				ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
-				Send(errMessage, ApiHooks.DeviceControl);
+				Logger.Error("CrComLibUi.TransportComponent.HandlePostFavoriteRequest() - {0}", ex);
+				SendError($"Invalid message format: {ex.Message}");
 			}
 		}
 
@@ -163,22 +173,31 @@
 
 			try
 			{
-				TransportTypes transport = TransportUtilities.FindTransport(message.Data.Tag);
+                JObject data = message.Data as JObject;
+                string deviceId = data?.Value<string>("Id") ?? string.Empty;
+                string tag = data?.Value<string>("Tag") ?? string.Empty;
+
+                if (deviceId == string.Empty || tag == string.Empty)
+                {
+                    SendError($"Invalid data package received.");
+                    return;
+                }
+
+                TransportTypes transport = TransportUtilities.FindTransport(tag);
 				if (transport == TransportTypes.Unknown)
 				{
-					ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Unsupported transport command: {message.Data.Tag}");
-					Send(errMessage, ApiHooks.DeviceControl);
+					SendError($"CrComLibUi.TransportComponent.HandlePostTransportRequest() - Unsupported transport command: {tag}");
 				}
 				else
 				{
 					var temp = TransportControlRequest;
-					temp?.Invoke(this, new GenericDualEventArgs<string, TransportTypes>(message.Data.Id, transport));
+					temp?.Invoke(this, new GenericDualEventArgs<string, TransportTypes>(deviceId, transport));
 				}
 
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.TransportComponent.HandlePostTransportRequest() - {0}", ex);
+				Logger.Error("CrComLibUi.TransportComponent.HandlePostTransportRequest() - {0}", ex);
 				ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
 				Send(errMessage, ApiHooks.DeviceControl);
 			}
@@ -186,17 +205,33 @@
 
 		private void HandlePostChannelRequest(ResponseBase message)
 		{
+			Logger.Debug("CrComLibUi.HandlePostChannelRequest()");
+
 			try
 			{
-				var temp = TransportDialRequest;
-				temp?.Invoke(this, new GenericDualEventArgs<string, string>(message.Data.Id, message.Data.Chan));
+                JObject data = message.Data as JObject;
+                string deviceId = data?.Value<string>("Id") ?? string.Empty;
+                string channel = data?.Value<string>("Chan") ?? string.Empty;
+                if (deviceId == string.Empty || channel == string.Empty)
+                {
+                    SendError($"CrComLibUi.TransportComponent..HandlePostChannelRequest() - Invalid data package received.");
+                    return;
+                }
+
+                var temp = TransportDialRequest;
+				temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, channel));
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("GcuVueUi.TransportComponent.HandlePostChannelRequest() - {0}", ex);
-				ResponseBase errorMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
-				Send(errorMessage, ApiHooks.DeviceControl);
+				Logger.Error("CrComLibUi.TransportComponent.HandlePostChannelRequest() - {0}", ex);
+				SendError($"Invalid message format: {ex.Message}");
 			}
+		}
+
+		private void SendError(string message)
+		{
+			ResponseBase errMsg = MessageFactory.CreateErrorResponse(message);
+			Send(errMsg, ApiHooks.DeviceControl);
 		}
 	}
 }

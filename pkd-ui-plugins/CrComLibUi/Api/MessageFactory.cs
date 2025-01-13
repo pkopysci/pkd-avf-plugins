@@ -18,7 +18,7 @@
 		{
 			if (string.IsNullOrEmpty(message))
 			{
-				Logger.Error("GcuVueUi.Api.MessageFactory.DeserializeMessage() - argument 'message' cannot be null or empty.");
+				Logger.Error("CrComLibUi.Api.MessageFactory.DeserializeMessage() - argument 'message' cannot be null or empty.");
 				return null;
 			}
 
@@ -35,7 +35,7 @@
 			catch (Exception ex)
 			{
 				Logger.Error(
-					"GcuVueUi.Api.MessageFactory.DeserializeMessage() - Failed to deserialize the message. Reason: {0}",
+					"CrComLibUi.Api.MessageFactory.DeserializeMessage() - Failed to deserialize the message. Reason: {0}",
 					ex.Message);
 
 				return null;
@@ -52,7 +52,7 @@
 		{
 			if (messageData == null)
 			{
-				Logger.Error("GcuVueUi.Api.MessageFactory.SerializeMessage() - argument 'messageData' cannot be null.");
+				Logger.Error("CrComLibUi.Api.MessageFactory.SerializeMessage() - argument 'messageData' cannot be null.");
 				return string.Empty;
 			}
 
@@ -63,7 +63,7 @@
 			catch (Exception ex)
 			{
 				Logger.Error(
-					"GcuVueUi.Api.MessageFactory.SerializeMessage() - Failed to serialize the message object.. Reason: {0}",
+					"CrComLibUi.Api.MessageFactory.SerializeMessage() - Failed to serialize the message object.. Reason: {0}",
 					ex.Message);
 
 				return string.Empty;
