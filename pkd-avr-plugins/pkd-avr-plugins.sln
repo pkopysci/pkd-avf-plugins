@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BroadataAvSwitch", "Broadat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KramerAvSwitch", "KramerAvSwitch\KramerAvSwitch.csproj", "{08E1FBFF-9874-4905-8871-51EF43FD30B9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NvxAvSwitch", "NvxAvSwitch\NvxAvSwitch.csproj", "{B2A9F328-236D-4D48-BDFA-B1961BFF15C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{08E1FBFF-9874-4905-8871-51EF43FD30B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08E1FBFF-9874-4905-8871-51EF43FD30B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08E1FBFF-9874-4905-8871-51EF43FD30B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2A9F328-236D-4D48-BDFA-B1961BFF15C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2A9F328-236D-4D48-BDFA-B1961BFF15C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2A9F328-236D-4D48-BDFA-B1961BFF15C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2A9F328-236D-4D48-BDFA-B1961BFF15C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
