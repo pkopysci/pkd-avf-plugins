@@ -9,9 +9,9 @@
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(presetId, "Ctor", "presetId");
 
-			this.HostId = hostId;
-			this.Id = presetId;
-			this.Index = presetIndex;
+			HostId = hostId;
+			Id = presetId;
+			Index = presetIndex;
 		}
 
 		public int HostId { get; private set; }
@@ -20,16 +20,16 @@
 
 		public int Index { get; private set; }
 
-		public Action<string> QueueCommand { get; set; }
+		public Action<string>? QueueCommand { get; set; }
 
 		public void RecallPreset()
 		{
 
 			// RECALL 0 PRESET 1001 <LF>
-			this.QueueCommand?.Invoke(string.Format(
+			QueueCommand?.Invoke(string.Format(
 					"{0} 0 {1} {2}\n",
-					NexiaComander.Commands[NexiaCommands.Recall],
-					NexiaComander.Blocks[NexiaBlocks.Preset],
+					NexiaCommander.Commands[NexiaCommands.Recall],
+					NexiaCommander.Blocks[NexiaBlocks.Preset],
 					this.Index));
 		}
 	}

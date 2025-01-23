@@ -8,12 +8,12 @@
 		/// <summary>
 		/// Gets or sets the unique ID of the AV channel.
 		/// </summary>
-		public string Id { get; set; }
+		public string Id { get; set; } = string.Empty;
 
 		/// <summary>
 		/// Gets or sets the physical input or output index for this channel.
 		/// </summary>
-		public uint Number { get; set; }
+		public uint Number { get; init; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether the video freeze is on or off.
@@ -36,7 +36,7 @@
 		public int AudioLevel { get; set; }
 
 		/// <summary>
-		/// Gets or sets the audio level that the channels should return to when unmuted.
+		/// Gets or sets the audio level that the channels should return to when not muted.
 		/// </summary>
 		public int UnmutedLevel { get; set; }
 

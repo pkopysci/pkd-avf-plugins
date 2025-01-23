@@ -10,14 +10,15 @@
 
 	internal static class MxnetConfigReader
 	{
-		public static MxnetConfig TryReadConfig(string deviceId)
+		public static MxnetConfig? TryReadConfig(string deviceId)
 		{
 			try
 			{
 				var userDir = DirectoryHelper.GetUserFolder();
-				string configFormat = string.Format("mxnet_config_device_id_{0}.json", deviceId);
-				string path = Directory.GetFiles(userDir, configFormat)
-					.Where(file => file.EndsWith(".json")).FirstOrDefault();
+				var configFormat = $"mxnet_config_device_id_{deviceId}.json";
+				var path = Directory
+					.GetFiles(userDir, configFormat)
+					.FirstOrDefault(file => file.EndsWith(".json"));
 
 				if (string.IsNullOrEmpty(path))
 				{
@@ -45,17 +46,16 @@
 		{
 			try
 			{
-				StringBuilder bldr = new StringBuilder();
+				var builder = new StringBuilder();
 				using (StreamReader reader = new StreamReader(path))
 				{
-					string line;
-					while ((line = reader.ReadLine()) != null)
+					while (reader.ReadLine() is { } line)
 					{
-						bldr.Append(line);
+						builder.Append(line);
 					}
 				}
 
-				return bldr.ToString();
+				return builder.ToString();
 			}
 			catch (Exception e)
 			{

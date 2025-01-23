@@ -14,129 +14,128 @@
 
 	/// <summary>
 	/// QSC control implementation for DSP control.
-	/// Uses QscQsys depenency library for tx/rx, devolped by Mat Klucznyk:
+	/// Uses QscQsys dependency library for tx/rx, developed by Mat Klucznyk:
 	/// https://github.com/MatKlucznyk/Qsys.
 	/// </summary>
-	public class QscDspTcp : BaseDevice, IDsp, IAudioRoutable, IDisposable, IAudioZoneEnabler
+	public class QscDspTcp : BaseDevice, IDsp, IAudioRoutable, IAudioZoneEnabler
 	{
-		private bool disposed;
-		private readonly List<QscAudioChannel> inputs;
-		private readonly List<QscAudioChannel> outputs;
-		private readonly List<QscSnapshotBank> snapshots;
-		private bool coreRegistered;
-		private string hostname;
-		private string username;
-		private string password;
-		private int port;
-		private QsysCore core;
+		private bool _disposed;
+		private readonly List<QscAudioChannel> _inputs;
+		private readonly List<QscAudioChannel> _outputs;
+		private readonly List<QscSnapshotBank> _snapshots;
+		private bool _coreRegistered;
+		private string? _hostname;
+		private string? _username;
+		private string? _password;
+		private int _port;
+		private QsysCore? _core;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QscDsp"/> class.
 		/// </summary>
 		public QscDspTcp()
 		{
-			this.IsInitialized = false;
-			this.Id = "QscDspDefaultID";
-			this.Label = "QSC DSP";
-			this.inputs = new List<QscAudioChannel>();
-			this.outputs = new List<QscAudioChannel>();
-			this.snapshots = new List<QscSnapshotBank>();
+			Id = "QscDspDefaultID";
+			Label = "QSC DSP";
+			_inputs = [];
+			_outputs = [];
+			_snapshots = [];
 		}
 
 		~QscDspTcp()
 		{
-			this.Dispose(false);
+			Dispose(false);
 		}
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioInputLevelChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputLevelChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioInputMuteChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputMuteChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioOutputLevelChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioOutputLevelChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioOutputMuteChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioOutputMuteChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioRouteChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioRouteChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioZoneEnableChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioZoneEnableChanged;
 
 		/// <inheritdoc/>
 		public void AddInputChannel(string id, string levelTag, string muteTag, int bankIndex, int levelMax, int levelMin, int routerIndex)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(id, "QscDspTcp.AddInputChannel", "id");
-			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "QscDspTcp.AddInputChannel", "levelTag");
-			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "QscDspTcp.AddInputChannel", "muteTag");
+			ParameterValidator.ThrowIfNullOrEmpty(id, "QscDspTcp.AddInputChannel", nameof(id));
+			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "QscDspTcp.AddInputChannel", nameof(levelTag));
+			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "QscDspTcp.AddInputChannel", nameof(muteTag));
 			if (bankIndex < 0)
 			{
 				throw new ArgumentException("QscDspTcp.AddInputChannel() - 'bankIndex' cannot be less than 0.");
 			}
 
-			var existing = this.inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var existing = _inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (existing != null)
 			{
-				existing.AudioMuteChanged -= this.InputControlMuteChange;
-				existing.AudioVolumeChanged -= this.InputControlLevelChange;
-				this.inputs.Remove(existing);
+				existing.AudioMuteChanged -= InputControlMuteChange;
+				existing.AudioVolumeChanged -= InputControlLevelChange;
+				_inputs.Remove(existing);
 			}
 
-			QscAudioChannel channel = new QscAudioChannel(this.Id, id, muteTag, levelTag, new string[] { }, routerIndex);
-			channel.AudioMuteChanged += this.InputControlMuteChange;
-			channel.AudioVolumeChanged += this.InputControlLevelChange;
-			channel.ZoneEnableChanged += this.ZoneEnableChangedHandler;
-			this.inputs.Add(channel);
+			var channel = new QscAudioChannel(Id, id, muteTag, levelTag, [], routerIndex);
+			channel.AudioMuteChanged += InputControlMuteChange;
+			channel.AudioVolumeChanged += InputControlLevelChange;
+			channel.ZoneEnableChanged += ZoneEnableChangedHandler;
+			_inputs.Add(channel);
 		}
 
 		/// <inheritdoc/>
 		public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int routerIndex, int bankIndex, int levelMax, int levelMin)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(id, "QscDspTcp.AddOutputChannel", "id");
-			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "QscDspTcp.AddOutputChannel", "ilevelTagd");
-			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "QscDspTcp.AddOutputChannel", "muteTag");
+			ParameterValidator.ThrowIfNullOrEmpty(id, "QscDspTcp.AddOutputChannel", nameof(id));
+			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "QscDspTcp.AddOutputChannel", nameof(levelTag));
+			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "QscDspTcp.AddOutputChannel", nameof(muteTag));
 			if (bankIndex < 0)
 			{
 				throw new ArgumentException("QscDspTcp.AddOutputChannel() - 'bankIndex' cannot be less than 0.");
 			}
 
 
-			var existing = this.outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var existing = _outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (existing != null)
 			{
-				existing.AudioVolumeChanged -= this.OutputControlLevelChange;
-				existing.AudioMuteChanged -= this.OutputControlMuteChange;
-				this.outputs.Remove(existing);
+				existing.AudioVolumeChanged -= OutputControlLevelChange;
+				existing.AudioMuteChanged -= OutputControlMuteChange;
+				_outputs.Remove(existing);
 			}
 
-			QscAudioChannel channel = new QscAudioChannel(this.Id, id, muteTag, levelTag, routerTag, new String[] { }, routerIndex);
-			channel.AudioMuteChanged += this.OutputControlMuteChange;
-			channel.AudioVolumeChanged += this.OutputControlLevelChange;
-			channel.AudioRouteChanged += this.OutputControlRouteChanged;
-			channel.ZoneEnableChanged += this.ZoneEnableChangedHandler;
-			this.outputs.Add(channel);
+			var channel = new QscAudioChannel(Id, id, muteTag, levelTag, routerTag, [], routerIndex);
+			channel.AudioMuteChanged += OutputControlMuteChange;
+			channel.AudioVolumeChanged += OutputControlLevelChange;
+			channel.AudioRouteChanged += OutputControlRouteChanged;
+			channel.ZoneEnableChanged += ZoneEnableChangedHandler;
+			_outputs.Add(channel);
 		}
 
 		/// <inheritdoc/>
 		public void AddPreset(string id, int index)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(id, "QscDspTcp.AddPreset", "id");
+			ParameterValidator.ThrowIfNullOrEmpty(id, "QscDspTcp.AddPreset", nameof(id));
 			if (index < 0)
 			{
 				throw new ArgumentException("QscDspTcp.AddPreset() - 'index' cannot be less than zero.");
 			}
 
-			var existing = this.snapshots.Find(x => x.Name.Equals(id, StringComparison.InvariantCulture));
+			var existing = _snapshots.Find(x => x.Name.Equals(id, StringComparison.InvariantCulture));
 			if (existing == null)
 			{
-				existing = new QscSnapshotBank(this.Id, id);
-				this.snapshots.Add(existing);
+				existing = new QscSnapshotBank(Id, id);
+				_snapshots.Add(existing);
 			}
 
-			string presetId = string.Format("{0}.{1}", id, index);
+			var presetId = $"{id}.{index}";
 			existing.AddPreset(presetId, index);
 			if (!existing.IsRegistered)
 			{
@@ -147,125 +146,108 @@
 		/// <inheritdoc/>
 		public void Initialize(string hostId, int coreId, string hostname, int port, string username, string password)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(hostId, "Initialize", "coreId");
-			ParameterValidator.ThrowIfNullOrEmpty(hostname, "Initialize", "hostname");
-			ParameterValidator.ThrowIfNull(username, "Initialize", "username");
-			ParameterValidator.ThrowIfNull(password, "Initialize", "password");
+			ParameterValidator.ThrowIfNullOrEmpty(hostId, "Initialize", nameof(coreId));
+			ParameterValidator.ThrowIfNullOrEmpty(hostname, "Initialize", nameof(hostname));
+			ParameterValidator.ThrowIfNull(username, "Initialize", nameof(username));
+			ParameterValidator.ThrowIfNull(password, "Initialize", nameof(password));
 
-			this.IsInitialized = false;
-			this.Id = hostId;
-			this.hostname = hostname;
-			this.port = port;
-			this.username = username;
-			this.password = password;
-			this.IsInitialized = true;
+			IsInitialized = false;
+			Id = hostId;
+			_hostname = hostname;
+			_port = port;
+			_username = username;
+			_password = password;
+			IsInitialized = true;
 		}
 
 		/// <inheritdoc/>
 		public override void Connect()
 		{
-			if (this.IsInitialized)
+			if (IsInitialized)
 			{
-				this.core = new QsysCore();
+				_core = new QsysCore();
 
 #if DEBUG
-				this.core.Debug(1);
+				_core.Debug(1);
 #endif
-				this.core.onIsConnected = this.OnCoreConnected;
-				this.core.onNewCoreStatus += this.OnCoreStatusChange;
-				this.core.onIsRegistered += this.OnCoreRegistered;
+				_core.onIsConnected = OnCoreConnected;
+				_core.onNewCoreStatus += OnCoreStatusChange;
+				_core.onIsRegistered += OnCoreRegistered;
 
-				this.core.Initialize(
-					this.Id,
-					this.hostname,
-					(ushort)this.port,
-					this.username,
-					this.password,
+				_core.Initialize(
+					Id,
+					_hostname,
+					(ushort)_port,
+					_username,
+					_password,
 					0);
 			}
 			else
 			{
-				Logger.Error("QscDspTcp {0} - Cannot connect. Run Initialize() first.", this.Id);
+				Logger.Error("QscDspTcp {0} - Cannot connect. Run Initialize() first.", Id);
 			}
 		}
 
 		/// <inheritdoc/>
 		public override void Disconnect()
 		{
-			if (this.core != null)
-			{
-				this.core.Dispose();
-				this.core = null;
-				this.coreRegistered = false;
-				this.NotifyOnlineStatus();
-			}
+			if (!IsInitialized) return;
+			_core?.Dispose();
+			_core = null;
+			_coreRegistered = false;
+			NotifyOnlineStatus();
 		}
 
 		/// <inheritdoc/>
 		public IEnumerable<string> GetAudioInputIds()
 		{
-			return this.inputs.Select(x => x.Id).ToList();
+			return _inputs.Select(x => x.Id).ToList();
 		}
 
 		/// <inheritdoc/>
 		public int GetAudioInputLevel(string id)
 		{
-			var found = this.inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var found = _inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (found == null)
 			{
 				return 0;
 			}
 
-			return this.ConvertLevelToPercent(found.AudioLevel);
+			return ConvertLevelToPercent(found.AudioLevel);
 		}
 
 		/// <inheritdoc/>
 		public bool GetAudioInputMute(string id)
 		{
-			var found = this.inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
-			if (found == null)
-			{
-				return false;
-			}
-
-			return found.AudioMute;
+			var found = _inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			return found != null && found.AudioMute;
 		}
 
 		/// <inheritdoc/>
 		public IEnumerable<string> GetAudioOutputIds()
 		{
-			return this.outputs.Select(x => x.Id).ToList();
+			return _outputs.Select(x => x.Id).ToList();
 		}
 
 		/// <inheritdoc/>
 		public int GetAudioOutputLevel(string id)
 		{
-			var found = this.outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
-			if (found == null)
-			{
-				return 0;
-			}
-
-			return this.ConvertLevelToPercent(found.AudioLevel);
+			var found = _outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			return found == null ? 0 : ConvertLevelToPercent(found.AudioLevel);
 		}
 
 		/// <inheritdoc/>
 		public bool GetAudioOutputMute(string id)
 		{
-			var found = this.outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
-			if (found == null)
-			{
-				return false;
-			}
-
-			return found.AudioMute;
+			var found = _outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			return found != null && found.AudioMute;
 		}
 
 		/// <inheritdoc/>
 		public IEnumerable<string> GetAudioPresetIds()
 		{
-			List<string> presetIds = new List<string>();
-			foreach (var bank in this.snapshots)
+			List<string> presetIds = [];
+			foreach (var bank in _snapshots)
 			{
 				foreach (var id in bank.PresetIds)
 				{
@@ -279,86 +261,79 @@
 		/// <inheritdoc/>
 		public void RecallAudioPreset(string id)
 		{
-			foreach (var bank in this.snapshots)
+			foreach (var bank in _snapshots)
 			{
-				if (bank.HasPreset(id))
-				{
-					Logger.Debug("QscDspTcp.RecallAudioPreset({0})", id);
-
-					bank.RecallPreset(id);
-					break;
-				}
+				Logger.Debug("QscDspTcp.RecallAudioPreset({0})", id);
+				
+				if (!bank.HasPreset(id)) continue;
+				bank.RecallPreset(id);
+				break;
 			}
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioInputLevel(string id, int level)
 		{
-			if (level < 0 || level > 100)
+			if (level is < 0 or > 100)
 			{
 				Logger.Error("QscDspTcp {0} - SetAudioInputLevel({0}, {1}) - 'level' must be between 0 and 100.", id, level);
 				return;
 			}
 
-			this.SetChannelLevel(id, level, this.inputs);
+			SetChannelLevel(id, level, _inputs);
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioInputMute(string id, bool mute)
 		{
-			this.SetChannelMute(id, mute, this.inputs);
+			SetChannelMute(id, mute, _inputs);
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioOutputLevel(string id, int level)
 		{
-			if (level < 0 || level > 100)
+			if (level is < 0 or > 100)
 			{
 				Logger.Error("QscDspTcp {0} - SetAudioOutputLevel({0}, {1}) - 'level' must be between 0 and 100.", id, level);
 				return;
 			}
 
-			this.SetChannelLevel(id, level, this.outputs);
+			SetChannelLevel(id, level, _outputs);
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioOutputMute(string id, bool mute)
 		{
-			this.SetChannelMute(id, mute, this.outputs);
+			SetChannelMute(id, mute, _outputs);
 		}
 
 		/// <inheritdoc/>
 		public string GetCurrentAudioSource(string outputId)
 		{
-			var found = this.outputs.FirstOrDefault(x => x.Id.Equals(outputId, StringComparison.InvariantCulture));
+			var found = _outputs.FirstOrDefault(x => x.Id.Equals(outputId, StringComparison.InvariantCulture));
 			if (found == null)
 			{
 				return string.Empty;
 			}
 
-			var source = this.inputs.Find(src => src.RouterIndex == found.AudioSource);
-			if (source == null)
-			{
-				return string.Empty;
-			}
-
-			return source.Id;
+			var source = _inputs.Find(src => src.RouterIndex == found.AudioSource);
+			return source == null ? string.Empty : source.Id;
 		}
 
 		/// <inheritdoc/>
 		public void RouteAudio(string sourceId, string outputId)
 		{
-			var found = this.outputs.FirstOrDefault(x => x.Id.Equals(outputId, StringComparison.InvariantCulture));
+			var found = _outputs.FirstOrDefault(x => x.Id.Equals(outputId, StringComparison.InvariantCulture));
 			if (found == null)
 			{
-				Logger.Error("QscDsp {0} - No output channel found with ID {1}", this.Id, outputId);
+				Logger.Error("QscDsp {0} - No output channel found with ID {1}", Id, outputId);
 				return;
 			}
 
-			var source = this.inputs.Find(src => src.Id.Equals(sourceId, StringComparison.InvariantCulture));
+			var source = _inputs.Find(src => src.Id.Equals(sourceId, StringComparison.InvariantCulture));
 			if (source == null)
 			{
-				Logger.Error("QscDsp {0} - No input channel found with ID {1}", this.Id, sourceId);
+				Logger.Error("QscDsp {0} - No input channel found with ID {1}", Id, sourceId);
 				return;
 			}
 
@@ -373,11 +348,11 @@
 		{
 			if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(zoneId) || string.IsNullOrEmpty(controlTag))
 			{
-				Logger.Error("QscDspTcp {0} - AddAudioZoneEnable() - no argument can be null or empty.", this.Id);
+				Logger.Error("QscDspTcp {0} - AddAudioZoneEnable() - no argument can be null or empty.", Id);
 				return;
 			}
 
-			var channel = this.TryFindChannel(channelId, "AddAudioZoneEnable");
+			var channel = TryFindChannel(channelId, "AddAudioZoneEnable");
 			channel?.AddZoneEnable(zoneId, controlTag);
 		}
 
@@ -386,11 +361,11 @@
 		{
 			if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(zoneId))
 			{
-				Logger.Error("QscDspTcp {0} - RemoveAudioZoneEnable() - no argument can be null or empty.", this.Id);
+				Logger.Error("QscDspTcp {0} - RemoveAudioZoneEnable() - no argument can be null or empty.", Id);
 				return;
 			}
 
-			var channel = this.TryFindChannel(channelId, "RemoveAudioZoneEnable");
+			var channel = TryFindChannel(channelId, "RemoveAudioZoneEnable");
 			channel?.RemoveZoneEnable(zoneId);
 		}
 
@@ -399,11 +374,11 @@
 		{
 			if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(zoneId))
 			{
-				Logger.Error("QscDspTcp {0} - ToggleAudioZoneEnable() - no argument can be null or empty.", this.Id);
+				Logger.Error("QscDspTcp {0} - ToggleAudioZoneEnable() - no argument can be null or empty.", Id);
 				return;
 			}
 
-			var channel = this.TryFindChannel(channelId, "ToggleAudioZoneEnable");
+			var channel = TryFindChannel(channelId, "ToggleAudioZoneEnable");
 			channel?.ToggleZoneEnableState(zoneId);
 		}
 
@@ -412,11 +387,11 @@
 		{
 			if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(zoneId))
 			{
-				Logger.Error("QscDspTcp {0} - QueryAudioZoneEnable() - no argument can be null or empty.", this.Id);
+				Logger.Error("QscDspTcp {0} - QueryAudioZoneEnable() - no argument can be null or empty.", Id);
 				return false;
 			}
 
-			var channel = this.TryFindChannel(channelId, "QueryAudioZoneEnable");
+			var channel = TryFindChannel(channelId, "QueryAudioZoneEnable");
 			if (channel == null)
 			{
 				return false;
@@ -428,7 +403,7 @@
 		/// <inheritdoc/>
 		public void Dispose()
 		{
-			this.Dispose(true);
+			Dispose(true);
 		}
 
 		private void SetChannelLevel(string id, int level, List<QscAudioChannel> channels)
@@ -465,48 +440,48 @@
 
 		private void OnCoreConnected(SimplSharpString id, ushort state)
 		{
-			Logger.Debug("QscDspTcp {0}.OnCoreConnected() - {1}", this.Id, state);
+			Logger.Debug("QscDspTcp {0}.OnCoreConnected() - {1}", Id, state);
 
 			if (state > 0)
 			{
-				this.RegisternamedControls();
-				this.IsOnline = true;
-				this.NotifyOnlineStatus();
+				RegisterNamedControls();
+				IsOnline = true;
+				NotifyOnlineStatus();
 			}
 			else
 			{
-				this.IsOnline = false;
-				this.NotifyOnlineStatus();
+				IsOnline = false;
+				NotifyOnlineStatus();
 			}
 		}
 
 		private void OnCoreStatusChange(SimplSharpString name, SimplSharpString designName, ushort redundant, ushort emulator)
 		{
-			Logger.Debug("QscDspTcp {0} - OnCoreStatusChange({1}, {2}, {3})", this.Id, name, redundant, emulator);
+			Logger.Debug("QscDspTcp {0} - OnCoreStatusChange({1}, {2}, {3})", Id, name, redundant, emulator);
 		}
 
 		private void OnCoreRegistered(SimplSharpString id, ushort value)
 		{
-			Logger.Debug("QscDspTcp {0} - OnCoreRegistered({1})", this.Id, value);
+			Logger.Debug("QscDspTcp {0} - OnCoreRegistered({1})", Id, value);
 
-			this.coreRegistered = value > 0;
-			this.IsOnline = this.coreRegistered;
-			this.NotifyOnlineStatus();
+			_coreRegistered = value > 0;
+			IsOnline = _coreRegistered;
+			NotifyOnlineStatus();
 		}
 
-		private void RegisternamedControls()
+		private void RegisterNamedControls()
 		{
-			foreach (var output in this.outputs)
+			foreach (var output in _outputs)
 			{
 				output.Register();
 			}
 
-			foreach (var input in this.inputs)
+			foreach (var input in _inputs)
 			{
 				input.Register();
 			}
 
-			foreach (var snapshot in this.snapshots)
+			foreach (var snapshot in _snapshots)
 			{
 				snapshot.Register();
 			}
@@ -514,82 +489,83 @@
 
 		private void ClearControls()
 		{
-			this.core.onIsConnected -= this.OnCoreConnected;
-			this.core.onNewCoreStatus -= this.OnCoreStatusChange;
-			this.core.onIsRegistered -= this.OnCoreRegistered;
+			if (_core == null) return;
+			_core.onIsConnected -= OnCoreConnected;
+			_core.onNewCoreStatus -= OnCoreStatusChange;
+			_core.onIsRegistered -= OnCoreRegistered;
 
-			foreach (var chan in this.inputs)
+			foreach (var chan in _inputs)
 			{
-				chan.AudioMuteChanged -= this.InputControlMuteChange;
-				chan.AudioVolumeChanged -= this.InputControlLevelChange;
+				chan.AudioMuteChanged -= InputControlMuteChange;
+				chan.AudioVolumeChanged -= InputControlLevelChange;
 			}
 
-			foreach (var chan in this.outputs)
+			foreach (var chan in _outputs)
 			{
-				chan.AudioMuteChanged -= this.OutputControlLevelChange;
-				chan.AudioVolumeChanged -= this.OutputControlMuteChange;
-				chan.AudioRouteChanged -= this.OutputControlRouteChanged;
+				chan.AudioMuteChanged -= OutputControlLevelChange;
+				chan.AudioVolumeChanged -= OutputControlMuteChange;
+				chan.AudioRouteChanged -= OutputControlRouteChanged;
 			}
 
-			this.inputs.Clear();
-			this.outputs.Clear();
-			this.snapshots.Clear();
+			_inputs.Clear();
+			_outputs.Clear();
+			_snapshots.Clear();
 		}
 
-		private void InputControlLevelChange(object sender, GenericDualEventArgs<string, int> e)
+		private void InputControlLevelChange(object? sender, GenericDualEventArgs<string, int> e)
 		{
-			var temp = this.AudioInputLevelChanged;
-			temp?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, e.Arg1));
+			var temp = AudioInputLevelChanged;
+			temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, e.Arg1));
 		}
 
-		private void InputControlMuteChange(object sender, GenericDualEventArgs<string, int> e)
+		private void InputControlMuteChange(object? sender, GenericDualEventArgs<string, int> e)
 		{
-			var temp = this.AudioInputMuteChanged;
-			temp?.Invoke(sender, new GenericDualEventArgs<string, string>(this.Id, e.Arg1));
+			var temp = AudioInputMuteChanged;
+			temp?.Invoke(sender, new GenericDualEventArgs<string, string>(Id, e.Arg1));
 		}
 
-		private void OutputControlLevelChange(object sender, GenericDualEventArgs<string, int> e)
+		private void OutputControlLevelChange(object? sender, GenericDualEventArgs<string, int> e)
 		{
-			Logger.Debug("QscDspTcp {0} - OutputControlLevelChange() - {1}, {2}", this.Id, e.Arg1, e.Arg2);
+			Logger.Debug("QscDspTcp {0} - OutputControlLevelChange() - {1}, {2}", Id, e.Arg1, e.Arg2);
 
-			var temp = this.AudioOutputLevelChanged;
-			temp?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, e.Arg1));
+			var temp = AudioOutputLevelChanged;
+			temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, e.Arg1));
 		}
 
-		private void OutputControlMuteChange(object sender, GenericDualEventArgs<string, int> e)
+		private void OutputControlMuteChange(object? sender, GenericDualEventArgs<string, int> e)
 		{
-			Logger.Debug("QscDspTcp {0} - OutputControlMuteChange() - {1}, {2}", this.Id, e.Arg1, e.Arg2);
+			Logger.Debug("QscDspTcp {0} - OutputControlMuteChange() - {1}, {2}", Id, e.Arg1, e.Arg2);
 
-			var temp = this.AudioOutputMuteChanged;
-			temp?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, e.Arg1));
+			var temp = AudioOutputMuteChanged;
+			temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, e.Arg1));
 		}
 
-		private void OutputControlRouteChanged(object sender, GenericDualEventArgs<string, uint> e)
+		private void OutputControlRouteChanged(object? sender, GenericDualEventArgs<string, uint> e)
 		{
-			Logger.Debug("QscDspTcp {0} - OutputControlRouteChanged() - {1}, {2}", this.Id, e.Arg1, e.Arg2);
+			Logger.Debug("QscDspTcp {0} - OutputControlRouteChanged() - {1}, {2}", Id, e.Arg1, e.Arg2);
 
-			var output = this.outputs.FirstOrDefault(x => x.Id.Equals(e.Arg1, StringComparison.InvariantCulture));
+			var output = _outputs.FirstOrDefault(x => x.Id.Equals(e.Arg1, StringComparison.InvariantCulture));
 			if (output == null)
 			{
 				return;
 			}
 
-			var temp = this.AudioRouteChanged;
-			temp?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, output.Id));
+			var temp = AudioRouteChanged;
+			temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, output.Id));
 		}
 
-		private void ZoneEnableChangedHandler(object sender, GenericDualEventArgs<string, string> e)
+		private void ZoneEnableChangedHandler(object? sender, GenericDualEventArgs<string, string> e)
 		{
-			var temp = this.AudioZoneEnableChanged;
+			var temp = AudioZoneEnableChanged;
 			temp?.Invoke(this, e);
 		}
 
-		private QscAudioChannel TryFindChannel(string channelId, string callingMethodName)
+		private QscAudioChannel? TryFindChannel(string channelId, string callingMethodName)
 		{
-			var channel = this.inputs.FirstOrDefault(x => x.Id.Equals(channelId, StringComparison.InvariantCulture)) ?? this.outputs.FirstOrDefault(x => x.Id.Equals(channelId, StringComparison.InvariantCulture));
+			var channel = _inputs.FirstOrDefault(x => x.Id.Equals(channelId, StringComparison.InvariantCulture)) ?? _outputs.FirstOrDefault(x => x.Id.Equals(channelId, StringComparison.InvariantCulture));
 			if (channel == null)
 			{
-				Logger.Error("QscDspTcp {0} - {1}() - no input or output channel found with ID {2}", this.Id, callingMethodName, channelId);
+				Logger.Error("QscDspTcp {0} - {1}() - no input or output channel found with ID {2}", Id, callingMethodName, channelId);
 			}
 
 			return channel;
@@ -597,20 +573,18 @@
 
 		private void Dispose(bool disposing)
 		{
-			if (!this.disposed)
+			if (_disposed) return;
+			if (disposing)
 			{
-				if (disposing)
+				ClearControls();
+				if (_core != null)
 				{
-					this.ClearControls();
-					if (this.core != null)
-					{
-						this.core.Dispose();
-						this.core = null;
-					}
+					_core.Dispose();
+					_core = null;
 				}
-
-				this.disposed = true;
 			}
+
+			_disposed = true;
 		}
 	}
 }

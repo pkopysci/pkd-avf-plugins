@@ -11,41 +11,41 @@
 	/// </summary>
 	internal class QscZoneEnable
 	{
-		private readonly Dictionary<string, QscBoolNamedControl> zoneToggles;
+		private readonly Dictionary<string, QscBoolNamedControl> _zoneToggles;
 
 		/// <summary>
 		/// Creates an instance of <see cref="QscZoneEnable"/> class.
 		/// </summary>
 		public QscZoneEnable()
 		{
-			this.zoneToggles = new Dictionary<string, QscBoolNamedControl>();
+			_zoneToggles = new Dictionary<string, QscBoolNamedControl>();
 		}
 
 		/// <summary>
 		/// Triggered whenever a monitored zone enable toggle control state is updated from the core.
 		/// </summary>
-		public event EventHandler<GenericSingleEventArgs<string>> ZoneControlChanged;
+		public event EventHandler<GenericSingleEventArgs<string>>? ZoneControlChanged;
 
 		/// <summary>
 		/// Add a new zone control object to the internal collection. If an existing object is detected then the new
 		/// add request is ignored.
 		/// </summary>
 		/// <param name="zoneId">The unique ID of the zone object. used for internal referencing.</param>
-		/// <param name="controlTag">The DSP desgin named control or instance tag used for commands.</param>
+		/// <param name="controlTag">The DSP design named control or instance tag used for commands.</param>
 		public bool TryAddZone(string zoneId, string controlTag)
 		{
-			if (this.zoneToggles.ContainsKey(zoneId))
+			if (_zoneToggles.ContainsKey(zoneId))
 			{
 				return false;
 			}
 
-			QscBoolNamedControl newZoneToggle = new QscBoolNamedControl
+			var newZoneToggle = new QscBoolNamedControl
 			{
 				Id = zoneId,
 				ControlTag = controlTag,
-				newNamedControlIntChange = (str, val) => { this.ZoneControlChangeHandler(zoneId, val, str); }
+				newNamedControlIntChange = (str, val) => { ZoneControlChangeHandler(zoneId, val, str); }
 			};
-			this.zoneToggles.Add(zoneId, newZoneToggle);
+			_zoneToggles.Add(zoneId, newZoneToggle);
 			return true;
 		}
 
@@ -53,15 +53,15 @@
 		/// Remove the target control object from the internal collection and unregister it with the DSP. Does nothing if no control
 		/// with a matching ID is found.
 		/// </summary>
-		/// <param name="zoneId">The uinique ID of the the zone control object to remove.</param>
+		/// <param name="zoneId">The unique ID of the zone control object to remove.</param>
 		public bool TryRemoveZone(string zoneId)
 		{
-			if (!this.zoneToggles.ContainsKey(zoneId))
+			if (!_zoneToggles.ContainsKey(zoneId))
 			{
 				return false;
 			}
 
-			this.zoneToggles.Remove(zoneId);
+			_zoneToggles.Remove(zoneId);
 			return true;
 		}
 
@@ -72,7 +72,7 @@
 		/// <param name="zoneId">The unique ID of the zone control object to change.</param>
 		public void ToggleZone(string zoneId)
 		{
-			if (this.zoneToggles.TryGetValue(zoneId, out QscBoolNamedControl target))
+			if (_zoneToggles.TryGetValue(zoneId, out var target))
 			{
 
 				int newState = target.CurrentState ? 1 : 0;
@@ -87,7 +87,7 @@
 		/// <returns>The current state of the control or false if no object with a matching ID is found.</returns>
 		public bool QueryZone(string zoneId)
 		{
-			if (this.zoneToggles.TryGetValue(zoneId, out QscBoolNamedControl target))
+			if (_zoneToggles.TryGetValue(zoneId, out var target))
 			{
 				return target.CurrentState;
 			}
@@ -101,7 +101,7 @@
 		/// <param name="coreId">The unique ID of the core that the objects will be registered to.</param>
 		public void Register(string coreId)
 		{
-			foreach (var kvp in this.zoneToggles)
+			foreach (var kvp in _zoneToggles)
 			{
 				kvp.Value.Initialize(coreId, kvp.Value.ControlTag, 1);
 			}
@@ -111,12 +111,12 @@
 		{
 			Logger.Debug("QscZoneEnable.ZoneControlChangeHandler({0}, {1}. {2})", zoneId, shortData, stringData);
 
-			if (this.zoneToggles.TryGetValue(zoneId, out QscBoolNamedControl target))
+			if (_zoneToggles.TryGetValue(zoneId, out var target))
 			{
 				target.CurrentState = shortData == 0;
 			}
 
-			var temp = this.ZoneControlChanged;
+			var temp = ZoneControlChanged;
 			temp?.Invoke(this, new GenericSingleEventArgs<string>(zoneId));
 		}
 	}

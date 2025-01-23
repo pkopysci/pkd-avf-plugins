@@ -7,87 +7,87 @@
 	internal class InputEncoder
 	{
 		[JsonProperty("ONLINE")]
-		public string ONLINE { get; set; }
+		public string Online { get; set; } = string.Empty;
 
 		[JsonProperty("CUSTOM NAME")]
-		public string CUSTOMNAME { get; set; }
+		public string CustomName { get; set; } = string.Empty;
 
 		[JsonProperty("DESCRIPTION")]
-		public string DESCRIPTION { get; set; }
+		public string Description { get; set; } = string.Empty;
 
 		[JsonProperty("EDID MGMT")]
-		public string EDIDMGMT { get; set; }
+		public string EdidManagement { get; set; } = string.Empty;
 
 		[JsonProperty("CHANNEL")]
-		public string CHANNEL { get; set; }
+		public string Channel { get; set; } = string.Empty;
 
 		[JsonProperty("IP ADDRESS(AUTO)")]
-		public string IPADDRESSAUTO { get; set; }
+		public string IpAddressAuto { get; set; } = string.Empty;
 
 		[JsonProperty("MAC ADDRESSS(AUTO)")]
-		public string MACADDRESSSAUTO { get; set; }
+		public string MacAddressAuto { get; set; } = string.Empty;
 
-		[JsonProperty("HDCP")]
-		public string HDCP { get; set; }
+		[JsonProperty("Hdcp")]
+		public string Hdcp { get; set; } = string.Empty;
 
 		[JsonProperty("FIRMWARE VERSION")]
-		public string FIRMWAREVERSION { get; set; }
+		public string FirmwareVersion { get; set; } = string.Empty;
 
 		[JsonProperty("DECODERS LIGHTS-ALL")]
-		public string CHIPSET { get; set; }
+		public string DecodersLightsAll { get; set; } = string.Empty;
 
 		[JsonProperty("ENCODERS LIGHTS-ALL")]
-		public string ENCODERSLIGHTSALL { get; set; }
+		public string EncodersLightsAll { get; set; } = string.Empty;
 	}
 
 	internal class OutputsDecoder
 	{
 		[JsonProperty("ONLINE")]
-		public string ONLINE { get; set; }
+		public string Online { get; set; } = string.Empty;
 
 		[JsonProperty("CUSTOM NAME")]
-		public string CUSTOMNAME { get; set; }
+		public string CustomName { get; set; } = string.Empty;
 
 		[JsonProperty("DESCRIPTION")]
-		public string DESCRIPTION { get; set; }
+		public string Description { get; set; } = string.Empty;
 
 		[JsonProperty("OUTPUT RESOLUTION")]
-		public string OUTPUTRESOLUTION { get; set; }
+		public string OutputResolution { get; set; } = string.Empty;
 
 		[JsonProperty("RETAIN HDR METADATA")]
-		public string RETAINHDRMETADATA { get; set; }
+		public string RetainHdrMetadata { get; set; } = string.Empty;
 
 		[JsonProperty("DISPLAY ROTATION")]
-		public string DISPLAYROTATION { get; set; }
+		public string DisplayRotation { get; set; } = string.Empty;
 
 		[JsonProperty("VIDEO SCALE")]
-		public string VIDEOSCALE { get; set; }
+		public string VideoScale { get; set; } = string.Empty;
 
 		[JsonProperty("IP ADDRESS(AUTO)")]
-		public string IPADDRESSAUTO { get; set; }
+		public string IpAddressAuto { get; set; } = string.Empty;
 
 		[JsonProperty("MAC ADDRESSS(AUTO)")]
-		public string MACADDRESSSAUTO { get; set; }
+		public string MacAddressAuto { get; set; } = string.Empty;
 
 		[JsonProperty("HDCP")]
-		public string HDCP { get; set; }
+		public string Hdcp { get; set; } = string.Empty;
 
 		[JsonProperty("OSD - ALL")]
-		public string OSDALL { get; set; }
+		public string OsdAll { get; set; } = string.Empty;
 
 		[JsonProperty("FIRMWARE VERSION")]
-		public string FIRMWAREVERSION { get; set; }
+		public string FirmwareVersion { get; set; } = string.Empty;
 
 		[JsonProperty("CHIPSET")]
-		public string CHIPSET { get; set; }
+		public string Chipset { get; set; } = string.Empty;
 
 		[JsonProperty("DECODERS LIGHTS-ALL")]
-		public string DECODERSLIGHTSALL { get; set; }
+		public string DecoderLightsAll { get; set; } = string.Empty;
 	}
 
 	internal class MxnetConfig
 	{
-		public List<InputEncoder> input_encoders { get; set; }
-		public List<OutputsDecoder> outputs_decoders { get; set; }
+		public List<InputEncoder> InputEncoders { get; set; } = [];
+		public List<OutputsDecoder> OutputDecoders { get; set; } = [];
 	}
 }
