@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DisplayEmulator", "DisplayEmulator\DisplayEmulator.csproj", "{73D9244C-84CD-4D1B-AEE5-2378AF9513C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NecMultisyncDisplay", "NecMultisyncDisplay\NecMultisyncDisplay.csproj", "{F7C494E3-BF3B-47FC-89F5-7B603C6C96C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NecProjector", "NecProjector\NecProjector.csproj", "{440E3FD0-EF5E-4435-A6A5-234D14F45375}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanasonicProjector", "PanasonicProjector\PanasonicProjector.csproj", "{1497E8A3-34FF-4269-A06B-7DC0157E75C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanarSimplicityDisplay", "PlanarSimplicityDisplay\PlanarSimplicityDisplay.csproj", "{B8A3DA13-C784-404B-901E-EE8661DE75A1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{73D9244C-84CD-4D1B-AEE5-2378AF9513C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73D9244C-84CD-4D1B-AEE5-2378AF9513C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73D9244C-84CD-4D1B-AEE5-2378AF9513C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73D9244C-84CD-4D1B-AEE5-2378AF9513C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7C494E3-BF3B-47FC-89F5-7B603C6C96C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7C494E3-BF3B-47FC-89F5-7B603C6C96C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7C494E3-BF3B-47FC-89F5-7B603C6C96C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7C494E3-BF3B-47FC-89F5-7B603C6C96C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{440E3FD0-EF5E-4435-A6A5-234D14F45375}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{440E3FD0-EF5E-4435-A6A5-234D14F45375}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{440E3FD0-EF5E-4435-A6A5-234D14F45375}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{440E3FD0-EF5E-4435-A6A5-234D14F45375}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1497E8A3-34FF-4269-A06B-7DC0157E75C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1497E8A3-34FF-4269-A06B-7DC0157E75C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1497E8A3-34FF-4269-A06B-7DC0157E75C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1497E8A3-34FF-4269-A06B-7DC0157E75C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8A3DA13-C784-404B-901E-EE8661DE75A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8A3DA13-C784-404B-901E-EE8661DE75A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8A3DA13-C784-404B-901E-EE8661DE75A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8A3DA13-C784-404B-901E-EE8661DE75A1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
