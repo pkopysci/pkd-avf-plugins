@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualLighting", "VirtualLighting\VirtualLighting.csproj", "{8F4B459F-DD31-4A83-A950-0631D50B662B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LutronLighting", "LutronLighting\LutronLighting.csproj", "{E0783AC9-1282-468D-A3A0-7D4FB3263C93}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8F4B459F-DD31-4A83-A950-0631D50B662B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F4B459F-DD31-4A83-A950-0631D50B662B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F4B459F-DD31-4A83-A950-0631D50B662B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F4B459F-DD31-4A83-A950-0631D50B662B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0783AC9-1282-468D-A3A0-7D4FB3263C93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0783AC9-1282-468D-A3A0-7D4FB3263C93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0783AC9-1282-468D-A3A0-7D4FB3263C93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0783AC9-1282-468D-A3A0-7D4FB3263C93}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

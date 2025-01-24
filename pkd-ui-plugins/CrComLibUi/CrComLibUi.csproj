@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="pkd-application-service">
+        <HintPath>..\..\Dependencies\pkd-application-service.dll</HintPath>
+      </Reference>
+      <Reference Include="pkd-common-utils">
+        <HintPath>..\..\Dependencies\pkd-common-utils.dll</HintPath>
+      </Reference>
+      <Reference Include="pkd-ui-service">
+        <HintPath>..\..\Dependencies\pkd-ui-service.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Crestron.SimplSharp.SDK.ProgramLibrary" Version="2.21.90" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    </ItemGroup>
+
+</Project>

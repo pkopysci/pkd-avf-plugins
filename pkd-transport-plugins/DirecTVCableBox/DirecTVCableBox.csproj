@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="pkd-common-utils">
+        <HintPath>..\..\Dependencies\pkd-common-utils.dll</HintPath>
+      </Reference>
+      <Reference Include="pkd-hardware-service">
+        <HintPath>..\..\Dependencies\pkd-hardware-service.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="CableBox_DirecTV_H25-100.ir" />
+      <Resource Include="CableBox_DirecTV_H25-100.ir">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Crestron.SimplSharp.SDK.ProgramLibrary" Version="2.21.90" />
+    </ItemGroup>
+
+</Project>
