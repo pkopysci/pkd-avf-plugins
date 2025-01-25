@@ -65,6 +65,9 @@ internal class RoomInfoComponent : BaseComponent
 	/// <inheritdoc/>
 	public override void HandleSerialResponse(string response)
 	{
+		Logger.Debug("CrComLibUi.RoomInfoComponent.HandleSerialResponse():\n\r");
+		Logger.Debug(response);
+		
 		try
 		{
 			var message = MessageFactory.DeserializeMessage(response);
@@ -93,7 +96,6 @@ internal class RoomInfoComponent : BaseComponent
 		}
 		catch (Exception ex)
 		{
-			Logger.Error("CrComLibUi.RoomInfoComponent.HandleSerialResponse() - {0}", ex);
 			var errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
 			Send(errMessage, ApiHooks.RoomConfig);
 		}
@@ -111,8 +113,6 @@ internal class RoomInfoComponent : BaseComponent
 
 	public override void SendConfig()
 	{
-		Logger.Debug("CrComLibUserInterface - RoomInfoComponent.SendConfig()");
-
 		var rxObj = MessageFactory.CreateGetResponseObject();
 		rxObj.Command = "CONFIG";
 		HandleRequestGetConfig(rxObj);
@@ -120,6 +120,8 @@ internal class RoomInfoComponent : BaseComponent
 
 	private void HandleGetRequest(ResponseBase rxObj)
 	{
+		Logger.Debug("CrComLibUi.RoomInfoComponent.HandleGetRequest()");
+		
 		if (GetHandlers.TryGetValue(rxObj.Command, out var handler))
 		{
 			handler.Invoke(rxObj);
@@ -146,8 +148,6 @@ internal class RoomInfoComponent : BaseComponent
 
 	private void HandleRequestGetConfig(ResponseBase rxObj)
 	{
-		Logger.Debug("RoomInfoComponent.HandleRequestGetConfig()");
-
 		List<MainMenuItem> menuItems = [];
 		foreach (var item in UiData.MenuItems)
 		{
@@ -195,7 +195,8 @@ internal class RoomInfoComponent : BaseComponent
 		}
 		catch (Exception ex)
 		{
-			var errorRx = MessageFactory.CreateErrorResponse($"Invalid Data format: {ex.Message}");
+			Logger.Error(ex, "CrComLibUi.RoomInfoComponent.HandleRequestPostUseState()");
+			var errorRx = MessageFactory.CreateErrorResponse("500 - Internal Server Error");
 			Send(errorRx, ApiHooks.RoomConfig);
 		}
 	}

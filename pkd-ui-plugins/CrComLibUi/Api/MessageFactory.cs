@@ -33,7 +33,6 @@ internal static class MessageFactory
 			
 			Logger.Error($"CrComLibUi.Api.MessageFactory.DeserializeMessage() - Could not deserialize {message}. Returning empty response.");
 			return new ResponseBase();
-
 		}
 		catch (Exception ex)
 		{
