@@ -207,9 +207,7 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 				"CrComLibUi.DisplayControlComponent.HandleGetRequest() - Unknown command received: {0}",
 				response.Command);
 
-			Send(MessageFactory.CreateErrorResponse(
-					$"Unsupported command: {response.Command}"),
-				ApiHooks.DisplayChange);
+			SendError($"Unsupported command: {response.Command}", ApiHooks.DisplayChange);
 		}
 	}
 
@@ -221,9 +219,7 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 		}
 		else
 		{
-			Send(MessageFactory.CreateErrorResponse(
-					$"Unsupported command: {response.Command}"),
-				ApiHooks.DisplayChange);
+			SendError($"Unsupported command: {response.Command}", ApiHooks.DisplayChange);
 		}
 	}
 
@@ -231,7 +227,7 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 	{
 		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandConfig;
-		message.Data = _displays;
+		message.Data["Displays"] = JToken.FromObject(_displays);
 		Send(message, ApiHooks.DisplayChange);
 	}
 
@@ -241,25 +237,30 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 
 		try
 		{
-			var display = FindDisplay("HandleGetStateRequest", response.Data.Id);
+			var id = response.Data.Value<string>("Id");
+			if (string.IsNullOrEmpty(id))
+			{
+				SendError("Invalid state GET request - missing Id.", ApiHooks.DisplayChange);
+				return;
+			}
+			var display = FindDisplay("HandleGetStateRequest", id);
 			if (display == null)
 			{
 				Send(MessageFactory.CreateErrorResponse(
-						$"No display found with ID {response.Data.Id}"),
+						$"No display found with ID {id}"),
 					ApiHooks.DisplayChange);
 				return;
 			}
 
 			var message = MessageFactory.CreateGetResponseObject();
 			message.Command = CommandState;
-			message.Data = display;
+			message.Data = new JObject(display);
 			Send(message, ApiHooks.DisplayChange);
 		}
 		catch (Exception ex)
 		{
-			Send(MessageFactory.CreateErrorResponse(
-					$"Failed to parse state request: {ex.Message}"),
-				ApiHooks.DisplayChange);
+			Logger.Error("CrComLibUi.DisplayControlComponent.HandleGetStateRequest()", ex);
+			SendServerError(ApiHooks.DisplayChange);
 		}
 	}
 
@@ -267,28 +268,23 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 	{
 		try
 		{
-			if (response.Data is not JObject data)
+			var id = response.Data.Value<string>("Id");
+			var hasState = response.Data.ContainsKey("State");
+			if (string.IsNullOrEmpty(id) || !hasState)
 			{
-				Send(MessageFactory.CreateErrorResponse(
-					"Invalid screen POST request - Data not valid JSON format."),
-					ApiHooks.DisplayChange);
+				SendError("Invalid screen POST request - missing Id or State", ApiHooks.DisplayChange);
 				return;
 			}
 			
-			var id = data.Value<string>("Id");
-			if (string.IsNullOrEmpty(id))
-			{
-				Send(MessageFactory.CreateErrorResponse("Invalid screen POST request - missing Id"), ApiHooks.DisplayChange);
-				return;
-			}
-			
-			var temp = data.Value<bool>("State") ? DisplayScreenUpRequest : DisplayScreenDownRequest;
+			var temp = response.Data.Value<bool>("State") ?
+				DisplayScreenUpRequest :
+				DisplayScreenDownRequest;
 			temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
 		}
 		catch (Exception ex)
 		{
 			Logger.Error("DisplayControlComponent.HandlePostScreenResponse:\n\r{0}", ex.Message);
-			Send(MessageFactory.CreateErrorResponse("500 - Internal Server Error"), ApiHooks.DisplayChange);
+			SendServerError(ApiHooks.DisplayChange);
 		}
 	}
 
@@ -296,28 +292,24 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 	{
 		var temp = DisplayPowerChangeRequest;
 		if (temp == null) return;
+		
 		try
 		{
-			if (response.Data is not JObject data)
-			{
-				Send(MessageFactory.CreateErrorResponse("Invalid power POST request - Data not valid JSON."), ApiHooks.DisplayChange);
-				return;
-			}
-			
-			var id = data.Value<string>("Id");
-			var hasState = data.ContainsKey("State");
+			var id = response.Data.Value<string>("Id");
+			var hasState = response.Data.ContainsKey("State");
 			if (string.IsNullOrEmpty(id) || !hasState)
 			{
-				Send(MessageFactory.CreateErrorResponse("Invalid power POST request - missing Id or State"), ApiHooks.DisplayChange);
+				SendError("Invalid power POST request - missing Id or State", ApiHooks.DisplayChange);
 				return;
 			}
 			
-			temp.Invoke(this, new GenericDualEventArgs<string, bool>(id, data.Value<bool>("State")));
+			temp.Invoke(this, new GenericDualEventArgs<string, bool>(id,
+				response.Data.Value<bool>("State")));
 		}
 		catch (Exception ex)
 		{
 			Logger.Error("DisplayControlComponent.HandlePostPowerResponse:\n\r{0}", ex.Message);
-			Send(MessageFactory.CreateErrorResponse("500 - Internal Server Error"), ApiHooks.DisplayChange);
+			SendServerError(ApiHooks.DisplayChange);
 		}
 	}
 
@@ -325,33 +317,25 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 	{
 		try
 		{
-			if (response.Data is not JObject data)
-			{
-				Send(MessageFactory.CreateErrorResponse("Invalid input POST request - Data not valid JSON"), ApiHooks.DisplayChange);
-				return;
-			}
-			
-			var targetId = data.Value<string>("Id");
-			var inputId = data.Value<string>("InputId");
+			var targetId = response.Data.Value<string>("Id");
+			var inputId = response.Data.Value<string>("InputId");
 			if (string.IsNullOrEmpty(targetId) || string.IsNullOrEmpty(inputId))
 			{
-				Send(MessageFactory.CreateErrorResponse("Invalid input POST request - missing Id or InputId."), ApiHooks.DisplayChange);
+				SendError("Invalid input POST request - missing Id or InputId.", ApiHooks.DisplayChange);
 				return;
 			}
 
 			var display = _displays.FirstOrDefault(x => x.Id == targetId);
 			if (display == null)
 			{
-				Send(MessageFactory.CreateErrorResponse($"No display with ID {targetId}"), ApiHooks.DisplayChange);
+				SendError($"No display with ID {targetId}", ApiHooks.DisplayChange);
 				return;
 			}
 
 			var input = display.Inputs.FirstOrDefault(x => x.Id == inputId);
 			if (input == null)
 			{
-				Send(MessageFactory.CreateErrorResponse(
-						$"display {targetId} does not contain an input with ID {inputId}"),
-					ApiHooks.DisplayChange);
+				SendError($"display {targetId} does not contain an input with ID {inputId}", ApiHooks.DisplayChange);
 				return;
 			}
 
@@ -360,9 +344,8 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 		}
 		catch (Exception ex)
 		{
-			Send(MessageFactory.CreateErrorResponse(
-					$"Failed to parse display input request: {ex.Message}"),
-				ApiHooks.DisplayChange);
+			Logger.Error("DisplayControlComponent.HandlePostInputResponse():\n\r{0}", ex.Message);
+			SendServerError(ApiHooks.DisplayChange);
 		}
 	}
 
@@ -370,14 +353,20 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 	{
 		try
 		{
+			var id = response.Data.Value<string>("Id");
+			if (string.IsNullOrEmpty(id))
+			{
+				SendError("Invalid freeze POST request - missing Id.", ApiHooks.DisplayChange);
+				return;
+			}
+			
 			var temp = DisplayFreezeChangeRequest;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(response.Data.Id));
+			temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
 		}
 		catch (Exception ex)
 		{
-			Send(MessageFactory.CreateErrorResponse(
-					$"Failed to parse display freeze request: {ex.Message}"),
-				ApiHooks.DisplayChange);
+			Logger.Error("DisplayControlComponent.HandlePostFreezeResponse():\n\r{0}", ex.Message);
+			SendServerError(ApiHooks.DisplayChange);
 		}
 	}
 
@@ -387,14 +376,20 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 
 		try
 		{
+			var id = response.Data.Value<string>("Id");
+			if (string.IsNullOrEmpty(id))
+			{
+				SendError("Invalid blank POST request - missing Id.", ApiHooks.DisplayChange);
+				return;
+			}
+			
 			var temp = DisplayBlankChangeRequest;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(response.Data.Id));
+			temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
 		}
 		catch (Exception ex)
 		{
-			Send(MessageFactory.CreateErrorResponse(
-					$"Failed to parse display blank request: {ex.Message}"),
-				ApiHooks.DisplayChange);
+			Logger.Error("DisplayControlComponent.HandlePostBlankResponse():\n\r{0}", ex.Message);
+			SendServerError(ApiHooks.DisplayChange);
 		}
 	}
 
@@ -415,9 +410,9 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 
 	private void SendDisplayStatus(Display display)
 	{
-		ResponseBase message = MessageFactory.CreateGetResponseObject();
+		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandState;
-		message.Data = display;
+		message.Data = JObject.FromObject(display);
 		Send(message, ApiHooks.DisplayChange);
 	}
 }

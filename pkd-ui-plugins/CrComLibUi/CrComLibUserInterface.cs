@@ -615,7 +615,7 @@ public class CrComLibUserInterface :
 			dcc.StationLocalInputRequest += DisplayLocalInputHandler;
 			_uiComponents.Add(dcc);
 			_apiHandlerActions.Add((uint)ApiHooks.DisplayChange, dcc.HandleSerialResponse);
-
+			
 			var acc = new AudioControlComponent(_ui, _uiData);
 			acc.AudioInputLevelDownRequest += AudioInputDownHandler;
 			acc.AudioInputLevelUpRequest += AudioInputUpHandler;
@@ -629,28 +629,29 @@ public class CrComLibUserInterface :
 			acc.SetAudioOutputLevelRequest += AudioSetOutputLevelHandler;
 			_uiComponents.Add(acc);
 			_apiHandlerActions.Add((uint)ApiHooks.AudioControl, acc.HandleSerialResponse);
-
+			
 			var ecc = new ErrorComponent(_ui, _uiData);
 			_apiHandlerActions.Add((uint)ApiHooks.Errors, ecc.HandleSerialResponse);
 			_uiComponents.Add(ecc);
-
+			
 			var lcc = new LightingComponent(_ui, _uiData);
 			lcc.LightingLoadChangeRequest += LightingSetLoadHandler;
 			lcc.LightingSceneRecallRequest += LightingSceneHandler;
 			_uiComponents.Add(lcc);
 			_apiHandlerActions.Add((uint)ApiHooks.LightingControl, lcc.HandleSerialResponse);
-
+			
 			var tcc = new TransportComponent(_ui, _uiData);
 			tcc.TransportDialFavoriteRequest += TransportFavoriteHandler;
 			tcc.TransportControlRequest += TransportControlHandler;
 			tcc.TransportDialRequest += TransportDialHandler;
 			_uiComponents.Add(tcc);
 			_apiHandlerActions.Add((uint)ApiHooks.DeviceControl, tcc.HandleSerialResponse);
-
-			var securityComponent = new SecurityComponent(_ui, _uiData);
-			_uiComponents.Add(securityComponent);
-			_apiHandlerActions.Add((uint)ApiHooks.Security, securityComponent.HandleSerialResponse);
-
+			
+			// TODO: Uncomment components
+			// var securityComponent = new SecurityComponent(_ui, _uiData);
+			// _uiComponents.Add(securityComponent);
+			// _apiHandlerActions.Add((uint)ApiHooks.Security, securityComponent.HandleSerialResponse);
+			
 			var cec = new CustomEventComponent(_ui, _uiData);
 			cec.CustomEventChangeRequest += HandleCustomEventRequest;
 			_uiComponents.Add(cec);

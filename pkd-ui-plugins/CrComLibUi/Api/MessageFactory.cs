@@ -1,4 +1,7 @@
-﻿namespace CrComLibUi.Api;
+﻿using System.Dynamic;
+using Newtonsoft.Json.Linq;
+
+namespace CrComLibUi.Api;
 
 using Newtonsoft.Json;
 using pkd_common_utils.Logging;
@@ -37,7 +40,8 @@ internal static class MessageFactory
 		catch (Exception ex)
 		{
 			Logger.Error(
-				"CrComLibUi.Api.MessageFactory.DeserializeMessage() - Failed to deserialize the message returning empty response.\nReason: {0}",
+				"CrComLibUi.Api.MessageFactory.DeserializeMessage() - Failed to deserialize the message {0}.\n\rReturning empty response.\n\rReason: {1}",
+				message,
 				ex.Message);
 
 			return new ResponseBase();
@@ -78,11 +82,12 @@ internal static class MessageFactory
 
 	public static ResponseBase CreateErrorResponse(string errorMessage = "")
 	{
-		return new ResponseBase()
+		var response = new ResponseBase()
 		{
 			Method = "GET",
 			Command = "ERROR",
-			Data = errorMessage,
 		};
+		response.Data.Add(new JProperty("Message", errorMessage));
+		return response;
 	}
 }

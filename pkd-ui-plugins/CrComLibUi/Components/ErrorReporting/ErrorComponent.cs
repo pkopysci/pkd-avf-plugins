@@ -1,4 +1,6 @@
-﻿namespace CrComLibUi.Components.ErrorReporting;
+﻿using Newtonsoft.Json.Linq;
+
+namespace CrComLibUi.Components.ErrorReporting;
 
 using Crestron.SimplSharpPro.DeviceSupport;
 using pkd_application_service.UserInterface;
@@ -7,7 +9,6 @@ using pkd_ui_service.Interfaces;
 using Api;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 internal class ErrorComponent : BaseComponent, IErrorInterface
 {
@@ -65,15 +66,13 @@ internal class ErrorComponent : BaseComponent, IErrorInterface
 			}
 			else
 			{
-				var errMessage = MessageFactory.CreateErrorResponse($"Unsupported method: {message.Method}.");
-				Send(errMessage, ApiHooks.Errors);
+				SendError($"Unsupported method: {message.Method}.", ApiHooks.Errors);
 			}
 		}
 		catch (Exception ex)
 		{
 			Logger.Error("CrComLibUi.ErrorComponent.HandleSerialResponse() - {0}", ex);
-			var errRx = MessageFactory.CreateErrorResponse("500 - Internal Server Error.");
-			Send(errRx, ApiHooks.Errors);
+			SendServerError(ApiHooks.Errors);
 		}
 	}
 
@@ -87,9 +86,9 @@ internal class ErrorComponent : BaseComponent, IErrorInterface
 
 	private void SendErrors()
 	{
-		var response = MessageFactory.CreateGetResponseObject();
-		response.Command = Command;
-		response.Data = _errors.Values.ToArray();
-		Send(response, ApiHooks.Errors);
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = Command;
+		message.Data = JObject.FromObject(_errors);
+		Send(message, ApiHooks.Errors);
 	}
 }

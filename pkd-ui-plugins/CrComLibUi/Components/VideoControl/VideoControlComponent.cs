@@ -1,4 +1,6 @@
-﻿namespace CrComLibUi.Components.VideoControl;
+﻿using Newtonsoft.Json.Linq;
+
+namespace CrComLibUi.Components.VideoControl;
 
 using Api;
 using Crestron.SimplSharpPro.DeviceSupport;
@@ -13,7 +15,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Dynamic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
 
 internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 {
@@ -124,7 +125,7 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 		_globalBlankState = state;
 		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandBlank;
-		message.Data = _globalBlankState;
+		message.Data.Add(new JProperty("State", _globalBlankState));
 		Send(message, ApiHooks.VideoControl);
 	}
 
@@ -133,7 +134,7 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 		_globalFreezeState = state;
 		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandFreeze;
-		message.Data = _globalFreezeState;
+		message.Data.Add(new JProperty("State", _globalFreezeState));
 		Send (message, ApiHooks.VideoControl);
 	}
 
@@ -156,7 +157,7 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 		dynamic dataObj = new ExpandoObject();
 		dataObj.DestId = dest.Id;
 		dataObj.SrcId = inputInfo.Id;
-		message.Data = dataObj;
+		message.Data = JObject.FromObject(dataObj);
 		Send(message, ApiHooks.VideoControl);
 	}
 
@@ -192,14 +193,13 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 		{
 			var message = MessageFactory.CreateGetResponseObject();
 			message.Command = CommandConfig;
-			message.Data = CreateConfigData();
+			message.Data = JObject.FromObject(CreateConfigData());
 			Send(message, ApiHooks.VideoControl);
 		}
 		catch (Exception ex)
 		{
 			Logger.Error("CrComLibUi.VideoControlComponent.HandleGetConfigRequest() - {0}", ex);
-			var errRx = MessageFactory.CreateErrorResponse("500 - Internal Server Error.");
-			Send(errRx, ApiHooks.VideoControl);
+			SendServerError(ApiHooks.VideoControl);
 		}
 	}
 
@@ -207,24 +207,16 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 	{
 		var temp = AvRouteChangeRequest;
 		if (temp == null) return;
-
+		
 		try
 		{
-			if (response.Data is not JObject data)
-			{
-				Send(
-					MessageFactory.CreateErrorResponse("Invalid route POST request - Data is not valid JSON."),
-					ApiHooks.VideoControl);
-				return;
-			}
-			
-			var srcId = data.Value<string>("SrcId");
-			var destId = data.Value<string>("DestId");
+			var srcId = response.Data.Value<string>("SrcId");
+			var destId = response.Data.Value<string>("DestId");
 			if (string.IsNullOrEmpty(srcId) || string.IsNullOrEmpty(destId))
 			{
 				Send(
-					MessageFactory.CreateErrorResponse("Invalid route POST request - Missing SrcId or DestId"),
-					ApiHooks.VideoControl);
+				MessageFactory.CreateErrorResponse("Invalid route POST request - Missing SrcId or DestId"),
+				ApiHooks.VideoControl);
 				return;
 			}
 			
@@ -233,8 +225,7 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 		catch (Exception ex)
 		{
 			Logger.Error("CrComLibUi.VideoControlComponent.HandlePostRouteRequest() - {0}", ex);
-			var errRx = MessageFactory.CreateErrorResponse("500 - Internal Server Error.");
-			Send(errRx, ApiHooks.VideoControl);
+			SendServerError(ApiHooks.VideoControl);
 		}
 	}
 

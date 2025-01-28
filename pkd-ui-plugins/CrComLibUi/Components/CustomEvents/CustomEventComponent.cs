@@ -1,4 +1,6 @@
-﻿namespace CrComLibUi.Components.CustomEvents;
+﻿using Newtonsoft.Json.Linq;
+
+namespace CrComLibUi.Components.CustomEvents;
 
 using Crestron.SimplSharpPro.DeviceSupport;
 using pkd_application_service.UserInterface;
@@ -73,8 +75,7 @@ internal class CustomEventComponent : BaseComponent, ICustomEventUserInterface
 			var message = MessageFactory.DeserializeMessage(response);
 			if (message.Method.Equals(string.Empty))
 			{
-				var errMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
-				Send(errMessage, ApiHooks.Event);
+				SendError("Invalid message format.", ApiHooks.Event);
 				return;
 			}
 
@@ -88,8 +89,7 @@ internal class CustomEventComponent : BaseComponent, ICustomEventUserInterface
 					break;
 				default:
 				{
-					var errMessage = MessageFactory.CreateErrorResponse($"Unsupported method: {message.Method}.");
-					Send(errMessage, ApiHooks.Event);
+					SendError($"Unsupported method: {message.Method}.", ApiHooks.Event);
 					return;
 				}
 			}
@@ -97,8 +97,7 @@ internal class CustomEventComponent : BaseComponent, ICustomEventUserInterface
 		catch (Exception ex)
 		{
 			Logger.Error("CrComLibUi.CustomEventComponent.HandleSerialResponse() - {0}", ex);
-			var errMessage = MessageFactory.CreateErrorResponse("500 - Internal Server Error.");
-			Send(errMessage, ApiHooks.Event);
+			SendServerError(ApiHooks.Event);
 		}
 	}
 
@@ -116,10 +115,7 @@ internal class CustomEventComponent : BaseComponent, ICustomEventUserInterface
 		}
 		else
 		{
-			var errRx = MessageFactory.CreateErrorResponse(
-				$"Unsupported GET command: {responseBase.Command}");
-
-			Send(errRx, ApiHooks.Event);
+			SendError($"Unsupported GET command: {responseBase.Command}", ApiHooks.Event);
 		}
 	}
 
@@ -131,42 +127,62 @@ internal class CustomEventComponent : BaseComponent, ICustomEventUserInterface
 		}
 		else
 		{
-			var errRx = MessageFactory.CreateErrorResponse(
-				$"Unsupported POST command: {responseBase.Command}");
-
-			Send(errRx, ApiHooks.Event);
+			SendError($"Unsupported POST command: {responseBase.Command}", ApiHooks.Event);
 		}
 	}
 
 	private void HandleGetConfigRequest(ResponseBase responseBase)
 	{
-		Logger.Debug("CrComLibUi.CustomEventComponent.HandleGetConfigRequest()");
-		responseBase.Data = _customEvents.Values.ToList();
-		Send(responseBase, ApiHooks.Event);
+		try
+		{
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CommandConfig;
+			message.Data = JObject.FromObject(_customEvents);
+			Send(message, ApiHooks.Event);
+		}
+		catch (Exception e)
+		{
+			Logger.Error("CrComLibUi.CustomEventComponent.HandleGetConfigRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.Event);
+		}
 	}
 
 	private void HandlePostStateRequest(ResponseBase responseBase)
 	{
 		try
 		{
+			var id = responseBase.Data.Value<string>("Id");
+			var state = responseBase.Data.Value<bool>("State");
+			if (string.IsNullOrEmpty(id) || !responseBase.Data.ContainsKey("State"))
+			{
+				SendError("Invalid POST event state: - missing Id or State.", ApiHooks.Event);
+				return;
+			}
+
 			var temp = CustomEventChangeRequest;
-			temp?.Invoke(this, new GenericDualEventArgs<string, bool>(
-				responseBase.Data.Id,
-				responseBase.Data.State));
+			temp?.Invoke(this, new GenericDualEventArgs<string, bool>(id, state));
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Invalid POST format: {ex.Message}");
-			errRx.Command = responseBase.Command;
-			Send(errRx, ApiHooks.Event);
+			Logger.Error("CrComLibUi.CustomEventComponent.HandleGetConfigRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.Event);
 		}
 	}
 
 	private void NotifyEventState(CustomEventData eventData)
 	{
-		var message = MessageFactory.CreateGetResponseObject();
-		message.Command = CommandState;
-		message.Data = eventData;
-		Send(message, ApiHooks.Event);
+		try
+		{
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CommandState;
+			message.Data["Id"] = eventData.Id;
+			message.Data["State"] = eventData.State;
+			Send(message, ApiHooks.Event);
+		}
+		catch (Exception e)
+		{
+			Logger.Error("CrComLibUi.CustomEventComponent.HandleGetConfigRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.Event);
+		}
 	}
 }

@@ -44,6 +44,18 @@ internal abstract class BaseComponent(
 		}
 	}
 
+	protected void SendServerError(ApiHooks hook)
+	{
+		var errRx = MessageFactory.CreateErrorResponse("500 - Internal Server Error.");
+		Send(errRx, hook);
+	}
+	
+	protected void SendError(string message, ApiHooks hook)
+	{
+		var errRx = MessageFactory.CreateErrorResponse(message);
+		Send(errRx, hook);
+	}
+	
 	protected void FlushJoinData(ApiHooks hook)
 	{
 		Ui.StringInput[(uint)hook].StringValue = string.Empty;

@@ -91,7 +91,7 @@ internal class TransportComponent : BaseComponent, ITransportControlUserInterfac
 		if (!Initialized) return;
 		var rx = MessageFactory.CreateGetResponseObject();
 		rx.Command = CommandConfig;
-		rx.Data = _devices;
+		rx.Data["Devices"] = JToken.FromObject(_devices);
 		Send(rx, ApiHooks.DeviceControl);
 	}
 
@@ -125,115 +125,110 @@ internal class TransportComponent : BaseComponent, ITransportControlUserInterfac
 	{
 		var rx = MessageFactory.CreateGetResponseObject();
 		rx.Command = CommandConfig;
-		rx.Data = _devices;
+		rx.Data["Devices"] = JToken.FromObject(_devices);
 		Send(rx, ApiHooks.DeviceControl);
 	}
 
 	private void HandlePostFavoriteRequest(ResponseBase message)
 	{
-		Logger.Debug("TransportComponent.HandlePostFavoriteRequest()");
-
 		try
 		{
-			//JObject data = message.Data as JObject;
-			if (message.Data is not JObject data)
+			var deviceId = message.Data.Value<string>("Id");
+			var favoriteId = message.Data.Value<string>("FavId");
+			if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(favoriteId))
 			{
-				SendError("Invalid message data.");
+				SendError("Invalid POST favorite request - missing Id or FavId.", ApiHooks.DeviceControl);
 				return;
 			}
 			
-			var deviceId = data.Value<string>("Id") ?? string.Empty;
-			var favId = data.Value<string>("FavId") ?? string.Empty;
-			if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(favId))
+			var device = _devices.FirstOrDefault(x => x.Id == deviceId);
+			if (device == null)
 			{
-				SendError("Invalid favorite POST request - missing Id or FavId");
+				SendError($"Invalid POST favorite request - No device with id {deviceId}", ApiHooks.DeviceControl);
+				return;
+			}
+
+			if (device.Favorites.All(x => x.Id != favoriteId))
+			{
+				SendError(
+					$"Invalid POST favorite reques - device {deviceId} does not have favorite with id {favoriteId}",
+					ApiHooks.DeviceControl);
 				return;
 			}
 
 			var temp = TransportDialFavoriteRequest;
-			temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, favId));
+			temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, favoriteId));
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			Logger.Error("CrComLibUi.TransportComponent.HandlePostFavoriteRequest() - {0}", ex);
-			SendError($"Invalid message format: {ex.Message}");
+			Logger.Error("CrComLibUi.TransportComponent.HandlePostFavoriteRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.DeviceControl);
 		}
 	}
 
 	private void HandlePostTransportRequest(ResponseBase message)
 	{
 		Logger.Debug("TransportComponent.handlePostTransportRequest()");
-
 		try
 		{
-			if (message.Data is not JObject data)
+			var deviceId = message.Data.Value<string>("Id");
+			var tag = message.Data.Value<string>("Tag");
+			if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(tag))
 			{
-				SendError("Invalid message data.");
+				SendError("Invalid POST transport request - missing Id or Tag.", ApiHooks.DeviceControl);
 				return;
 			}
 			
-			var deviceId = data.Value<string>("Id") ?? string.Empty;
-			var tag = data.Value<string>("Tag") ?? string.Empty;
-
-			if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(tag))
+			var device = _devices.FirstOrDefault(x => x.Id == deviceId);
+			if (device == null)
 			{
-				SendError("Invalid transport POST request - missing Id or Tag.");
+				SendError($"Invalid POST transport request - no device with id {deviceId}", ApiHooks.DeviceControl);
 				return;
 			}
-
+			
 			var transport = TransportUtilities.FindTransport(tag);
 			if (transport == TransportTypes.Unknown)
 			{
-				SendError($"Invalid transport POST requested - unsupported transport command: {tag}");
-			}
-			else
-			{
-				var temp = TransportControlRequest;
-				temp?.Invoke(this, new GenericDualEventArgs<string, TransportTypes>(deviceId, transport));
+				SendError($"Invalid POST transport request - no command with tag {tag}", ApiHooks.DeviceControl);
+				return;
 			}
 
+			var temp = TransportControlRequest;
+			temp?.Invoke(this, new GenericDualEventArgs<string, TransportTypes>(deviceId, transport));
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			Logger.Error("CrComLibUi.TransportComponent.HandlePostTransportRequest() - {0}", ex);
-			var errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
-			Send(errMessage, ApiHooks.DeviceControl);
+			Logger.Error("CrComLibUi.TransportComponent.HandlePostTransportRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.DeviceControl);
 		}
 	}
 
 	private void HandlePostChannelRequest(ResponseBase message)
 	{
 		Logger.Debug("CrComLibUi.HandlePostChannelRequest()");
-
 		try
 		{
-			if (message.Data is not JObject data)
-			{
-				SendError("Invalid message data.");
-				return;
-			}
-			
-			var deviceId = data.Value<string>("Id") ?? string.Empty;
-			var channel = data.Value<string>("Chan") ?? string.Empty;
+			var deviceId = message.Data.Value<string>("Id");
+			var channel = message.Data.Value<string>("Chan");
 			if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(channel))
 			{
-				SendError("Invalid channel POst request - missing ID or Chan.");
+				SendError("Invalid POST channel request - missing Id or Channel.", ApiHooks.DeviceControl);
+				return;
+			}
+
+			if (_devices.All(x => x.Id != deviceId))
+			{
+				SendError($"Invalid POST channel request - no device with id {deviceId}", ApiHooks.DeviceControl);
 				return;
 			}
 
 			var temp = TransportDialRequest;
 			temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, channel));
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			Logger.Error("CrComLibUi.TransportComponent.HandlePostChannelRequest() - {0}", ex);
-			SendError($"Invalid message format: {ex.Message}");
+			Logger.Error("CrComLibUi.TransportComponent.HandlePostChannelRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.DeviceControl);
 		}
-	}
-
-	private void SendError(string message)
-	{
-		var errMsg = MessageFactory.CreateErrorResponse(message);
-		Send(errMsg, ApiHooks.DeviceControl);
 	}
 }

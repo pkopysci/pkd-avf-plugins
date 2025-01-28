@@ -10,7 +10,6 @@ using Api;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Dynamic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
@@ -140,18 +139,13 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 		foreach (var scene in control.Scenes)
 		{
 			scene.Set = scene.Id.Equals(sceneId);
+			if (!scene.Set) continue;
+			
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CommandScene;
+			message.Data["SceneId"] = scene.Id;
+			Send(message, ApiHooks.LightingControl);
 		}
-
-		var message = MessageFactory.CreateGetResponseObject();
-		message.Command = CommandScene;
-		message.Data = new ExpandoObject();
-		message.Data.Id = controlId;
-		message.Data.SceneId = sceneId;
-		message.Data.Set = true;
-
-		Logger.Debug($"CrComLibUi.LightingComponent.UpdateActiveLightingScene() - sending message: {message}");
-
-		Send(message, ApiHooks.LightingControl);
 	}
 
 	/// <inheritdoc/>
@@ -170,26 +164,8 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 			zone.Load = level;
 			var message = MessageFactory.CreateGetResponseObject();
 			message.Command = CommandZone;
-			message.Data = new ExpandoObject();
-			message.Data.Id = controlId;
-			message.Data.ZoneId = zoneId;
-			message.Data.Load = true;
-			Send(message, ApiHooks.LightingControl);
 			break;
 		}
-	}
-
-	private LightingData? FindController(string id, string command)
-	{
-		var controller = _lights.FirstOrDefault(x => x.Id.Equals(id));
-		if (controller == null)
-		{
-			var errRx = MessageFactory.CreateErrorResponse($"No light control with ID {id}.");
-			errRx.Command = command;
-			Send(errRx, ApiHooks.LightingControl);
-		}
-
-		return controller;
 	}
 
 	private void HandleGetRequests(ResponseBase response)
@@ -200,7 +176,7 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 		}
 		else
 		{
-			SendError($"Unsupported GET command: {response.Command}");
+			SendError($"Unsupported GET command: {response.Command}", ApiHooks.LightingControl);
 		}
 	}
 
@@ -212,54 +188,54 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 		}
 		else
 		{
-			SendError($"Unsupported POST command: {response.Command}");
+			SendError($"Unsupported POST command: {response.Command}", ApiHooks.LightingControl);
 		}
 	}
 
 	private void GetConfigHandler(ResponseBase response)
 	{
-		response.Data = _lights;
-		Send(response, ApiHooks.LightingControl);
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandConfig;
+		message.Data["Lights"] = JToken.FromObject(_lights);
+		Send(message, ApiHooks.LightingControl);
 	}
 
 	private void GetZoneHandler(ResponseBase response)
 	{
 		try
 		{
-			if (response.Data is not JObject data)
+			var id = response.Data.Value<string>("Id");
+			var zoneId = response.Data.Value<string>("ZoneId");
+			if (string.IsNullOrEmpty(zoneId) || string.IsNullOrEmpty(id))
 			{
-				SendError($"Invalid data type. { response.Data.GetType() }");
+				SendError("Invalid GET zone request - missing Id or ZoneId.", ApiHooks.LightingControl);
 				return;
 			}
-				
-			var controlId = data.Value<string>("Id") ?? string.Empty;
-			var zoneId = data.Value<string>("ZoneId") ?? string.Empty;
-			if (string.IsNullOrEmpty(zoneId) || string.IsNullOrEmpty(controlId))
+			
+			var light = _lights.FirstOrDefault(x => x.Id == id);
+			if (light == null)
 			{
-				SendError("Invalid zone GET request: missing controlId or zoneId.");
+				SendError($"Invalid Get zone request - no lighting control with id {id}", ApiHooks.LightingControl);
 				return;
 			}
-
-			var controller = FindController(controlId, CommandZone);
-			if (controller == null)
-			{
-				SendError("Unknown controller ID received.");
-				return;
-			}
-
-			var zone = controller.Zones.FirstOrDefault(x => x.Id.Equals(zoneId));
+			
+			var zone = light.Zones.FirstOrDefault(x => x.Id == zoneId);
 			if (zone == null)
 			{
-				SendError($"unknown zone ID received for controller {controlId}");
+				SendError($"Invalid GET zone request - control {id} does not have a zone with id {zoneId}", ApiHooks.LightingControl);
 				return;
 			}
-
-			response.Data = zone;
-			Send(response, ApiHooks.LightingControl);
+			
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CommandZone;
+			message.Data["ZoneId"] = zoneId;
+			message.Data["Id"] = id;
+			Send(message, ApiHooks.LightingControl);
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			SendError($"Invalid GET zone command: {ex.Message}");
+			Logger.Error("CrComLibUI.LightingComponent.GetZoneHandler() - {0}", e.Message);
+			SendServerError(ApiHooks.LightingControl);
 		}
 	}
 
@@ -267,40 +243,29 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 	{
 		try
 		{
-			if (response.Data is not JObject data)
+			var controlId = response.Data.Value<string>("Id");
+			if (string.IsNullOrEmpty(controlId))
 			{
-				SendError($"Scene GET requests - Invalid data type. { response.Data.GetType() }");
+				SendError("Invalid GET scene handler - missing Id.", ApiHooks.LightingControl);
 				return;
 			}
-				
-			var controlId = data.Value<string>("Id") ?? string.Empty;
-			var sceneId = data.Value<string>("SceneId") ?? string.Empty;
-			if (string.IsNullOrEmpty(sceneId) || string.IsNullOrEmpty(controlId))
+			
+			var found = _lights.FirstOrDefault(x => x.Id == controlId);
+			if (found == null)
 			{
-				SendError("Invalid scene GET request: missing controlId or sceneId.");
+				SendError($"Invalid GET scene handler, no control with id {controlId}", ApiHooks.LightingControl);
 				return;
 			}
-				
-			var controller = FindController(controlId, CommandScene);
-			if (controller == null)
-			{
-				SendError( "Unknown control ID received.");
-				return;
-			}
-
-			var scene = controller.Scenes.FirstOrDefault(x => x.Id.Equals(response.Data.SceneId));
-			if (scene == null)
-			{
-				SendError($"Control {controlId} does not have a scene with ID {sceneId}.");
-				return;
-			}
-
-			response.Data = scene;
-			Send(response, ApiHooks.LightingControl);
+			
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CommandScene;
+			message.Data["SceneId"] = found.Scenes.First(x => x.Set).Id;
+			Send(message, ApiHooks.LightingControl);
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			SendError( $"Invalid GET scene request: {ex.Message}");
+			Logger.Error("CrComLibUI.LightingComponent.GetSceneHandler() - {0}", e.Message);
+			SendServerError(ApiHooks.LightingControl);
 		}
 	}
 
@@ -308,31 +273,42 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 	{
 		try
 		{
-			if (response.Data is not JObject data)
+			var controlId = response.Data.Value<string>("Id");
+			var zoneId = response.Data.Value<string>("ZoneId");
+			var load = response.Data.Value<int>("Load");
+			if (string.IsNullOrEmpty(controlId) || string.IsNullOrEmpty(zoneId) || load < 0)
 			{
-				SendError($"zone POST requests - Invalid data type. { response.Data.GetType() }");
+				SendError(
+					"Invalid POST zone request - missing Id or ZoneId, or Load is less than zero.",
+					ApiHooks.LightingControl);
 				return;
 			}
-				
-			var controlId = data.Value<string>("Id") ?? string.Empty;
-			var zoneId = data.Value<string>("ZoneId") ?? string.Empty;
-			var load = data.Value<int>("Load");
-
-			if (string.IsNullOrEmpty(controlId) || string.IsNullOrEmpty(zoneId))
+			
+			var control = _lights.FirstOrDefault(x => x.Id == zoneId);
+			if (control == null)
 			{
-				SendError("Invalid zone POST request: missing controlId or zoneId.");
+				SendError(
+					$"Invalid POST zone request - no control with id {controlId}",
+					ApiHooks.LightingControl);
+				return;
+			}
+
+			var zone = control.Zones.FirstOrDefault(x => x.Id == zoneId);
+			if (zone == null)
+			{
+				SendError(
+					$"Invalid POST zone request - control {controlId} does not have a zone with id {zoneId}",
+					ApiHooks.LightingControl);
 				return;
 			}
 
 			var temp = LightingLoadChangeRequest;
-			temp?.Invoke(this, new GenericTrippleEventArgs<string, string, int>(
-				controlId,
-				zoneId,
-				load));
+			temp?.Invoke(this, new GenericTrippleEventArgs<string, string, int>(control.Id, zoneId, load));
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			SendError($"Invalid POST zone request: {ex.Message}");
+			Logger.Error("CrComLibUI.LightingComponent.PostZoneHandler() - {0}", e.Message);
+			SendServerError(ApiHooks.LightingControl);
 		}
 	}
 
@@ -340,33 +316,30 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 	{
 		try
 		{
-			if (response.Data is not JObject data)
-			{
-				SendError($"Invalid zone POST requests - Invalid data type. { response.Data.GetType() }");
-				return;
-			}
-				
-			var controlId = data.Value<string>("Id") ?? string.Empty;
-			var sceneId = data.Value<string>("SceneId") ?? string.Empty;
-
+			var controlId = response.Data.Value<string>("Id");
+			var sceneId = response.Data.Value<string>("SceneId");
 			if (string.IsNullOrEmpty(controlId) || string.IsNullOrEmpty(sceneId))
 			{
-				SendError($"Invalid POST scene request: Missing controlId or sceneId.");
+				SendError("Invalid POST scene request - missing Id or SceneId.", ApiHooks.LightingControl);
+				return;
+			}
+			
+			var control = _lights.FirstOrDefault(x => x.Id == controlId);
+			if (control == null)
+			{
+				SendError(
+					$"Invalid POST scene request - no control with id {controlId}",
+					ApiHooks.LightingControl);
 				return;
 			}
 
 			var temp = LightingSceneRecallRequest;
-			temp?.Invoke(this, new GenericDualEventArgs<string, string>(controlId, sceneId));
+			temp?.Invoke(this, new GenericDualEventArgs<string, string>(control.Id, sceneId));
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			SendError($"Invalid POST scene request: {ex.Message}");
+			Logger.Error("CrComLibUI.LightingComponent.PostSceneHandler() - {0}", e.Message);
+			SendServerError(ApiHooks.LightingControl);
 		}
-	}
-
-	private void SendError(string message)
-	{
-		var errRx = MessageFactory.CreateErrorResponse(message);
-		Send(errRx, ApiHooks.LightingControl);
 	}
 }

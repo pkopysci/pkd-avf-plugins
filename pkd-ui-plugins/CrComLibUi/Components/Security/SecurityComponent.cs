@@ -25,26 +25,25 @@ internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 	{
 		var cmd = MessageFactory.CreateGetResponseObject();
 		cmd.Command = CheckPassword;
-		cmd.Data = new SecurityData() { Code = string.Empty, Result = true };
-		Send(cmd, ApiHooks.Security);
+		// TODO: Send update
 	}
 
 	/// <inheritdoc />
 	public void DisableTechOnlyLock()
 	{
-		var cmd = MessageFactory.CreateGetResponseObject();
-		cmd.Command = TechLock;
-		cmd.Data = new SecurityData() { Code = string.Empty, Result = false };
-		Send(cmd, ApiHooks.Security);
+		// var cmd = MessageFactory.CreateGetResponseObject();
+		// cmd.Command = TechLock;
+		// cmd.Data = new SecurityData() { Code = string.Empty, Result = false };
+		// Send(cmd, ApiHooks.Security);
 	}
 
 	/// <inheritdoc />
 	public void EnableTechOnlyLock()
 	{
-		var cmd = MessageFactory.CreateGetResponseObject();
-		cmd.Command = TechLock;
-		cmd.Data = new SecurityData() { Code = string.Empty, Result = true };
-		Send(cmd, ApiHooks.Security);
+		// var cmd = MessageFactory.CreateGetResponseObject();
+		// cmd.Command = TechLock;
+		// cmd.Data = new SecurityData() { Code = string.Empty, Result = true };
+		// Send(cmd, ApiHooks.Security);
 	}
 
 	/// <inheritdoc />
@@ -93,20 +92,20 @@ internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 
 	private void HandleUnlockRequest(ResponseBase response)
 	{
-		try
-		{
-			bool result = _passcode.Equals(response.Data.Code);
-			var returnData = MessageFactory.CreatePostResponseObject();
-			returnData.Command = CheckPassword;
-			returnData.Data = new SecurityData() { Code = response.Data.Code, Result = result };
-			Send(returnData, ApiHooks.Security);
-			FlushJoinData(ApiHooks.Security);
-		}
-		catch (Exception ex)
-		{
-			Logger.Error(ex, "SecurityComponent.HandleUnlockRequest()");
-			Send(MessageFactory.CreateErrorResponse($"Invalid passcode: {ex.Message}"), ApiHooks.Security);
-		}
+		// try
+		// {
+		// 	bool result = _passcode.Equals(response.Data.Code);
+		// 	var returnData = MessageFactory.CreatePostResponseObject();
+		// 	returnData.Command = CheckPassword;
+		// 	returnData.Data = new SecurityData() { Code = response.Data.Code, Result = result };
+		// 	Send(returnData, ApiHooks.Security);
+		// 	FlushJoinData(ApiHooks.Security);
+		// }
+		// catch (Exception ex)
+		// {
+		// 	Logger.Error(ex, "SecurityComponent.HandleUnlockRequest()");
+		// 	Send(MessageFactory.CreateErrorResponse($"Invalid passcode: {ex.Message}"), ApiHooks.Security);
+		// }
 	}
 
 	private void HandlePostRequest(ResponseBase response)

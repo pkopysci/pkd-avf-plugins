@@ -1,10 +1,12 @@
-﻿namespace CrComLibUi.Components.RoomInfo;
+﻿
+namespace CrComLibUi.Components.RoomInfo;
 
+using Api;
 using Crestron.SimplSharpPro.DeviceSupport;
+using Newtonsoft.Json.Linq;
 using pkd_application_service.UserInterface;
 using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
-using Api;
 using System;
 using System.Collections.Generic;
 
@@ -45,11 +47,11 @@ internal class RoomInfoComponent : BaseComponent
 	/// <inheritdoc/>
 	public override void SetActiveDefaults()
 	{
-		if (!this.CheckInitialized(
+		if (!CheckInitialized(
 			    "RoomInfoComponent",
 			    nameof(SetActiveDefaults))) return;
 
-		this.SetSystemState(true);
+		SetSystemState(true);
 	}
 
 	/// <inheritdoc/>
@@ -59,22 +61,18 @@ internal class RoomInfoComponent : BaseComponent
 			    "RoomInfoComponent",
 			    nameof(SetStandbyDefaults))) return;
 
-		this.SetSystemState(false);
+		SetSystemState(false);
 	}
 
 	/// <inheritdoc/>
 	public override void HandleSerialResponse(string response)
 	{
-		Logger.Debug("CrComLibUi.RoomInfoComponent.HandleSerialResponse():\n\r");
-		Logger.Debug(response);
-		
 		try
 		{
 			var message = MessageFactory.DeserializeMessage(response);
 			if (string.IsNullOrEmpty(message.Command))
 			{
-				var errMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
-				Send(errMessage, ApiHooks.RoomConfig);
+				SendError("Invalid message format.", ApiHooks.RoomConfig);
 				return;
 			}
 
@@ -87,11 +85,8 @@ internal class RoomInfoComponent : BaseComponent
 					HandlePostRequest(message);
 					break;
 				default:
-				{
-					var errMessage = MessageFactory.CreateErrorResponse($"Unsupported method: {message.Method}.");
-					Send(errMessage, ApiHooks.RoomConfig);
-					return;
-				}
+					SendError($"Unsupported method: {message.Method}.",ApiHooks.RoomConfig);
+					break;
 			}
 		}
 		catch (Exception ex)
@@ -104,10 +99,11 @@ internal class RoomInfoComponent : BaseComponent
 	public void SetSystemState(bool state)
 	{
 		if (!CheckInitialized("RoomInfoComponent", "SetSystemState")) return;
-		var command = MessageFactory.CreateGetResponseObject();
 		_useState = state;
+		JProperty newState = new("UseState", state);
+		var command = MessageFactory.CreateGetResponseObject();
 		command.Command = UseStateCommand;
-		command.Data = _useState;
+		command.Data.Add(newState);
 		Send(command, ApiHooks.RoomConfig);
 	}
 
@@ -120,16 +116,13 @@ internal class RoomInfoComponent : BaseComponent
 
 	private void HandleGetRequest(ResponseBase rxObj)
 	{
-		Logger.Debug("CrComLibUi.RoomInfoComponent.HandleGetRequest()");
-		
 		if (GetHandlers.TryGetValue(rxObj.Command, out var handler))
 		{
 			handler.Invoke(rxObj);
 		}
 		else
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Unsupported GET command: {rxObj.Command}");
-			Send(errRx, ApiHooks.RoomConfig);
+			SendError($"Unsupported GET command: {rxObj.Command}", ApiHooks.RoomConfig);
 		}
 	}
 
@@ -141,8 +134,7 @@ internal class RoomInfoComponent : BaseComponent
 		}
 		else
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Unsupported POST command: {rxObj.Command}");
-			Send(errRx, ApiHooks.RoomConfig);
+			SendError($"Unsupported POST command: {rxObj.Command}", ApiHooks.RoomConfig);
 		}
 	}
 
@@ -176,13 +168,13 @@ internal class RoomInfoComponent : BaseComponent
 
 		var configResponse = MessageFactory.CreateGetResponseObject();
 		configResponse.Command = GetConfigCommand;
-		configResponse.Data = config;
+		configResponse.Data = JObject.FromObject(config);
 		Send(configResponse, ApiHooks.RoomConfig);
 	}
 
 	private void HandleRequestGetUseState(ResponseBase rxObj)
 	{
-		rxObj.Data = _useState;
+		rxObj.Data.Add(new JProperty("UseState", _useState));
 		Send(rxObj, ApiHooks.RoomConfig);
 	}
 
@@ -190,14 +182,14 @@ internal class RoomInfoComponent : BaseComponent
 	{
 		try
 		{
+			var state = rxObj.Data.Value<bool>("State");
 			var temp = StateChangeRequested;
-			temp?.Invoke(this, new GenericSingleEventArgs<bool>(rxObj.Data));
+			temp?.Invoke(this, new GenericSingleEventArgs<bool>(state));
 		}
 		catch (Exception ex)
 		{
 			Logger.Error(ex, "CrComLibUi.RoomInfoComponent.HandleRequestPostUseState()");
-			var errorRx = MessageFactory.CreateErrorResponse("500 - Internal Server Error");
-			Send(errorRx, ApiHooks.RoomConfig);
+			SendServerError(ApiHooks.RoomConfig);
 		}
 	}
 }

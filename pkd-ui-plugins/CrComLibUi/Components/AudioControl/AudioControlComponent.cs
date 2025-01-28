@@ -102,8 +102,6 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		ReadOnlyCollection<AudioChannelInfoContainer> inputs,
 		ReadOnlyCollection<AudioChannelInfoContainer> outputs)
 	{
-		_inputs.Clear();
-		_outputs.Clear();
 		_inputs = CreateChannelCollection(inputs);
 		_outputs = CreateChannelCollection(outputs);
 	}
@@ -126,11 +124,12 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		}
 
 		found.Level = newLevel;
+	
 		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandLevel;
-		message.Data.Io = "INPUT";
-		message.Data.Id = id;
-		message.Data.Level = newLevel;
+		message.Data["Io"] = JToken.FromObject("INPUT");
+		message.Data["Id"] = JToken.FromObject(id);
+		message.Data["Level"] = JToken.FromObject(newLevel);
 		Send(message, ApiHooks.AudioControl);
 	}
 
@@ -152,11 +151,12 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		}
 
 		found.MuteState = muteState;
+		
 		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandMute;
-		message.Data.Io = "INPUT";
-		message.Data.Id = id;
-		message.Data.Mute = muteState;
+		message.Data["Io"] = JToken.FromObject("INPUT");
+		message.Data["Id"] = JToken.FromObject(id);
+		message.Data["Mute"] = JToken.FromObject(muteState);
 		Send(message, ApiHooks.AudioControl);
 	}
 
@@ -178,11 +178,12 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		}
 
 		found.Level = newLevel;
+		
 		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandLevel;
-		message.Data.Io = "OUTPUT";
-		message.Data.Id = id;
-		message.Data.Level = newLevel;
+		message.Data["Io"] = JToken.FromObject("OUTPUT");
+		message.Data["Id"] = JToken.FromObject(id);
+		message.Data["Level"] = JToken.FromObject(newLevel);
 		Send(message, ApiHooks.AudioControl);
 	}
 
@@ -204,11 +205,12 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		}
 
 		found.MuteState = muteState;
-		ResponseBase message = MessageFactory.CreateGetResponseObject();
+		
+		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandMute;
-		message.Data.Io = "OUTPUT";
-		message.Data.Id = id;
-		message.Data.Mute = muteState;
+		message.Data["Io"] = JToken.FromObject("OUTPUT");
+		message.Data["Id"] = JToken.FromObject(id);
+		message.Data["Mute"] = JToken.FromObject(muteState);
 		Send(message, ApiHooks.AudioControl);
 	}
 
@@ -237,10 +239,11 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		}
 
 		found.RoutedInput = srcId;
+
 		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandRoute;
-		message.Data.OutId = destId;
-		message.Data.InId = srcId;
+		message.Data["OutId"] = JToken.FromObject(destId);
+		message.Data["InId"] = JToken.FromObject(srcId);
 		Send(message, ApiHooks.AudioControl);
 	}
 
@@ -274,11 +277,11 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 			zone.Enabled = newState;
 			break;
 		}
-
+		
 		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandMicZone;
-		message.Data.InId = channel.Id;
-		message.Data.Zones = channel.Zones;
+		message.Data["InId"] = JToken.FromObject(channel.Id);
+		message.Data["Zones"] = JToken.FromObject(channel.Zones);
 		Send(message, ApiHooks.AudioControl);
 	}
 	#endregion
@@ -286,16 +289,11 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 	#region Private Methods
 	private void HandleGetConfigRequest(ResponseBase response)
 	{
-		var config = new AudioConfigData()
-		{
-			Dsp = _audioDsp,
-			Inputs = _inputs,
-			Outputs = _outputs,
-		};
-
 		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandConfig;
-		message.Data = config;
+		message.Data["Inputs"] = JToken.FromObject(_inputs);
+		message.Data["Outputs"] = JToken.FromObject(_outputs);
+		message.Data["Dsp"] = JToken.FromObject(_audioDsp);
 		Send(message, ApiHooks.AudioControl);
 	}
 
@@ -303,25 +301,30 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 	{
 		try
 		{
-			var found = _outputs.FirstOrDefault(x => x.Id.Equals(response.Data.OutId));
-			if (found == null)
+			var destinationId = response.Data.Value<string>("OutId");
+			if (string.IsNullOrEmpty(destinationId))
 			{
-				var errRx = MessageFactory.CreateErrorResponse(
-					$"No audio output found with id {response.Data.OutId}");
-				Send(errRx, ApiHooks.AudioControl);
+				SendError("Invalid GET route request - missing DestId.", ApiHooks.AudioControl);
 				return;
 			}
-
+			
+			var dest = _outputs.FirstOrDefault(x => x.Id == destinationId);
+			if (dest == null)
+			{
+				SendError($"Invalid Get route request - no destination found with ID {destinationId}", ApiHooks.AudioControl);
+				return;
+			}
+			
 			var message = MessageFactory.CreateGetResponseObject();
 			message.Command = CommandRoute;
-			message.Data.OutId = found.Id;
-			message.Data.InId = found.RoutedInput;
+			message.Data["OutId"] = JToken.FromObject(destinationId);
+			message.Data["InId"] = JToken.FromObject(dest.RoutedInput);
 			Send(message, ApiHooks.AudioControl);
 		}
-		catch (Exception e)
+		catch (Exception ex)
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Invalid Route Query: {e.Message}");
-			Send(errRx, ApiHooks.AudioControl);
+			Logger.Error(ex, "CrComLibUi.AudioControlComponent.HandleGetRouteRequest()");
+			SendServerError(ApiHooks.AudioControl);
 		}
 	}
 
@@ -329,36 +332,31 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 	{
 		try
 		{
-			AudioChannel? found = null;
-			if (response.Data.Io.Equals("OUTPUT"))
+			var io = response.Data.Value<string>("Io");
+			var channelId = response.Data.Value<string>("Id");
+			if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(io))
 			{
-				found = _outputs.FirstOrDefault(x => x.Id.Equals(response.Data.Id));
-			}
-			else if (response.Data.Io.Equals("INPUT"))
-			{
-				found = _inputs.FirstOrDefault(x => x.Id.Equals(response.Data.Id));
-			}
-			else
-			{
-				var errRx = MessageFactory.CreateErrorResponse($"Unsupported Io type: {response.Data.Io}");
-				Send(errRx, ApiHooks.AudioControl);
-			}
-
-			if (found == null)
-			{
-				var errRx = MessageFactory.CreateErrorResponse(
-					$"No audio output or input found with id {response.Data.OutId}");
-				Send(errRx, ApiHooks.AudioControl);
+				SendError("Invalid GET level request - missing Id or Io.", ApiHooks.AudioControl);
 				return;
 			}
 
-			response.Data.Level = found.Level;
-			Send(response, ApiHooks.AudioControl);
+			if (!TryFindChannel(io, channelId, out var channel))
+			{
+				SendError($"Invalid GET level request - no input or output found with id {channelId}", ApiHooks.AudioControl);
+				return;
+			}
+			
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CommandLevel;
+			message.Data["Id"] = channelId;
+			message.Data["Io"] = io;
+			message.Data["Level"] = channel?.Level ?? 0;
+			Send(message, ApiHooks.AudioControl);
 		}
-		catch (Exception e)
+		catch (Exception ex)
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Invalid Level Query: {e.Message}");
-			Send(errRx, ApiHooks.AudioControl);
+			Logger.Error($"CrComLibUi.AudioControlComponent.HandleGetLevelRequest() - failed to parse response: {ex.Message}");
+			SendServerError(ApiHooks.AudioControl);
 		}
 	}
 
@@ -366,36 +364,30 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 	{
 		try
 		{
-			AudioChannel? found = null;
-			if (response.Data.Io.Equals("OUTPUT"))
+			var io = response.Data.Value<string>("Io");
+			var channelId = response.Data.Value<string>("Id");
+			if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(io))
 			{
-				found = _outputs.FirstOrDefault(x => x.Id.Equals(response.Data.Id));
-			}
-			else if (response.Data.Io.Equals("INPUT"))
-			{
-				found = _inputs.FirstOrDefault(x => x.Id.Equals(response.Data.Id));
-			}
-			else
-			{
-				var errRx = MessageFactory.CreateErrorResponse($"Unsupported Io type: {response.Data.Io}");
-				Send(errRx, ApiHooks.AudioControl);
-			}
-
-			if (found == null)
-			{
-				var errRx = MessageFactory.CreateErrorResponse(
-					$"No audio output or input found with id {response.Data.OutId}");
-				Send(errRx, ApiHooks.AudioControl);
+				SendError("Invalid GET mute request - missing Id or Io.", ApiHooks.AudioControl);
 				return;
 			}
 
-			response.Data.Mute = found.MuteState;
-			Send(response, ApiHooks.AudioControl);
+			if (!TryFindChannel(io, channelId, out var channel))
+			{
+				SendError($"Invalid GET mute request - no input or output found with id {channelId}", ApiHooks.AudioControl);
+				return;
+			}
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CommandMute;
+			message.Data["Id"] = channelId;
+			message.Data["Io"] = io;
+			message.Data["Mute"] = channel?.MuteState ?? false;
+			Send(message, ApiHooks.AudioControl);
 		}
 		catch (Exception e)
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Invalid Mute Query: {e.Message}");
-			Send(errRx, ApiHooks.AudioControl);
+			Logger.Error($"CrComLibUi.HandleGetMuteRequest() - failed to parse response: {e.Message}");
+			SendServerError(ApiHooks.AudioControl);
 		}
 	}
 
@@ -403,23 +395,30 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 	{
 		try
 		{
-			var found = _inputs.FirstOrDefault(x => x.Id.Equals(response.Data.InId));
-			if (found == null)
+			var id = response.Data.Value<string>("InId");
+			if (string.IsNullOrEmpty(id))
 			{
-				var errRx = MessageFactory.CreateErrorResponse(
-					$"No audio input found with id {response.Data.OutId}");
-				Send(errRx, ApiHooks.AudioControl);
+				SendError("Invalid GET zone request - missing InId.", ApiHooks.AudioControl);
 				return;
 			}
-
-			response.Data.Zones = found.Zones;
-			Send(response, ApiHooks.AudioControl);
-
+			
+			var channel = _inputs.FirstOrDefault(x => x.Id.Equals(id));
+			if (channel == null)
+			{
+				SendError($"Invalid GET zone request - no input channel with id {id}", ApiHooks.AudioControl);
+				return;
+			}
+			
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CommandMicZone;
+			message.Data["InId"] = id;
+			message.Data["Zones"] = JToken.FromObject(channel.Zones);
+			Send(message, ApiHooks.AudioControl);
 		}
 		catch (Exception e)
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Invalid Zone Query: {e.Message}");
-			Send(errRx, ApiHooks.AudioControl);
+			Logger.Error($"CrComLib.HandleGetMicZoneRequest() - failed to parse response: {e.Message}");
+			SendServerError(ApiHooks.AudioControl);
 		}
 	}
 
@@ -427,43 +426,30 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 	{
 		try
 		{
-			if (response.Data is not JObject data)
+			var io = response.Data.Value<string>("Io");
+			var channelId = response.Data.Value<string>("Id");
+			var level = response.Data.Value<int>("Level");
+			if (string.IsNullOrEmpty(io) || string.IsNullOrEmpty(channelId) || !response.Data.ContainsKey("Level"))
 			{
-				var errRx = MessageFactory.CreateErrorResponse($"Invalid Data Type: {response.Data.GetType()}");
-				Send(errRx, ApiHooks.AudioControl);
+				SendError("Invalid POST level request - missing Io, Id, or Level.", ApiHooks.AudioControl);
 				return;
 			}
-			
-			var level = data.Value<int>("Level");
-			var id = data.Value<string>("Id") ?? string.Empty;
-			var io = data.Value<string>("Io") ?? string.Empty;
 
-			switch (io)
+			if (!TryFindChannel(io, channelId, out _))
 			{
-				case "OUTPUT":
-				{
-					var temp = SetAudioOutputLevelRequest;
-					temp?.Invoke(this, new GenericDualEventArgs<string, int>(id, level));
-					break;
-				}
-				case "INPUT":
-				{
-					var temp = SetAudioInputLevelRequest;
-					temp?.Invoke(this, new GenericDualEventArgs<string, int>(id, level));
-					break;
-				}
-				default:
-				{
-					var errRx = MessageFactory.CreateErrorResponse($"Unsupported Io type: {io}");
-					Send(errRx, ApiHooks.AudioControl);
-					break;
-				}
+				SendError($"Invalid POST level request - no channel with Id {channelId}", ApiHooks.AudioControl);
+				return;
 			}
+
+			var temp = io.Equals("OUTPUT", StringComparison.OrdinalIgnoreCase)
+				? SetAudioOutputLevelRequest
+				: SetAudioInputLevelRequest;
+			temp?.Invoke(this, new GenericDualEventArgs<string, int>(channelId, level));
 		}
 		catch (Exception e)
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Invalid level Post formatting: {e.Message}");
-			Send(errRx, ApiHooks.AudioControl);
+			Logger.Error($"CrComLib.HandlePostLevelRequest() - failed to parse response: {e.Message}");
+			SendServerError(ApiHooks.AudioControl);
 		}
 	}
 
@@ -471,105 +457,101 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 	{
 		try
 		{
-			if (response.Data is not JObject data)
+			var io = response.Data.Value<string>("Io");
+			var channelId = response.Data.Value<string>("Id");
+			if (string.IsNullOrEmpty(io) || string.IsNullOrEmpty(channelId))
 			{
-				var errRx = MessageFactory.CreateErrorResponse($"Invalid Data Type: {response.Data.GetType()}");
-				Send(errRx, ApiHooks.AudioControl);
+				SendError("Invalid POST mute request - missing Io, Id", ApiHooks.AudioControl);
+				return;
+			}
+
+			if (!TryFindChannel(io, channelId, out _))
+			{
+				SendError($"Invalid POST mute request - no channel with Id {channelId}", ApiHooks.AudioControl);
 				return;
 			}
 			
-			var id = data.Value<string>("Id") ?? string.Empty;
-			var io = data.Value<string>("Io") ?? string.Empty;
-			switch (io)
-			{
-				case "OUTPUT":
-				{
-					var temp = AudioOutputMuteChangeRequest;
-					temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
-					break;
-				}
-				case "INPUT":
-				{
-					var temp = AudioInputMuteChangeRequest;
-					temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
-					break;
-				}
-				default:
-				{
-					var errRx = MessageFactory.CreateErrorResponse($"Unsupported Io type: {io}");
-					Send(errRx, ApiHooks.AudioControl);
-					break;
-				}
-			}
+			var temp = io.Equals("OUTPUT", StringComparison.OrdinalIgnoreCase)
+				? AudioOutputMuteChangeRequest
+				: AudioInputMuteChangeRequest;
+			temp?.Invoke(this, new GenericSingleEventArgs<string>(channelId));
 		}
 		catch (Exception e)
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Invalid mute Post formatting: {e.Message}");
-			Send(errRx, ApiHooks.AudioControl);
+			Logger.Debug($"CrComLib.HandlePostMuteRequest() - failed to parse response: {e.Message}");
+			SendServerError(ApiHooks.AudioControl);
 		}
 	}
 
 	private void HandlePostRouteRequest(ResponseBase response)
 	{
+		Logger.Debug("CrComLibUi.AudioControlComponent.HandlePostRouteRequest()");
 		try
 		{
-			if (response.Data is not JObject data)
+			var outId = response.Data.Value<string>("OutId");
+			var inId = response.Data.Value<string>("InId");
+			if (string.IsNullOrEmpty(outId) || string.IsNullOrEmpty(inId))
 			{
-				var errRx = MessageFactory.CreateErrorResponse($"Invalid Data Type: {response.Data.GetType()}");
-				Send(errRx, ApiHooks.AudioControl);
+				SendError("Invalid POST route request - missing OutId or InId", ApiHooks.AudioControl);
 				return;
 			}
-			
-			var outId = data.Value<string>("OutId") ?? string.Empty;
-			var inId = data.Value<string>("InId") ?? string.Empty;
-			if (outId.Equals(string.Empty) || inId.Equals(string.Empty))
+
+			if (!_inputs.Any(x => x.Id.Equals(inId)))
 			{
-				var errRx = MessageFactory.CreateErrorResponse($"Invalid route post formatting. Missing OutId or InId.");
-				Send(errRx, ApiHooks.AudioControl);
+				SendError($"Invalid POST route request - no input found with InId {inId}", ApiHooks.AudioControl);
 				return;
 			}
-			
+
+			if (!_outputs.Any(x => x.Id.Equals(outId)))
+			{
+				SendError($"Invalid POST route request - no output found with OutId {outId}", ApiHooks.AudioControl);
+				return;
+			}
+
 			var temp = AudioOutputRouteRequest;
-			temp?.Invoke(
-				this,
-				new GenericDualEventArgs<string, string>(inId, outId)
-			);
+			temp?.Invoke(this, new GenericDualEventArgs<string, string>(inId, outId));
 		}
 		catch (Exception e)
 		{
-			Logger.Error($"CrComLobUi.AudioControlComponent.HandlePostRouteRequest(): {e.Message}");
-			var errRx = MessageFactory.CreateErrorResponse("ERR 500 - Internal Server Error.");
-			Send(errRx, ApiHooks.AudioControl);
+			Logger.Error($"CrComLib.HandlePostRouteRequest() - failed to parse response: {e.Message}");
+			SendServerError(ApiHooks.AudioControl);
 		}
 	}
 
 	private void HandlePostMicZoneRequest(ResponseBase response)
 	{
+		Logger.Debug("CrComLibUi.AudioControlComponent.HandlePostMicZoneRequest()");
 		try
 		{
-			if (response.Data is not JObject data)
-			{
-				var errRx = MessageFactory.CreateErrorResponse($"Invalid Data Type: {response.Data.GetType()}");
-				Send(errRx, ApiHooks.AudioControl);
-				return;
-			}
-			
-			var inId = data.Value<string>("InId");
-			var zoneId = data.Value<string>("ZoneId");
+			var inId = response.Data.Value<string>("InId");
+			var zoneId = response.Data.Value<string>("ZoneId");
 			if (string.IsNullOrEmpty(inId) || string.IsNullOrEmpty(zoneId))
 			{
-				var errRx = MessageFactory.CreateErrorResponse($"Invalid zone change post formatting. Missing InId or ZoneId. ");
-				Send(errRx, ApiHooks.AudioControl);
+				SendError("Invalid POST mic zone request - missing InId, ZoneId.", ApiHooks.AudioControl);
 				return;
 			}
 			
+			var channel = _inputs.FirstOrDefault(x => x.Id.Equals(inId));
+			if (channel == null)
+			{
+				SendError($"Invalid POST mic zone request - no channel with id {inId}", ApiHooks.AudioControl);
+				return;
+			}
+			
+			var zone = channel.Zones.FirstOrDefault(x => x.Id.Equals(zoneId));
+			if (zone == null)
+			{
+				SendError($"Invalid POST mic zone request - no zone on channel {inId} with zone {zoneId}", ApiHooks.AudioControl);
+				return;
+			}
+
 			var temp = AudioZoneEnableToggleRequest;
 			temp?.Invoke(this, new GenericDualEventArgs<string, string>(inId, zoneId));
 		}
 		catch (Exception e)
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Invalid zone change post formatting: {e.Message}");
-			Send(errRx, ApiHooks.AudioControl);
+			Logger.Error($"CrComLib.HandlePostMicZoneRequest() - failed to parse response: {e.Message}");
+			SendServerError(ApiHooks.AudioControl);
 		}
 	}
 
@@ -581,8 +563,7 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		}
 		else
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Unsupported GET command: {response.Command}");
-			Send(errRx, ApiHooks.AudioControl);
+			SendError($"Unsupported GET command: {response.Command}", ApiHooks.AudioControl);
 		}
 	}
 
@@ -594,12 +575,23 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		}
 		else
 		{
-			var errRx = MessageFactory.CreateErrorResponse($"Unsupported POST command: {response.Command}");
-			Send(errRx, ApiHooks.AudioControl);
+			SendError($"Unsupported POST command: {response.Command}", ApiHooks.AudioControl);
 		}
 	}
 
-	private List<AudioChannel> CreateChannelCollection(ReadOnlyCollection<AudioChannelInfoContainer> data)
+	private bool TryFindChannel(string io, string channelId, out AudioChannel? channel)
+	{
+		channel = io switch
+		{
+			"INPUT" => _inputs.FirstOrDefault(x => x.Id.Equals(channelId, StringComparison.OrdinalIgnoreCase)),
+			"OUTPUT" => _outputs.FirstOrDefault(x => x.Id.Equals(channelId, StringComparison.OrdinalIgnoreCase)),
+			_ => null
+		};
+
+		return channel != null;
+	}
+	
+	private static List<AudioChannel> CreateChannelCollection(ReadOnlyCollection<AudioChannelInfoContainer> data)
 	{
 		List<AudioChannel> audioChannels = [];
 		foreach (var channel in data)
