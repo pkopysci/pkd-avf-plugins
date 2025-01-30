@@ -17,9 +17,9 @@
 
     <ItemGroup>
       <None Remove="CableBox_DirecTV_H25-100.ir" />
-      <Resource Include="CableBox_DirecTV_H25-100.ir">
+      <EmbeddedResource Include="CableBox_DirecTV_H25-100.ir">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Resource>
+      </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>

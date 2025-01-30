@@ -1,4 +1,6 @@
-﻿namespace CrComLibUi.Components.Security;
+﻿using Newtonsoft.Json.Linq;
+
+namespace CrComLibUi.Components.Security;
 
 using Crestron.SimplSharpPro.DeviceSupport;
 using pkd_application_service.UserInterface;
@@ -12,6 +14,7 @@ internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 {
 	private const string CheckPassword = "CODE";
 	private const string TechLock = "TECHLOCK";
+	private const string SetSecure = "SETSECURE";
 	private string _passcode = string.Empty;
 
 	public SecurityComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
@@ -24,26 +27,29 @@ internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 	public void EnableSecurityPasscodeLock()
 	{
 		var cmd = MessageFactory.CreateGetResponseObject();
-		cmd.Command = CheckPassword;
-		// TODO: Send update
+		cmd.Command = SetSecure;
+		cmd.Data["State"] = true;
+		Send(cmd, ApiHooks.Security);
 	}
 
 	/// <inheritdoc />
 	public void DisableTechOnlyLock()
 	{
-		// var cmd = MessageFactory.CreateGetResponseObject();
-		// cmd.Command = TechLock;
-		// cmd.Data = new SecurityData() { Code = string.Empty, Result = false };
-		// Send(cmd, ApiHooks.Security);
+		var cmd = MessageFactory.CreateGetResponseObject();
+		cmd.Command = TechLock;
+		cmd.Data["Code"] = string.Empty;
+		cmd.Data["Result"] = false;
+		Send(cmd, ApiHooks.Security);
 	}
 
 	/// <inheritdoc />
 	public void EnableTechOnlyLock()
 	{
-		// var cmd = MessageFactory.CreateGetResponseObject();
-		// cmd.Command = TechLock;
-		// cmd.Data = new SecurityData() { Code = string.Empty, Result = true };
-		// Send(cmd, ApiHooks.Security);
+		var cmd = MessageFactory.CreateGetResponseObject();
+		cmd.Command = TechLock;
+		cmd.Data["Code"] = string.Empty;
+		cmd.Data["Result"] = true;
+		Send(cmd, ApiHooks.Security);
 	}
 
 	/// <inheritdoc />
@@ -62,7 +68,7 @@ internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 			switch (message.Method)
 			{
 				case "GET":
-					// TODO: Handle GET requests?
+					// handle get request at some point?
 					break;
 				case "POST":
 					HandlePostRequest(message);
@@ -92,20 +98,26 @@ internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 
 	private void HandleUnlockRequest(ResponseBase response)
 	{
-		// try
-		// {
-		// 	bool result = _passcode.Equals(response.Data.Code);
-		// 	var returnData = MessageFactory.CreatePostResponseObject();
-		// 	returnData.Command = CheckPassword;
-		// 	returnData.Data = new SecurityData() { Code = response.Data.Code, Result = result };
-		// 	Send(returnData, ApiHooks.Security);
-		// 	FlushJoinData(ApiHooks.Security);
-		// }
-		// catch (Exception ex)
-		// {
-		// 	Logger.Error(ex, "SecurityComponent.HandleUnlockRequest()");
-		// 	Send(MessageFactory.CreateErrorResponse($"Invalid passcode: {ex.Message}"), ApiHooks.Security);
-		// }
+		try
+		{
+			var userCode = response.Data.Value<string>("Code");
+			if (string.IsNullOrEmpty(userCode))
+			{
+				SendError("Invalid POST unlock request - missing 'Code'.", ApiHooks.Security);
+				return;
+			}
+
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CheckPassword;
+			message.Data["Code"] = userCode;
+			message.Data["Result"] = _passcode.Equals(userCode);;
+			Send(message, ApiHooks.Security);
+		}
+		catch (Exception e)
+		{
+			Logger.Error("CrComLibUi.SecurityComponent.HandleUnlockRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.Security);
+		}
 	}
 
 	private void HandlePostRequest(ResponseBase response)

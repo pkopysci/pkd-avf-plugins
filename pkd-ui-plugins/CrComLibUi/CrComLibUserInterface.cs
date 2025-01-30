@@ -647,10 +647,9 @@ public class CrComLibUserInterface :
 			_uiComponents.Add(tcc);
 			_apiHandlerActions.Add((uint)ApiHooks.DeviceControl, tcc.HandleSerialResponse);
 			
-			// TODO: Uncomment components
-			// var securityComponent = new SecurityComponent(_ui, _uiData);
-			// _uiComponents.Add(securityComponent);
-			// _apiHandlerActions.Add((uint)ApiHooks.Security, securityComponent.HandleSerialResponse);
+			var securityComponent = new SecurityComponent(_ui, _uiData);
+			_uiComponents.Add(securityComponent);
+			_apiHandlerActions.Add((uint)ApiHooks.Security, securityComponent.HandleSerialResponse);
 			
 			var cec = new CustomEventComponent(_ui, _uiData);
 			cec.CustomEventChangeRequest += HandleCustomEventRequest;
