@@ -105,7 +105,7 @@
 		/// Triggered whenever the internal zone enable monitor detects a change from the core.
 		/// Will not be triggered if no audio enable zones have been added.
 		/// </summary>
-		public event EventHandler<GenericDualEventArgs<string, string>>? ZoneEnableChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioZoneEnableChanged;
 
 		/// <summary>
 		/// Gets the unique ID of this audio channel.
@@ -337,7 +337,7 @@
 
 		private void ZoneEnableChangeHandler(object? sender, GenericSingleEventArgs<string> e)
 		{
-			var temp = ZoneEnableChanged;
+			var temp = AudioZoneEnableChanged;
 			temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, e.Arg));
 		}
 	}

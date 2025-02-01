@@ -87,7 +87,7 @@
 			var channel = new QscAudioChannel(Id, id, muteTag, levelTag, [], routerIndex);
 			channel.AudioMuteChanged += InputControlMuteChange;
 			channel.AudioVolumeChanged += InputControlLevelChange;
-			channel.ZoneEnableChanged += ZoneEnableChangedHandler;
+			channel.AudioZoneEnableChanged += ZoneEnableChangedHandler;
 			_inputs.Add(channel);
 		}
 
@@ -115,7 +115,7 @@
 			channel.AudioMuteChanged += OutputControlMuteChange;
 			channel.AudioVolumeChanged += OutputControlLevelChange;
 			channel.AudioRouteChanged += OutputControlRouteChanged;
-			channel.ZoneEnableChanged += ZoneEnableChangedHandler;
+			channel.AudioZoneEnableChanged += ZoneEnableChangedHandler;
 			_outputs.Add(channel);
 		}
 
