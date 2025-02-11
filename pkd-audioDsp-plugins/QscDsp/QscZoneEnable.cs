@@ -75,7 +75,7 @@
 			if (_zoneToggles.TryGetValue(zoneId, out var target))
 			{
 
-				int newState = target.CurrentState ? 1 : 0;
+				ushort newState = (ushort)(target.CurrentState ? 1 : 0);
 				target.SetBoolean(newState);
 			}
 		}

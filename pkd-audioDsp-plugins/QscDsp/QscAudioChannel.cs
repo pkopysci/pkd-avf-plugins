@@ -1,4 +1,6 @@
-﻿namespace QscDsp
+﻿using QscQsys.NamedControls;
+
+namespace QscDsp
 {
 	using Crestron.SimplSharp;
 	using pkd_common_utils.GenericEventArgs;
@@ -22,6 +24,7 @@
 		private readonly string _levelTag;
 		private readonly string _routerTag;
 		private uint _currentAudioSource;
+		private bool _registered;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QscAudioChannel"/> class.
@@ -209,7 +212,7 @@
 				return;
 			}
 
-			_muteControl.SetBoolean(state ? 1 : 0);
+			_muteControl.SetBoolean((ushort)(state ? 1 : 0));
 		}
 
 		/// <summary>
@@ -238,7 +241,7 @@
 				return;
 			}
 
-			_muteControl.SetBoolean(AudioMute ? 0 : 1);
+			_muteControl.SetBoolean((ushort)(AudioMute ? 0 : 1));
 		}
 
 		/// <summary>
@@ -321,17 +324,16 @@
 
 		private bool CheckRegistered(string methodName, QsysNamedControl control)
 		{
-			if (control.IsRegistered)
+			if (!_registered)
 			{
 				return true;
 			}
-
+		
 			Logger.Error(
-				"QscAudioChannel.{0}() - Named control {1} is not registered on DSP {2}",
+				"QscAudioChannel.{0}() - DSP {2} not yet registered.",
 				methodName,
-				control.ComponentName,
 				_coreId);
-
+		
 			return false;
 		}
 

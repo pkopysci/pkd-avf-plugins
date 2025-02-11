@@ -1,4 +1,6 @@
-﻿namespace QscDsp
+﻿using QscQsys.NamedComponents;
+
+namespace QscDsp
 {
 	using Crestron.SimplSharp;
 	using pkd_common_utils.Logging;
@@ -96,7 +98,7 @@
 		{
 			Logger.Debug("Registering Snapshot bank {0} with core {1}", Name, _coreId);
 			_snapshot.onRecalledSnapshot = SnapshotRecalled;
-			_snapshot.Initialize(_coreId, Name);
+			_snapshot.Initialize(_coreId, Name, 8);
 			IsRegistered = true;
 		}
 

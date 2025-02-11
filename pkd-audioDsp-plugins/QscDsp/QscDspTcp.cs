@@ -170,16 +170,17 @@
 #if DEBUG
 				_core.Debug(1);
 #endif
-				_core.onIsConnected = OnCoreConnected;
-				_core.onNewCoreStatus += OnCoreStatusChange;
-				_core.onIsRegistered += OnCoreRegistered;
+				_core.OnPrimaryIsConnected = OnCoreConnected;
+				_core.OnNewCoreStatus += OnCoreStatusChange;
+				_core.OnIsRegistered += OnCoreRegistered;
 
 				_core.Initialize(
 					Id,
-					_hostname,
+					_hostname ?? string.Empty,
+					string.Empty, // TODO: support backup core
 					(ushort)_port,
-					_username,
-					_password,
+					_username ?? string.Empty,
+					_password ?? string.Empty,
 					0);
 			}
 			else
@@ -490,9 +491,9 @@
 		private void ClearControls()
 		{
 			if (_core == null) return;
-			_core.onIsConnected -= OnCoreConnected;
-			_core.onNewCoreStatus -= OnCoreStatusChange;
-			_core.onIsRegistered -= OnCoreRegistered;
+			_core.OnPrimaryIsConnected -= OnCoreConnected;
+			_core.OnNewCoreStatus -= OnCoreStatusChange;
+			_core.OnIsRegistered -= OnCoreRegistered;
 
 			foreach (var chan in _inputs)
 			{

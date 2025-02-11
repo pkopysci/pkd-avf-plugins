@@ -1,7 +1,7 @@
-﻿namespace QscDsp
-{
-	using QscQsys;
+﻿using QscQsys.NamedControls;
 
+namespace QscDsp
+{
 	internal class QscBoolNamedControl : QsysNamedControl
 	{
 		public bool CurrentState { get; set; }
