@@ -131,6 +131,8 @@ internal class TransportComponent : BaseComponent, ITransportControlUserInterfac
 
 	private void HandlePostFavoriteRequest(ResponseBase message)
 	{
+		Logger.Debug("TransportComponent.HandlePostFavoriteRequest()");
+		
 		try
 		{
 			var deviceId = message.Data.Value<string>("Id");

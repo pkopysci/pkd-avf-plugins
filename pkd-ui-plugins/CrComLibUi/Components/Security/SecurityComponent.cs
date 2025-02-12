@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-
-namespace CrComLibUi.Components.Security;
+﻿namespace CrComLibUi.Components.Security;
 
 using Crestron.SimplSharpPro.DeviceSupport;
 using pkd_application_service.UserInterface;
@@ -57,7 +55,7 @@ internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 	{
 		try
 		{
-			ResponseBase message = MessageFactory.DeserializeMessage(response);
+			var message = MessageFactory.DeserializeMessage(response);
 			if (string.IsNullOrEmpty(message.Method))
 			{
 				var errorMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
@@ -110,7 +108,10 @@ internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 			var message = MessageFactory.CreateGetResponseObject();
 			message.Command = CheckPassword;
 			message.Data["Code"] = userCode;
-			message.Data["Result"] = _passcode.Equals(userCode);;
+			message.Data["Result"] = _passcode.Equals(userCode);
+			
+			Logger.Debug($"SecurityComponent.HandleUnlockRequest() - responding with {message.Data["Result"]}");
+			
 			Send(message, ApiHooks.Security);
 		}
 		catch (Exception e)
@@ -130,6 +131,7 @@ internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 		{
 			var errRx = MessageFactory.CreateErrorResponse($"Unsupported POST command: {response.Command}");
 			Send(errRx, ApiHooks.Security);
+			Send(string.Empty, ApiHooks.Security);
 		}
 	}
 

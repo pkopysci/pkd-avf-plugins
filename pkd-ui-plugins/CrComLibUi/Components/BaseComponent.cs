@@ -38,10 +38,14 @@ internal abstract class BaseComponent(
 	{
 		// serialize and send if successful
 		var rxMessage = MessageFactory.SerializeMessage(data);
-		if (!string.IsNullOrEmpty(rxMessage))
-		{
-			Ui.StringInput[(uint)hook].StringValue = rxMessage;
-		}
+		if (string.IsNullOrEmpty(rxMessage)) return;
+		Ui.StringInput[(uint)hook].StringValue = rxMessage;
+		Ui.StringInput[(uint)hook].StringValue = string.Empty;
+	}
+
+	protected void Send(string data, ApiHooks hook)
+	{
+		Ui.StringInput[(uint)hook].StringValue = data;
 	}
 
 	protected void SendServerError(ApiHooks hook)
