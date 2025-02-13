@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsTestingAppService", "EventsTestingAppService\EventsTestingAppService.csproj", "{7D346605-D48D-4ADA-A39E-9BAD7387AAC7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoWallAppService", "VideoWallAppService\VideoWallAppService.csproj", "{32C0051E-D7CF-42D9-9237-EE10FE5DA0D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{7D346605-D48D-4ADA-A39E-9BAD7387AAC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D346605-D48D-4ADA-A39E-9BAD7387AAC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D346605-D48D-4ADA-A39E-9BAD7387AAC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32C0051E-D7CF-42D9-9237-EE10FE5DA0D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32C0051E-D7CF-42D9-9237-EE10FE5DA0D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32C0051E-D7CF-42D9-9237-EE10FE5DA0D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32C0051E-D7CF-42D9-9237-EE10FE5DA0D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
