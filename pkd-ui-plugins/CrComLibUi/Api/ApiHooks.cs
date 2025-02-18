@@ -12,4 +12,5 @@ internal enum ApiHooks : uint
 	AudioControl = 7,
 	LightingControl = 8,
 	Errors = 9,
+	VideoWall = 10,
 }

@@ -184,10 +184,8 @@ public class VideoWallApplication : ApplicationService, IVideoWallApp
                 {
                     Id = cell.Id,
                     SourceId = cell.SourceId,
-                    XStart = cell.XStart,
-                    XEnd = cell.XEnd,
-                    YStart = cell.YStart,
-                    YEnd = cell.YEnd,
+                    XPosition = cell.XPosition,
+                    YPosition = cell.YPosition,
                 });
             }
 
@@ -196,7 +194,9 @@ public class VideoWallApplication : ApplicationService, IVideoWallApp
                 Id = layout.Id,
                 Label = layout.Label,
                 VideoWallControlId = config.Id,
-                Cells = cells
+                Cells = cells,
+                Width = layout.Width,
+                Height = layout.Height
             });
         }
             
