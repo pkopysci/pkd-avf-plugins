@@ -161,6 +161,7 @@ public class VideoWallApplication : ApplicationService, IVideoWallApp
         var temp = VideoWallCellRouteChanged;
         temp?.Invoke(this, new GenericDualEventArgs<string, string>(videoWallDevice.Id, args.Arg) );
     }
+    
     private IVideoWallDevice? FindVideoWallDevice(string controlId, string methodName)
     {
         var device = HwService.VideoWallDevices.GetDevice(controlId);

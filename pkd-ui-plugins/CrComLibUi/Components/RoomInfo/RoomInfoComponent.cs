@@ -16,12 +16,13 @@ internal class RoomInfoComponent : BaseComponent
 	private const string GetConfigCommand = "CONFIG";
 	private readonly bool _isSecure;
 	private readonly bool _isTech;
+	private readonly string _systemType;
 	private bool _useState;
 
 	public RoomInfoComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData, string systemType)
 		: base(ui, uiData)
 	{
-		SystemType = systemType;
+		_systemType = systemType;
 		GetHandlers.Add(UseStateCommand, HandleRequestGetUseState);
 		GetHandlers.Add(GetConfigCommand, HandleRequestGetConfig);
 		PostHandlers.Add(UseStateCommand, HandleRequestPostUseState);
@@ -31,12 +32,11 @@ internal class RoomInfoComponent : BaseComponent
 
 	public event EventHandler<GenericSingleEventArgs<bool>>? StateChangeRequested;
 
-	public string SystemType { get; }
 
 	/// <inheritdoc/>
 	public override void Initialize()
 	{
-		if (string.IsNullOrEmpty(SystemType))
+		if (string.IsNullOrEmpty(_systemType))
 		{
 			Logger.Debug("CrComLibUi.RoomInfoComponent.Initialize() - SystemType has not been set.");
 		}
@@ -161,7 +161,7 @@ internal class RoomInfoComponent : BaseComponent
 			HelpNumber = UiData.HelpContact,
 			IsSecure = _isSecure,
 			IsTech = _isTech,
-			RoomType = SystemType,
+			RoomType = _systemType,
 			DefaultActivity = UiData.DefaultActivity,
 			MainMenu = menuItems
 		};

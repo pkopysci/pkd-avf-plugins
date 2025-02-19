@@ -1,0 +1,914 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>pkd-ui-service</name>
+    </assembly>
+    <members>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.FusionDeviceUse.AddDeviceToUseTracking(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.FusionDeviceUse.StartDeviceUse(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.FusionDeviceUse.StopDeviceUse(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.FusionDeviceUse.AddDisplayToUseTracking(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.FusionDeviceUse.StartDisplayUse(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.FusionDeviceUse.StopDisplayUse(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_ui_service.Fusion.DeviceUse.IFusionDeviceUse">
+            <summary>
+            Common methods and properties for tracking device usage via Crestron Fusion.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.IFusionDeviceUse.AddDeviceToUseTracking(System.String,System.String)">
+            <summary>
+            Add a device to the internal collection used for tracking use.
+            </summary>
+            <param name="id">The unique ID of the device to track. This will be used when starting or stopping an in-use event.</param>
+            <param name="label">The user-friendly label of the device. This will be logged and displayed when reporting use statistics.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.IFusionDeviceUse.StartDeviceUse(System.String)">
+            <summary>
+            start recording use time for the target device.
+            </summary>
+            <param name="id">The unique ID of a device that was added to the internal collection with AddDeviceToUseTracking().</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.IFusionDeviceUse.StopDeviceUse(System.String)">
+            <summary>
+            Stop recording the use time for the target device and send a usage log to the Fusion server.
+            </summary>
+            <param name="id">The unique ID of a device that was added to the internal collection with AddDeviceToUseTracking().</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.IFusionDeviceUse.AddDisplayToUseTracking(System.String,System.String)">
+            <summary>
+            Add a display to the internal collection used for tracking use statistics
+            </summary>
+            <param name="id">The unique id of the display to track. This will be used to locate a display when starting or stopping use tracking.</param>
+            <param name="label">The user-friendly name of the display to track. This will be used in the usage report.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.IFusionDeviceUse.StartDisplayUse(System.String)">
+            <summary>
+            Start recording the use time for the target display.
+            </summary>
+            <param name="id">The unique ID of the display to start tracking.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.IFusionDeviceUse.StopDisplayUse(System.String)">
+            <summary>
+            Stop recording the use time for the target display and send the data to the Fusion server.
+            </summary>
+            <param name="id">The unique ID of the device to stop and send report for.</param>
+        </member>
+        <member name="T:pkd_ui_service.Fusion.ErrorManagement.FusionErrorManager">
+            <summary>
+            Queue-based implementation of the IFusionErrorManager interface.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.ErrorManagement.FusionErrorManager.#ctor(Crestron.SimplSharpPro.Fusion.FusionRoom)">
+            <summary>
+            Instantiate a new instance of <see cref="T:pkd_ui_service.Fusion.ErrorManagement.FusionErrorManager"/>.
+            </summary>
+            <param name="fusion">The root Fusion communication object.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.ErrorManagement.FusionErrorManager.AddOfflineDevice(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.ErrorManagement.FusionErrorManager.ClearOfflineDevice(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_ui_service.Fusion.ErrorManagement.IFusionErrorManager">
+            <summary>
+            Common methods and properties used for reporting errors to a Crestron Fusion server.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.ErrorManagement.IFusionErrorManager.AddOfflineDevice(System.String,System.String)">
+            <summary>
+            Add an offline error to the current error queue for the target device.
+            </summary>
+            <param name="devId">The unique ID of the device to report an error on. This will be used to locate the device when clearing an error.</param>
+            <param name="devName"></param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.ErrorManagement.IFusionErrorManager.ClearOfflineDevice(System.String)">
+            <summary>
+            Remove an error from the current queue. If it is the currently displayed error then the next error in the queue
+            will be sent to the server. If there are no more errors in the queue then an "OK" message will be sent to the server.
+            </summary>
+            <param name="devId">The unique ID of the device that was assigned when calling AddOfflineDevice().</param>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.FusionInterface.OnlineStatusChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.FusionInterface.SystemStateChangeRequested">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.FusionInterface.DisplayPowerChangeRequested">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.FusionInterface.AudioMuteChangeRequested">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.FusionInterface.DisplayBlankChangeRequested">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.FusionInterface.DisplayFreezeChangeRequested">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.FusionInterface.ProgramAudioChangeRequested">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.FusionInterface.MicMuteChangeRequested">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.FusionInterface.SourceSelectRequested">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_ui_service.Fusion.FusionInterface.IsOnline">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.Initialize">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.UpdateSystemState(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.UpdateProgramAudioMute(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.UpdateProgramAudioLevel(System.UInt32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.UpdateDisplayPower(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.UpdateDisplayBlank(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.UpdateDisplayFreeze(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.UpdateMicMute(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.UpdateSelectedSource(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.AddAvSource(System.String,System.String,System.String[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.AddMicrophone(System.String,System.String,System.String[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.AddDeviceToUseTracking(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.AddDisplayToUseTracking(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.StartDeviceUse(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.StopDeviceUse(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.StartDisplayUse(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.StopDisplayUse(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.AddOfflineDevice(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.ClearOfflineDevice(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.FusionInterface.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.IFusionInterface.OnlineStatusChanged">
+            <summary>
+            Triggered when the Fusion server connection comes online or goes offline.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.IFusionInterface.SystemStateChangeRequested">
+            <summary>
+            Triggered whenever a system power event is received from the Fusion server.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.IFusionInterface.DisplayPowerChangeRequested">
+            <summary>
+            Triggered whenever a display power event is received from the Fusion server.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.IFusionInterface.AudioMuteChangeRequested">
+            <summary>
+            Triggered whenever a program audio mute event is received from the Fusion server.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.IFusionInterface.DisplayBlankChangeRequested">
+            <summary>
+            Triggered whenever a "blank all displays" event is received from the Fusion server.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.IFusionInterface.DisplayFreezeChangeRequested">
+            <summary>
+            Triggered whenever a "freeze all displays" event is received from the Fusion server.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.IFusionInterface.ProgramAudioChangeRequested">
+            <summary>
+            Triggered whenever a request to change the program audio is received from the server.
+            Args package will contain the 0-100 value that the level should be set to.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.IFusionInterface.MicMuteChangeRequested">
+            <summary>
+            Triggered whenever a request to change the mute state of a microphone is received from the Fusion server.
+            Args package will contain the ID of the microphone to toggle.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Fusion.IFusionInterface.SourceSelectRequested">
+            <summary>
+            Triggered whenever a request to change the selected AV input is received from the Fusion server.
+            Args package with contain the ID of the input source to select.
+            </summary>
+        </member>
+        <member name="P:pkd_ui_service.Fusion.IFusionInterface.IsOnline">
+            <summary>
+            Gets a value indicating whether the system is connected to the Fusion server.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.UpdateSystemState(System.Boolean)">
+            <summary>
+            Send a notification to the Fusion server that the system use state has changed (active or standby).
+            </summary>
+            <param name="state">True = system is active, false = system is in standby.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.UpdateProgramAudioMute(System.Boolean)">
+            <summary>
+            Send a notification to the Fusion server that the program audio mute status has changed.
+            </summary>
+            <param name="state">True = program audio is muted (no audio), false = program audio is not muted (audio is passing).</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.UpdateProgramAudioLevel(System.UInt32)">
+            <summary>
+            Send a notification to the Fusion server that the program audio level has changed.
+            </summary>
+            <param name="level">The 0-100 value representing the new audio level.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.UpdateDisplayPower(System.Boolean)">
+            <summary>
+            Send a notification to the Fusion server that there is a display powered on.
+            </summary>
+            <param name="state">True = a display is on, false = a display is off.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.UpdateDisplayBlank(System.Boolean)">
+            <summary>
+            Send a notification to the Fusion server that the global video blank status has changed.
+            </summary>
+            <param name="state">True = video is blanked (no video), false = video is active.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.UpdateDisplayFreeze(System.Boolean)">
+            <summary>
+            Send a notification to the Fusion server that the global video freeze state has changed.
+            </summary>
+            <param name="state">True = video is frozen (no motion), false  = video is not frozen (normal output).</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.AddMicrophone(System.String,System.String,System.String[])">
+            <summary>
+            Add a microphone to the internal tracker used when requesting mic mute changes.
+            System will look for either "podium" and assign the associated 'id' parameter to the podium mute toggle in the Fusion interface.
+            Any other mic will be assigned to the generic "mic mute" trigger. If multiple mics are added to either trigger then the last mic added
+            will be sent on the event.
+            </summary>
+            <param name="id">The unique ID of the mic to add.</param>
+            <param name="label">The user-friendly name of the microphone</param>
+            <param name="tags">Collection of functionality Tags associated with the mic. These will be searched for the keyword "podium".</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.UpdateMicMute(System.String,System.Boolean)">
+            <summary>
+            Send a notification to the Fusion server that the mute state has changed for a microphone in the system.
+            </summary>
+            <param name="id">The unique ID of the microphone that changed, as set in the system configuration.</param>
+            <param name="state">True = mic is muted, false = mic is passing audio.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.AddAvSource(System.String,System.String,System.String[])">
+            <summary>
+            Add an AV source to the internal collection of sources that are selectable from the Fusion server dashboard.
+            Tags assigned will be searched for keywords vga, hdmi, and pc, and then assigned to the triggers send from the server.
+            </summary>
+            <param name="id">The unique ID of the source to add. This will be used when sending change events.</param>
+            <param name="label">The user-friendly name or label of the AV source.</param>
+            <param name="tags">A Collection of functionality Tags associated with the input, usually defined in the system configuration.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.UpdateSelectedSource(System.String)">
+            <summary>
+            Send a notification to the Fusion server that the currently selected AV source has changed.
+            </summary>
+            <param name="id">The unique ID of the source that is currently routed.</param>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.IFusionInterface.Initialize">
+            <summary>
+            Registers internal Fusion server objects and attempts to establish a connection.
+            </summary>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.IAudioDiscreteLevelUserInterface">
+            <summary>
+            Interface that should be implemented if the user interface allows touch-settable audio level controls.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IAudioDiscreteLevelUserInterface.SetAudioInputLevelRequest">
+            <summary>
+            Triggered when the UI sends a command to set an input channel to a specific audio level.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IAudioDiscreteLevelUserInterface.SetAudioOutputLevelRequest">
+            <summary>
+            Triggered when the UI sends a command to set an output channel to a specific audio level.
+            </summary>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.IAudioUserInterface">
+            <summary>
+            Required events, methods, and parameters for creating a user interface that supports audio controls.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioOutputLevelUpRequest">
+            <summary>
+            Triggered when the user requests to increase the target output volume.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioOutputLevelDownRequest">
+            <summary>
+            Triggered when the user requests to lower the target output volume.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioOutputMuteChangeRequest">
+            <summary>
+            Triggered when the user requests to toggle the output mute state.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioInputLevelUpRequest">
+            <summary>
+            Triggered when the user requests to increase the target input volume.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioInputLevelDownRequest">
+            <summary>
+            Triggered when the user requests to lower the target input volume.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioInputMuteChangeRequest">
+            <summary>
+            Triggered when the user requests to toggle the input mute state.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioOutputRouteRequest">
+            <summary>
+            Triggered when the user requests to change an audio route. 
+            args.Arg1 = source id, args.Agr2 = destination id.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioZoneEnableToggleRequest">
+            <summary>
+            Triggered when the user requests to toggle the status of a zone audio enable/disable control.
+            Args package: arg1 = channel ID, arg2 = zone ID.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.SetAudioData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AudioControl.AudioChannelInfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AudioControl.AudioChannelInfoContainer})">
+            <summary>
+            Update the UI with all supported input and output audio channels.
+            </summary>
+            <param name="inputs">Collection of input/microphone data that the user can control.</param>
+            <param name="outputs">Collection of output data that the user can control.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioInputLevel(System.String,System.Int32)">
+            <summary>
+            Update the UI with the audio channels current audio level.
+            </summary>
+            <param name="id">The unique ID of the input channel to update.</param>
+            <param name="newLevel">The new level to display on the UI.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioInputMute(System.String,System.Boolean)">
+            <summary>
+            Update the UI with the current mute state of the audio input.
+            </summary>
+            <param name="id">The unique ID of the channel to update.</param>
+            <param name="muteState">true = mute is active (no audio), false = mute is inactive (audio passing).</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioOutputLevel(System.String,System.Int32)">
+            <summary>
+            Update the UI with the audio channels current audio level.
+            </summary>
+            <param name="id">The unique ID of the output channel to update.</param>
+            <param name="newLevel">The new level to display on the UI.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioOutputMute(System.String,System.Boolean)">
+            <summary>
+            Update the UI with the current mute state of the audio output.
+            </summary>
+            <param name="id">The unique ID of the channel to update.</param>
+            <param name="muteState">true = mute is active (no audio), false = mute is inactive (audio passing).</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioOutputRoute(System.String,System.String)">
+            <summary>
+            Update the connected user interface with the new routing state.
+            </summary>
+            <param name="srcId">The unique ID of the audio input that was routed.</param>
+            <param name="destId">The unique ID of the audio output that is being updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioZoneState(System.String,System.String,System.Boolean)">
+            <summary>
+            Update the user interface with the current state of the target channel/zone enable.
+            </summary>
+            <param name="channelId">The unique ID of the audio channel that will be updated.</param>
+            <param name="zoneId">The unique ID of the zone that was changed.</param>
+            <param name="newState">True = audio for that channel is active in the zone, false = audio disabled for that channel/zone.</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.ICrestronUserInterface">
+            <summary>
+            Required events, methods, and properties for any Crestron-based interface, such as a TSW-xx70.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ICrestronUserInterface.SetCrestronControl(Crestron.SimplSharpPro.CrestronControlSystem,System.Int32)">
+            <summary>
+             assign the root control system and IP-ID used when connecting to the interface hardware.
+             </summary>
+             <param name="parent">the root control system object.</param>
+             <param name="ipId">The Crestron IP-ID assigned to the interface connection.</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.ICustomEventUserInterface">
+            <summary>
+            required events, methods, and properties for implementing a user interface that supports custom events.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ICustomEventUserInterface.CustomEventChangeRequest">
+            <summary>
+            Triggered when the UI sends a command to change an event state.
+            Args package is [event tag], [new state].
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ICustomEventUserInterface.UpdateCustomEvent(System.String,System.Boolean)">
+            <summary>
+            Update the internal collection of custom events. This will either add the event to the collection
+            or update an existing event state. In either case, an update command is sent to the user interface project.
+            </summary>
+            <param name="eventTag">The unique tag of the event being added or updated.</param>
+            <param name="state">The new or current state of the custom event.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ICustomEventUserInterface.AddCustomEvent(System.String,System.String,System.Boolean)">
+            <summary>
+            Add a new event to the existing collection.
+            </summary>
+            <param name="eventTag">The unique ID of the event. Used for internal referencing</param>
+            <param name="eventLabel">The user-friendly name of the event</param>
+            <param name="currentState">true = event is active, false = event is not active</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ICustomEventUserInterface.RemoveCustomEvent(System.String)">
+            <summary>
+            Removes the target custom event from the internal collection if it exists.
+            </summary>
+            <param name="eventTag">The unique tag of the custom event to remove.</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.IDisplayUserInterface">
+            <summary>
+            Required methods, events, and properties for implementing a user interface that supports display control.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.DisplayPowerChangeRequest">
+            <summary>
+            Triggered when the user requests to change the current power status of a display.
+            arg = display ID.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.DisplayFreezeChangeRequest">
+            <summary>
+            Triggered when the user requests to change the current video freeze status of a display.
+            arg = display ID.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.DisplayBlankChangeRequest">
+            <summary>
+            Triggered when the user requests to change the current video blank/mute status of a display.
+            arg = display ID.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.DisplayScreenUpRequest">
+            <summary>
+            Triggered when the user requests to raise the screen associated with a display.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.DisplayScreenDownRequest">
+            <summary>
+            Triggered when the user requests to lower the screen associated with a display.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.StationLocalInputRequest">
+            <summary>
+            Triggered when the user requests to change a student workstation to the local input.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.StationLecternInputRequest">
+            <summary>
+            Triggered when the user requests to change a student workstation to the lectern input.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.UpdateDisplayPower(System.String,System.Boolean)">
+            <summary>
+            Update the UI with the current power status of the display.
+            </summary>
+            <param name="id">The unique ID of the display to update.</param>
+            <param name="newState">true = display on, false = display off</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.UpdateDisplayBlank(System.String,System.Boolean)">
+            <summary>
+            Update the UI with the current video blank status.
+            </summary>
+            <param name="id">The unique ID of the display to update.</param>
+            <param name="newState">true = blank on (no video), false = blank of (show video).</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.UpdateDisplayFreeze(System.String,System.Boolean)">
+            <summary>
+            Update the UI wth the current video freeze status.
+            </summary>
+            <param name="id">The unique ID of the display to update.</param>
+            <param name="newState">True = freeze on (no motion), false = freeze off (show motion).</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.SetDisplayData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.DisplayControl.DisplayInfoContainer})">
+            <summary>
+            Updates the user interface to display the new collection of controllable video outputs.
+            </summary>
+            <param name="displayData">The collection of data objects for all displays in the configuration.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.SetStationLocalInput(System.String)">
+            <summary>
+            Update the UI to indicated that the target student workstation is on the "Local" input.
+            </summary>
+            <param name="id">The ID if the station display to update.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.SetStationLecternInput(System.String)">
+            <summary>
+            Update the Ui to indicate that the target student workstation is on the "Lectern" input.
+            </summary>
+            <param name="id">The ID of the station display to update.</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.IErrorInterface">
+            <summary>
+            Required events, methods, and properties for implementing a user interface that supports device error reporting.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IErrorInterface.AddDeviceError(System.String,System.String)">
+            <summary>
+            Add a notice to the UI display indicating that the target device is offline.
+            </summary>
+            <param name="id">The unique ID of the device to add.</param>
+            <param name="label">The user-friendly label that will be displayed on the UI.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IErrorInterface.ClearDeviceError(System.String)">
+            <summary>
+            Remove the target device from the offline list.
+            </summary>
+            <param name="id">The unique ID of the device to remove.</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.IHtmlUserInterface">
+            <summary>
+            required methods for implementing a user interface that is html-based.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IHtmlUserInterface.SetSystemType(System.String)">
+            <summary>
+            Send the general system type flag to the interface hardware.
+            </summary>
+            <param name="systemType">"baseline", "restaurant", or "flex".</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.ILightingUserInterface">
+            <summary>
+            Required events, methods and properties for implementing a user interface that supports lighting control.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ILightingUserInterface.LightingSceneRecallRequest">
+            <summary>
+            Triggered when the user requests to change the selected lighting scene on the target controller.
+            Arg1 = controller id, arg2 = scene id.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ILightingUserInterface.LightingLoadChangeRequest">
+            <summary>
+            Triggered when the user requests to change the load level of a target lighting zone.
+            arg1 = controller id, arg2 = zone id, arg3 = level to set.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ILightingUserInterface.SetLightingData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.LightingControl.LightingControlInfoContainer})">
+            <summary>
+            Update the UI with a new collection of lighting controllers and their associated zones/scenes.
+            </summary>
+            <param name="lightingData">The collection of all controllable lighting devices.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ILightingUserInterface.UpdateActiveLightingScene(System.String,System.String)">
+            <summary>
+            Update the UI with the currently selected scene for a target lighting controller.
+            </summary>
+            <param name="controlId">the unique ID of the controller being updated.</param>
+            <param name="sceneId">The unique ID of the scene that is active.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ILightingUserInterface.UpdateLightingZoneLoad(System.String,System.String,System.Int32)">
+            <summary>
+            Update the UI with the current load level of the zone on the target controller.
+            </summary>
+            <param name="controlId">The unique ID of the lighting controller.</param>
+            <param name="zoneId">The unique ID of the zone being updated.</param>
+            <param name="level">The new load level of the target zone.</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.IRoutingUserInterface">
+            <summary>
+            Required events, methods and properties for implementing a user interface that supports AV routing.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IRoutingUserInterface.AvRouteChangeRequest">
+            <summary>
+            Triggered when the user requests to route an AV input to an AV output.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IRoutingUserInterface.UpdateAvRoute(pkd_application_service.AvRouting.AvSourceInfoContainer,System.String)">
+            <summary>
+            Update the user interface with the routing status of the target output.
+            </summary>
+            <param name="inputInfo">The input information for updating the UI routing status.</param>
+            <param name="outputId">The unique ID of the output being updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IRoutingUserInterface.SetRoutingData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AvRouting.AvSourceInfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.Base.InfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.Base.InfoContainer})">
+            <summary>
+            Configure the interface with the routing source and destination information.
+            </summary>
+            <param name="sources">Collection of all source data in the system configuration.</param>
+            <param name="destinations">Collection of all destinations in the system configuration.</param>
+            <param name="avRouters">Collection of all AVR devices in the system configuration.</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.ISecurityUserInterface">
+            <summary>
+            Required events, methods and properties for implementing a user interface that supports UI security features.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ISecurityUserInterface.EnableSecurityPasscodeLock">
+            <summary>
+            Send a notice to the UI to block user interaction unless a valid passcode is entered.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ISecurityUserInterface.EnableTechOnlyLock">
+            <summary>
+            Prevent any user interacting with the interface if it is not tagged as 'tech'.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ISecurityUserInterface.DisableTechOnlyLock">
+            <summary>
+            Removes the tech-only lock if it is currently active.
+            </summary>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.ITransportControlUserInterface">
+            <summary>
+            Required events, methods and properties for implementing a user interface that supports transport device controls.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ITransportControlUserInterface.TransportControlRequest">
+            <summary>
+            Trigger when the user requests a generic transport command (play, pause, up, down, etc.)
+            args package: Arg1 = the id of the device to control, Arg2 = the enum of the transport triggered.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ITransportControlUserInterface.TransportDialRequest">
+            <summary>
+            Trigger when the user requests to dial a specific channel.
+            Args package: Arg1 = id of the device to control, Arg2 = the channel to dial.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ITransportControlUserInterface.TransportDialFavoriteRequest">
+            <summary>
+            Trigger when the user requests to dial a stored favorite.
+            Arg1 = the id of the device to control, Arg2 = the id of the preset to recall.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ITransportControlUserInterface.SetCableBoxData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.Base.TransportInfoContainer})">
+            <summary>
+            Provide data on all devices in the configuration.
+            </summary>
+            <param name="data">A collection containg data objects for all controllable transport devices.</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.IUiComponent">
+            <summary>
+            Required methods when implementing a basic user interface component.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUiComponent.Initialize">
+            <summary>
+            subscribes to UI hooks and initializes any data helpers.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUiComponent.SetActiveDefaults">
+            <summary>
+            Set any UI configuration items that are necessary when the system is powered on.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUiComponent.SetStandbyDefaults">
+            <summary>
+            Set any UI configuration items that are necessary when system is set to standby.
+            </summary>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.IUserInterface">
+            <summary>
+            required events, methods, and properties for implementing any user interface.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IUserInterface.SystemStateChangeRequest">
+            <summary>
+            Triggered when the user requests to start or end the current session.
+            True = set system to in-use/on, false = set system to standby/off
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IUserInterface.OnlineStatusChanged">
+            <summary>
+            Triggered whenever the connection to the underlying device has changed.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IUserInterface.GlobalFreezeToggleRequest">
+            <summary>
+            Triggered when the user requests to change the global video freeze state.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IUserInterface.GlobalBlankToggleRequest">
+            <summary>
+            Triggered when the user requests to change the global video blank state.
+            </summary>
+        </member>
+        <member name="P:pkd_ui_service.Interfaces.IUserInterface.IsInitialized">
+            <summary>
+            Gets a value indicating whether the panel has been initialized and connected with the interface.
+            true = is initialized, false = not yet initialized.
+            </summary>
+        </member>
+        <member name="P:pkd_ui_service.Interfaces.IUserInterface.IsOnline">
+            <summary>
+            Gets a value indicating whether the connected interface hardware is online with the control system.
+            True = device is online, false = devices is offline.
+            </summary>
+        </member>
+        <member name="P:pkd_ui_service.Interfaces.IUserInterface.IsXpanel">
+            <summary>
+            Gets a value indicating whether the user interface is an XPanel/support interface.
+            </summary>
+        </member>
+        <member name="P:pkd_ui_service.Interfaces.IUserInterface.Id">
+            <summary>
+            The unique identifier used when searching for or referencing this device.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUserInterface.SetSystemState(System.Boolean)">
+            <summary>
+            Update the UI to show either the in-use/active pages or the standby pages.
+            </summary>
+            <param name="state">true = the system is currently being used.
+            false = the system is currently in standby mode.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUserInterface.ShowSystemStateChanging(System.Boolean)">
+            <summary>
+            Display a notice on the UI indicating that the system is transitioning
+            from standby to active or active to standby.
+            </summary>
+            <param name="state">True = show changing to active, false = show changing to standby.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUserInterface.HideSystemStateChanging">
+            <summary>
+            Hide any notifications that indicate the system is changing state and notify the user that
+            the change is complete.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUserInterface.SetGlobalFreezeState(System.Boolean)">
+            <summary>
+            Update the user interface with the current status of the global video freeze.
+            </summary>
+            <param name="state">true = freeze active, false = normal video streaming.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUserInterface.SetGlobalBlankState(System.Boolean)">
+            <summary>
+            Update the user interface with the current status of the global video blank.
+            </summary>
+            <param name="state">true = blank is active, false = normal video operation.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUserInterface.SetUiData(pkd_application_service.UserInterface.UserInterfaceDataContainer)">
+            <summary>
+            Prepare the interface for initialization by defining the general configuration.
+            </summary>
+            <param name="uiData">The configuration data object that represents the UI being created.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUserInterface.Initialize">
+            <summary>
+            Call once all configuration information has been set. This will prepare any internal objects for connection.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUserInterface.Connect">
+            <summary>
+            Call once all necessary data as been populated and Initialize() has been successfully called. This will open a connection
+            with the interface hardware.
+            </summary>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.IVideoWallUserInterface">
+            <summary>
+            Required events, methods and properties for implementing a user interface that supports video wall control.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IVideoWallUserInterface.VideoWallLayoutChangeRequest">
+            <summary>
+            Args package must be:<br/>
+            Arg1 - id of the video wall controller<br/>
+            Arg2 - id of the new layout to set as active.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.IVideoWallUserInterface.VideoWallRouteRequest">
+            <summary>
+            Args package must be:<br/>
+            Arg1 - id of the video wall controller.<br/>
+            Arg2 - id of the cell in the active layout being changed.<br/>
+            Arg3 - id of the source to route.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.SetVideoWallData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.VideoWallControl.VideoWallInfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AvRouting.AvSourceInfoContainer})">
+            <summary>
+            Provide the user interface with the video wall system configuration.
+            </summary>
+            <param name="videoWalls">Collection of device data for all video wall controllers in the system.</param>
+            <param name="sources">Collection of all sources that are routable to the video wall.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateActiveVideoWallLayout(System.String,System.String)">
+            <summary>
+            Update the active layout on a target controller
+            </summary>
+            <param name="controlId">The id of the video wall controller getting updated.</param>
+            <param name="layoutId">The id of the new active layout.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateCellRoutedSource(System.String,System.String,System.String)">
+            <summary>
+            update the currently routed source on a video wall layout cell/window.
+            </summary>
+            <param name="controlId">The id of the controller being updated.</param>
+            <param name="cellId">The id of the cell/window being updated.</param>
+            <param name="sourceId">The id of the source that has been routed.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateVideoWallConnectionStatus(System.String,System.Boolean)">
+            <summary>
+            Update the user interface with the online status of a video wall controller.
+            </summary>
+            <param name="controlId">The id of the video wall controller that changed.</param>
+            <param name="onlineStatus">the current online status (true = online, false = offline).</param>
+        </member>
+        <member name="T:pkd_ui_service.IPresentationService">
+            <summary>
+            minimum features of any presentation service implementation.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.IPresentationService.Initialize">
+            <summary>
+            Connect and register all interface connections.
+            </summary>
+        </member>
+        <member name="T:pkd_ui_service.PresentationService">
+            <summary>
+            Root presentation implementation.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.#ctor(pkd_application_service.IApplicationService,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <param name="appService">The framework application implementation that handles state management.</param>
+            <param name="control">the root Crestron control system object.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.Finalize">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.Initialize">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.Dispose(System.Boolean)">
+            <summary>
+            disposes of all internal component objects if they are disposable.
+            </summary>
+        </member>
+        <member name="T:pkd_ui_service.PresentationServiceFactory">
+            <summary>
+            Helper class for creating presentation service objects.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationServiceFactory.CreatePresentationService(pkd_application_service.IApplicationService,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Creates a full presentation service object that hooks into the application service events.
+            </summary>
+            <param name="appService">The base application service used to control business logic.</param>
+            <param name="control">The control system entry point for this program.</param>
+            <returns>A Presentation service that can be initialized for interacting with user interface hardware.</returns>
+        </member>
+    </members>
+</doc>

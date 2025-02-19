@@ -27,7 +27,7 @@ public static class WallData
             {
                Id = "vw02",
                Label = "4x2 Grid",
-               Width = 2,
+               Width = 4,
                Height = 2,
                Cells = [
                    new VideoWallCell { Id = "vw02c01", XPosition = 1, YPosition = 1 },
@@ -54,7 +54,7 @@ public static class WallData
             new()
             {
                 Id = "vw04",
-                Label = "Full Screne",
+                Label = "Full Screen",
                 Width = 1,
                 Height = 1,
                 Cells = [ new VideoWallCell { Id = "vw04c01", XPosition = 1, YPosition = 1 } ]

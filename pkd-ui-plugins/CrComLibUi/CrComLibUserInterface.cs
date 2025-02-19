@@ -1,4 +1,6 @@
 ﻿using CrComLibUi.Api;
+using CrComLibUi.Components.VideoWallControl;
+using pkd_application_service.VideoWallControl;
 
 namespace CrComLibUi;
 
@@ -45,6 +47,7 @@ public class CrComLibUserInterface :
 	ITransportControlUserInterface,
 	ICustomEventUserInterface,
 	ISecurityUserInterface,
+	IVideoWallUserInterface,
 	IDisposable
 {
 	private readonly Dictionary<uint, Action<string>> _apiHandlerActions;
@@ -168,6 +171,12 @@ public class CrComLibUserInterface :
 	public event EventHandler<GenericDualEventArgs<string, bool>>? CustomEventChangeRequest;
 
 	/// <inheritdoc/>
+	public event EventHandler<GenericDualEventArgs<string, string>>? VideoWallLayoutChangeRequest;
+	
+	/// <inheritdoc/>
+	public event EventHandler<GenericTrippleEventArgs<string, string, string>>? VideoWallRouteRequest;
+
+	/// <inheritdoc/>
 	public void Connect(){}
 
 	/// <inheritdoc/>
@@ -182,7 +191,7 @@ public class CrComLibUserInterface :
 	{
 		_uiData = uiData;
 		Id = uiData.Id;
-		if (_uiComponents.Count == 0)
+		if (_uiComponents.Count == 0 && _parent != null)
 		{
 			CreateComponents();
 		}
@@ -201,7 +210,11 @@ public class CrComLibUserInterface :
 		_ipId = (uint)ipId;
 		RebuildInterface();
 		_uiComponents.Clear();
-		CreateComponents();
+
+		if (_uiData != null)
+		{
+			CreateComponents();
+		}
 	}
 
 	/// <inheritdoc/>
@@ -212,7 +225,7 @@ public class CrComLibUserInterface :
 			Logger.Error("CrComLibUserInterface.SetSystemType() - argument 'systemType' cannot be null or empty.");
 			return;
 		}
-
+		
 		_systemType = systemType;
 	}
 
@@ -297,6 +310,20 @@ public class CrComLibUserInterface :
 		FindComponent<IErrorInterface>()?.ClearDeviceError(id);
 	}
 
+	public void SetVideoWallData(ReadOnlyCollection<VideoWallInfoContainer> videoWalls,
+		ReadOnlyCollection<AvSourceInfoContainer> sources) =>
+		FindComponent<IVideoWallUserInterface>()?.SetVideoWallData(videoWalls, sources);
+
+	public void UpdateActiveVideoWallLayout(string controlId, string layoutId) =>
+		FindComponent<IVideoWallUserInterface>()?.UpdateActiveVideoWallLayout(controlId, layoutId);
+
+
+	public void UpdateCellRoutedSource(string controlId, string cellId, string sourceId) =>
+		FindComponent<IVideoWallUserInterface>()?.UpdateCellRoutedSource(controlId, cellId, sourceId);
+
+	public void UpdateVideoWallConnectionStatus(string controlId, bool onlineStatus) =>
+		FindComponent<IVideoWallUserInterface>()?.UpdateVideoWallConnectionStatus(controlId, onlineStatus);
+	
 	/// <inheritdoc/>
 	public void SetRoutingData(
 		ReadOnlyCollection<AvSourceInfoContainer> sources,
@@ -593,6 +620,8 @@ public class CrComLibUserInterface :
 		
 		try
 		{
+			Logger.Debug($"CrComLibUi.CrComLibUserInterface.CreateComponents() - System type = {_systemType}");
+			
 			var ric = new RoomInfoComponent(_ui, _uiData, _systemType);
 			ric.StateChangeRequested += SystemStateChangeRequestHandler;
 			_uiComponents.Add(ric);
@@ -655,6 +684,12 @@ public class CrComLibUserInterface :
 			cec.CustomEventChangeRequest += HandleCustomEventRequest;
 			_uiComponents.Add(cec);
 			_apiHandlerActions.Add((uint)ApiHooks.Event, cec.HandleSerialResponse);
+
+			var wcc = new VideoWallComponent(_ui, _uiData);
+			wcc.VideoWallRouteRequest += VideoWallRouteHandler;
+			wcc.VideoWallLayoutChangeRequest += VideoWallLayoutHandler;
+			_uiComponents.Add(wcc);
+			_apiHandlerActions.Add((uint)ApiHooks.VideoWall, wcc.HandleSerialResponse);
 		}
 		catch (Exception e)
 		{
@@ -662,6 +697,18 @@ public class CrComLibUserInterface :
 		}
 	}
 
+	private void VideoWallRouteHandler(object? sender, GenericTrippleEventArgs<string, string, string> args)
+	{
+		var temp = VideoWallRouteRequest;
+		temp?.Invoke(this, args);
+	}
+
+	private void VideoWallLayoutHandler(object? sender, GenericDualEventArgs<string, string> args)
+	{
+		var temp = VideoWallLayoutChangeRequest;
+		temp?.Invoke(this, args);
+	}
+	
 	private void HandleCustomEventRequest(object? sender, GenericDualEventArgs<string, bool> args)
 	{
 		var temp = CustomEventChangeRequest;

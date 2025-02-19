@@ -202,11 +202,71 @@ internal class VideoWallComponent(
     
     private void HandlePostLayoutSelect(ResponseBase rxObj)
     {
+        var controlId = rxObj.Data.Value<string>("ControlId");
+        var layoutId = rxObj.Data.Value<string>("LayoutId");
+        if (string.IsNullOrEmpty(controlId) || string.IsNullOrEmpty(layoutId))
+        {
+            SendError("Invalid layout POST request: missing ControlId or LayoutId.", ApiHooks.VideoWall);
+            return;
+        }
 
+        var wall = _videoWalls.FirstOrDefault(x => x.Id == controlId);
+        if (wall == null)
+        {
+            SendError($"Invalid layout POST request: no controller with id {controlId}.", ApiHooks.VideoWall);
+            return;
+        }
+
+        if (!wall.Layouts.Exists(x => x.Id == layoutId))
+        {
+            SendError(
+                $"Invalid layout POST request: controller {controlId} does not contain a layout with id {layoutId}.",
+                ApiHooks.VideoWall);
+            return;
+        }
+
+        var temp = VideoWallLayoutChangeRequest;
+        temp?.Invoke(this, new GenericDualEventArgs<string, string>(controlId, layoutId));
     }
 
     private void HandlePostRouteRequest(ResponseBase rxObj)
     {
+        var controlId = rxObj.Data.Value<string>("ControlId");
+        var cellId = rxObj.Data.Value<string>("CellId");
+        var sourceId = rxObj.Data.Value<string>("SourceId");
+        if (string.IsNullOrEmpty(controlId) || string.IsNullOrEmpty(cellId) || string.IsNullOrEmpty(sourceId))
+        {
+            SendError("Invalid route POST request: missing ControlId, CellId, or SourceId.", ApiHooks.VideoWall);
+            return;
+        }
+        
+        var wall = _videoWalls.FirstOrDefault(x => x.Id == controlId);
+        if (wall == null)
+        {
+            SendError($"Invalid route POST request: no controller with id {controlId}.", ApiHooks.VideoWall);
+            return;
+        }
+        
+        var layout = wall.Layouts.FirstOrDefault(x => x.IsActive);
+        if (layout == null)
+        {
+            SendError($"Invalid route POST request: Controller {controlId} has no active layout.", ApiHooks.VideoWall);
+            return;
+        }
 
+        if (!layout.Cells.Exists(x => x.Id == cellId))
+        {
+            SendError($"Invalid route POST request: the active layout does not contain a cell with id {cellId}", ApiHooks.VideoWall);
+            return;
+        }
+
+        if (!_sources.Exists(x => x.Id == sourceId))
+        {
+            SendError($"Invalid route POSt request: no source exists with id {sourceId}", ApiHooks.VideoWall);
+            return;
+        }
+
+        var temp = VideoWallRouteRequest;
+        temp?.Invoke(this, new GenericTrippleEventArgs<string, string, string>(controlId, cellId, sourceId));
     }
 }

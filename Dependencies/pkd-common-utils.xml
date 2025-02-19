@@ -1,0 +1,554 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>pkd-common-utils</name>
+    </assembly>
+    <members>
+        <member name="T:pkd_common_utils.FileOps.DirectoryHelper">
+            <summary>
+            Provides methods for reading files into memory.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DirectoryHelper.NormalizePath(System.String)">
+            <summary>
+            Converts the directory delimiters depending on the underlying platform type.
+            If the platform is a server then all '\' are replaced with '/', otherwise all '/' are replaced with '\'.
+            </summary>
+            <param name="currentPath">The relative or absolute file path to correct.</param>
+            <returns>The same file path given as an argument but formatted correctly based on the platform.</returns>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DirectoryHelper.GetUserFolder">
+            <summary>
+            Returns the directory path to the control systems User folder. string does not include the trailing '/'.
+            </summary>
+            <returns>the application directory with '/User' or 'user' appended.</returns>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DirectoryHelper.FileExists(System.String)">
+            <summary>
+            Check to see if a given file exists on the control system.
+            </summary>
+            <param name="filepath">The full filepath to check, including file extension.</param>
+            <returns>true of the file exists, false otherwise.</returns>
+        </member>
+        <member name="T:pkd_common_utils.FileOps.DriverLoader">
+            <summary>
+            Helper class used to load a Crestron Certified Driver from a DLL using reflection.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.LoadDriverInstance``1(System.String,System.String,System.String)">
+            <summary>
+            Return an instance of a Crestron Certified Driver.
+            </summary>
+            <typeparam name="T">The expected return type.</typeparam>
+            <param name="assemblyName">The full directory and file name with extension of the target assembly.</param>
+            <param name="interfaceName">The CCD interface to search for in the driver dll.</param>
+            <param name="transportName">The CCD transport type to search for in the driver dll.</param>
+            <returns>The target T object, if found in the assembly, or T default if no matching driver is found.</returns>
+            <exception cref="T:System.Exception">Will propagate exceptions from System.Reflection.</exception>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.LoadClassByInterface``1(System.String,System.String,System.String)">
+            <summary>
+            Return an instance of a class based on the defined interface name.
+            </summary>
+            <typeparam name="T">The expected return type.</typeparam>
+            <param name="assemblyName">The full directory and file name with extension of the target assembly.</param>
+            <param name="className">The class to search for in the assembly dll.</param>
+            <param name="interfaceName">The interface to search for in the assembly dll.</param>
+            <returns>The target T object, if found in the assembly, or T default if no matching driver is found.</returns>
+            <exception cref="T:System.Exception">Will propagate exceptions from System.Reflection.</exception>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.GetTransportType(System.String)">
+            <summary>
+            Resolved a configuration service tag to a Crestron Certified Driver transport interface type.
+            Writes an error to the logging system if the lookup fails.
+            </summary>
+            <param name="connectionTag">The tag to evaluate. Cannot be null or empty.</param>
+            <returns>The name of the CCD transport type, or the empty string if the give tag is not supported.</returns>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.GetBaudRate(System.Int32)">
+            <summary>
+            Convert a configuration baud rate argument to a CCD baud rate value.
+            Writes a warning to the logging system if an unrecognized value is encountered.
+            </summary>
+            <param name="baudRate">The config-defined baud rate to convert.</param>
+            <returns>the CCD baud rate value. Defaults to 9600 if unable to parse baudRate.</returns>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.GetDataBits(System.Int32)">
+            <summary>
+            Convert a configuration data bits number to a CCD data bits definition.
+            Writes an error to the logging system if an unrecognized argument is given.
+            </summary>
+            <param name="data">The data bits number set in the configuration.</param>
+            <returns>The CCD data bits equivalent to 'data', or NotSpecified if unable to parse.</returns>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.GetStopBits(System.Int32)">
+            <summary>
+            Convert a configuration data bits number to a CCD stop bits definition.
+            Writes an error to the logging system if an unrecognized argument is given.
+            </summary>
+            <param name="data">The stop bits number set in the configuration.</param>
+            <returns>The CCD stop bits equivalent to 'data', or NotSpecified if unable to parse.</returns>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.GetHwHandshake(System.String)">
+            <summary>
+            Convert a configuration Hardware Handshake argument to a CCD hardware handshake definition.
+            Writes an error to the logging system if an unrecognized argument is given.
+            </summary>
+            <param name="data">The Hardware Handshake argument set in the configuration.</param>
+            <returns>The CCD Hardware Handshake equivalent to 'data', or NotSpecified if unable to parse.</returns>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.GetSwHandshake(System.String)">
+            <summary>
+            Convert a configuration Software Handshake argument to a CCD software handshake definition.
+            Writes an error to the logging system if an unrecognized argument is given.
+            </summary>
+            <param name="data">The Software Handshake argument set in the configuration.</param>
+            <returns>The CCD Software Handshake equivalent to 'data', or NotSpecified if unable to parse.</returns>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.GetParity(System.String)">
+            <summary>
+            Convert a configuration parity argument to a CCD parity definition.
+            Writes an error to the logging system if an unrecognized argument is given.
+            </summary>
+            <param name="data">The parity argument set in the configuration.</param>
+            <returns>The CCD parity equivalent to 'data', or NotSpecified if unable to parse.</returns>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.GetProtocol(System.String)">
+            <summary>
+            Convert a configuration serial protocol argument to a CCD protocol definition.
+            Writes an error to the logging system if an unrecognized argument is given.
+            </summary>
+            <param name="data">The serial protocol argument set in the configuration.</param>
+            <returns>The CCD serial protocol equivalent to 'data', or NotSpecified if unable to parse.</returns>
+        </member>
+        <member name="T:pkd_common_utils.GenericEventArgs.GenericDualEventArgs`2">
+            <summary>
+            Generic arguments package for sending information during application which
+            requires 2 discrete bits of data.
+            </summary>
+            <typeparam name="T1">The type of data being sent during an event for Arg1.</typeparam>
+            <typeparam name="T2">The type of data being sent during an event for Arg2.</typeparam>
+            <remarks>
+            Initializes a new instance of the <see cref="T:pkd_common_utils.GenericEventArgs.GenericDualEventArgs`2"/> class.
+            </remarks>
+            <param name="arg1">the first data object supplied when the event was thrown.</param>
+            <param name="arg2">the second data object supplied when the event was thrown.</param>
+        </member>
+        <member name="M:pkd_common_utils.GenericEventArgs.GenericDualEventArgs`2.#ctor(`0,`1)">
+            <summary>
+            Generic arguments package for sending information during application which
+            requires 2 discrete bits of data.
+            </summary>
+            <typeparam name="T1">The type of data being sent during an event for Arg1.</typeparam>
+            <typeparam name="T2">The type of data being sent during an event for Arg2.</typeparam>
+            <remarks>
+            Initializes a new instance of the <see cref="T:pkd_common_utils.GenericEventArgs.GenericDualEventArgs`2"/> class.
+            </remarks>
+            <param name="arg1">the first data object supplied when the event was thrown.</param>
+            <param name="arg2">the second data object supplied when the event was thrown.</param>
+        </member>
+        <member name="P:pkd_common_utils.GenericEventArgs.GenericDualEventArgs`2.Arg1">
+            <summary>
+            Gets the first data object supplied when the event was thrown.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.GenericEventArgs.GenericDualEventArgs`2.Arg2">
+            <summary>
+            Gets the second data object supplied when the event was thrown.
+            </summary>
+        </member>
+        <member name="T:pkd_common_utils.GenericEventArgs.GenericSingleEventArgs`1">
+            <summary>
+            Generic arguments package for sending information during application
+            events.
+            </summary>
+            <typeparam name="T">The type of data being sent durring an event.</typeparam>
+            <remarks>
+            Initializes a new instance of the <see cref="T:pkd_common_utils.GenericEventArgs.GenericSingleEventArgs`1"/> class.
+            </remarks>
+            <param name="arg">The data object associated with the triggering event.</param>
+        </member>
+        <member name="M:pkd_common_utils.GenericEventArgs.GenericSingleEventArgs`1.#ctor(`0)">
+            <summary>
+            Generic arguments package for sending information during application
+            events.
+            </summary>
+            <typeparam name="T">The type of data being sent durring an event.</typeparam>
+            <remarks>
+            Initializes a new instance of the <see cref="T:pkd_common_utils.GenericEventArgs.GenericSingleEventArgs`1"/> class.
+            </remarks>
+            <param name="arg">The data object associated with the triggering event.</param>
+        </member>
+        <member name="P:pkd_common_utils.GenericEventArgs.GenericSingleEventArgs`1.Arg">
+            <summary>
+            Gets a value representing the data sent during the event.
+            </summary>
+        </member>
+        <member name="T:pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs`3">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs`3"/> class.
+            </summary>
+            <param name="arg1">the first data object supplied when the event was thrown.</param>
+            <param name="arg2">the second data object supplied when the event was thrown.</param>
+            <param name="arg3">the third data object supplied when the event was thrown.</param>
+        </member>
+        <member name="M:pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs`3.#ctor(`0,`1,`2)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs`3"/> class.
+            </summary>
+            <param name="arg1">the first data object supplied when the event was thrown.</param>
+            <param name="arg2">the second data object supplied when the event was thrown.</param>
+            <param name="arg3">the third data object supplied when the event was thrown.</param>
+        </member>
+        <member name="P:pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs`3.Arg1">
+            <summary>
+            Gets the first data object supplied when the event was thrown.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs`3.Arg2">
+            <summary>
+            Gets the second data object supplied when the event was thrown.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs`3.Arg3">
+            <summary>
+            Gets the Third data object supplied when the event was thrown.
+            </summary>
+        </member>
+        <member name="T:pkd_common_utils.Logging.Logger">
+            <summary>
+            Logging system for writing messages to the control system error long and console output.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.SetProgramId(System.String)">
+            <summary>
+            Set the ID tag that is included in all log statements.
+            </summary>
+            <param name="id">A program unique ID used to identify what program slot is writing to the log.</param>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.SetDebugOn">
+            <summary>
+            Enables additional log statements for debugging purposes. Should only be used when debugging an issue and disabled when done.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.SetDebugOff">
+            <summary>
+            Disables the additional logging statements if debug mode is active.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.Info(System.String)">
+            <summary>
+            Writes a basic information statement to the logging system, Usually to non-permanent logs (CLI).
+            Does nothing if 'message' is null or empty.
+            </summary>
+            <param name="message">The statement to write to the logging system.</param>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.Info(System.String,System.Object[])">
+            <summary>
+            Writes a basic information statement to the logging system, Usually to non-permanent logs (CLI).
+            Does nothing if 'message' is null or empty.
+            </summary>
+            <param name="message">string format for the statement to write to the logging system.</param>
+            <param name="args">string formatting arguments</param>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.Error(System.String)">
+            <summary>
+            Writes an error to the logging system, both permanent and non-permanent logs.
+            </summary>
+            <param name="message">The message to record in the logging system.</param>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.Error(System.String,System.Object[])">
+            <summary>
+            Writes a formatted string to the error logging system.
+            </summary>
+            <param name="message">The formatted string that will be logged</param>
+            <param name="args">all string format parameters.</param>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.Error(System.Exception,System.String)">
+            <summary>
+            Write an exception stack trace to the logging system.
+            </summary>
+            <param name="e">the .NET exception that will be logged to the system.</param>
+            <param name="message">The custom message to include with the exception log.</param>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.Error(System.Exception,System.String,System.Object[])">
+            <summary>
+            Write an exception stack trace to the logging system.
+            </summary>
+            <param name="e">The .NET exception that will be logged to the system.</param>
+            <param name="message">The formatted string to include with the error log.</param>
+            <param name="args">parameters for the formatted message.</param>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.Warn(System.String)">
+            <summary>
+            Write a warning message to the logging system.
+            </summary>
+            <param name="message">The message to write to the logs.</param>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.Warn(System.String,System.Object[])">
+            <summary>
+            Write a warning message to the logging system as a formatted string.
+            </summary>
+            <param name="message">The string format to use when writing to the log.</param>
+            <param name="args">parameters to include in the formatted string.</param>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.Debug(System.String,System.Object[])">
+            <summary>
+            Write a debug message to the logging system. This will only display if debug mode is enabled.
+            </summary>
+            <param name="message">The string format to use when writing to the log.</param>
+            <param name="args">parameters for the formatted string.</param>
+        </member>
+        <member name="M:pkd_common_utils.Logging.Logger.Debug(System.String)">
+            <summary>
+            Write a debug message to the logging system. This will only display if debug mode is enabled.
+            </summary>
+            <param name="message">The message to write to the debug log.</param>
+        </member>
+        <member name="T:pkd_common_utils.NetComs.BasicFtpClient">
+            <summary>
+            Utility class for checking remote SFTP servers and downloading files. Uses either Username/password or SSH keys
+            for connection.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicFtpClient.#ctor(System.String,System.String,System.String)">
+            <summary>
+            Creates an instance of <see cref="T:pkd_common_utils.NetComs.BasicFtpClient"/> using a username and password for SFTP connection.
+            </summary>
+            <param name="host">The IP address or hostname of the SFTP server.</param>
+            <param name="username">The username used to log into the SFTP server.</param>
+            <param name="password">The password used to log into the SFTP server.</param>
+            <exception cref="T:System.ArgumentException">If any argument is null or empty.</exception>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicFtpClient.#ctor(System.String,System.String,Crestron.SimplSharp.Ssh.PrivateKeyFile)">
+            <summary>
+            Creates an instance of <see cref="T:pkd_common_utils.NetComs.BasicFtpClient"/> using a username and SSH key for SFTP connection.
+            </summary>
+            <param name="host">The IP address or hostname of the SFTP server.</param>
+            <param name="username">The username used to log into the SFTP server.</param>
+            <param name="sshKey">The private key used to authenticate with the server.</param>
+            <exception cref="T:System.ArgumentException">If any argument is null or empty.</exception>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicFtpClient.Finalize">
+            <summary>Allows an object to try to free resources and perform other cleanup operations before it is reclaimed by garbage collection.</summary>
+        </member>
+        <member name="E:pkd_common_utils.NetComs.BasicFtpClient.FileQueryComplete">
+            <summary>
+            Triggered when a response is received from the server after calling QueryFileNames() successfully.
+            Response data will be stored in the FileNamesReceived property.
+            </summary>
+        </member>
+        <member name="E:pkd_common_utils.NetComs.BasicFtpClient.ErrorOccurred">
+            <summary>
+            Triggered whenever there is an error querying, downloading, or connected to the the SFTP server.
+            Error information will be stored in the LastErrorMessage property.
+            </summary>
+        </member>
+        <member name="E:pkd_common_utils.NetComs.BasicFtpClient.DownloadComplete">
+            <summary>
+            Triggered when a file download from the remote server has completed successfully.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicFtpClient.LastErrorMessage">
+            <summary>
+            Error information on the last error event.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicFtpClient.FilesNamesReceived">
+            <summary>
+            A collection of file names (including extension) that were in the directory provided in the most recent
+            call to QueryFileNames(). This will be empty if there are no files or QueryFileName() has not been called.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicFtpClient.IsConnected">
+            <summary>
+            Gets a value indicating whether there is an active connection with the remote server.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicFtpClient.Connect">
+            <summary>
+            Attempts to connect to the remote SFTP server. Does nothing if the client is already connected.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicFtpClient.Disconnect">
+            <summary>
+            Attempts to disconnect from the remote server. Does nothing if there is no active client connection.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicFtpClient.QueryFileNames(System.String)">
+            <summary>
+            Queries the remote server for the names and extensions of all files in the target directory. This will
+            not store any responses that are subdirectories. Only file names are saved.
+            Does nothing if there is no active connection.
+            </summary>
+            <param name="remoteDirectory">The full directory path on the remote server.</param>
+            <exception cref="T:System.ArgumentException">If any argument is null or the empty string.</exception>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicFtpClient.DownloadFile(System.String,System.String)">
+            <summary>
+            Downloads the given file from the remote server to the provided local directory and file name.
+            Does nothing if there is not an active connection with the remote server.
+            </summary>
+            <param name="remoteFilePath">The full path to the file that will be downloaded, including file extension.</param>
+            <param name="localFilePath">The full path to the local file that will be saved, including file extension.</param>
+            <exception cref="T:System.ArgumentException">If any argument is null or the empty string.</exception>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicFtpClient.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:pkd_common_utils.NetComs.BasicTcpClient">
+            <summary>
+            Simple TCP/IP client for ethernet communications.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicTcpClient.Finalize">
+            <summary>Allows an object to try to free resources and perform other cleanup operations before it is reclaimed by garbage collection.</summary>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicTcpClient.#ctor(System.String,System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_common_utils.NetComs.BasicTcpClient"/> class.
+            This class does not check hostname formatting.
+            </summary>
+            <param name="hostname">The IP Address or hostname to connect with. Defaults to 'localhost'</param>
+            <param name="port">The port number used to connect. Value = 0 - 65535, defaults to 80.</param>
+            <param name="bufferSize">The size of the read/write stream buffer. Defaults to 5000.</param>
+            <exception cref="T:System.ArgumentNullException">if 'hostname' is null or empty</exception>
+            <exception cref="T:System.ArgumentException">if port is outside the range of 0-65535 or if bufferSize is less than 0.</exception>
+        </member>
+        <member name="E:pkd_common_utils.NetComs.BasicTcpClient.ConnectionFailed">
+            <summary>
+            Triggered each time a connection attempt fails. Data package contains the SocketStatus enum for the failure.
+            </summary>
+        </member>
+        <member name="E:pkd_common_utils.NetComs.BasicTcpClient.ClientConnected">
+            <summary>
+            Triggered on a successful connection with the host.
+            </summary>
+        </member>
+        <member name="E:pkd_common_utils.NetComs.BasicTcpClient.StatusChanged">
+            <summary>
+            Triggered whenever the connection status changes. Current status can be obtained
+            from the ClientStatusMessage property.
+            </summary>
+        </member>
+        <member name="E:pkd_common_utils.NetComs.BasicTcpClient.RxReceived">
+            <summary>
+            Triggered whenever any data is received from the server. Arguments packages has the string data.
+            Subscribe to this event if string data is desired rather than the raw bytes.
+            </summary>
+        </member>
+        <member name="E:pkd_common_utils.NetComs.BasicTcpClient.RxBytesReceived">
+            <summary>
+            Triggered whenever any data is received from the server.
+            Subscribe to this event the raw byte data is desired rather than string data.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicTcpClient.Hostname">
+            <summary>
+            The hostname or IP address set at object creation.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicTcpClient.RxData">
+            <summary>
+            Gets the last set of data sent by the server.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicTcpClient.RxBytes">
+            <summary>
+            Gets the most recent response from the server as an array of bytes.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicTcpClient.ClientStatusMessage">
+            <summary>
+            Gets the current connection status. <see cref="T:Crestron.SimplSharp.CrestronSockets.SocketStatus"/>.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicTcpClient.Port">
+            <summary>
+            Gets the port number being used for connection.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicTcpClient.BufferSize">
+            <summary>
+            Gets the current buffer size used when sending or receiving responses from the server.
+            This is set at object creation.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicTcpClient.Connected">
+            <summary>
+            Gets the current connection status. True = client reports connected, false = client reports disconnected.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicTcpClient.EnableReconnect">
+            <summary>
+            Gets or sets whether the client should auto-attempt a reconnect at the ReconnectTime interval.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.NetComs.BasicTcpClient.ReconnectTime">
+            <summary>
+            Gets or sets the time between reconnect attempts, in Milliseconds.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicTcpClient.Connect">
+            <summary>
+            Attempt to connect to the server. This will disconnect a currently active connection.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicTcpClient.Disconnect">
+            <summary>
+            Disconnect from the server if currently connected. Does nothing if there is no active connection.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicTcpClient.Send(System.String)">
+            <summary>
+            Send a string of information to the server. Length is limited by the value of BufferSize.
+            No action is taken if 'data' is null.
+            </summary>
+            <param name="data">The string data to send to the server. Cannot be null</param>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicTcpClient.Send(System.Byte[])">
+            <summary>
+            Send a command to the server as a byte array.
+            </summary>
+            <param name="data">The byte data to send to the server.</param>
+        </member>
+        <member name="M:pkd_common_utils.NetComs.BasicTcpClient.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_common_utils.Validation.DataFormatter">
+            <summary>
+            Helper class to standardize and check config arguments.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.Validation.DataFormatter.NormalizeDeviceModel(System.String)">
+            <summary>
+            Removes all leading and trailing white spaces and removes any hyphens.
+            </summary>
+            <param name="arg">The config argument to convert</param>
+            <returns>A new string with all whitespaces and hyphens removed.</returns>
+        </member>
+        <member name="T:pkd_common_utils.Validation.ParameterValidator">
+            <summary>
+            Helper class for checking method arguments.
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.Validation.ParameterValidator.ThrowIfNull(System.Object,System.String,System.String)">
+            <summary>
+            Throws an exception if the param is null.
+            </summary>
+            <param name="param">The object being evaluated for null.</param>
+            <param name="methodName"></param>
+            <param name="paramName">The name of the parameter being checked.</param>
+            <exception cref="T:System.ArgumentNullException">If 'param' is null.</exception>
+        </member>
+        <member name="M:pkd_common_utils.Validation.ParameterValidator.ThrowIfNullOrEmpty(System.String,System.String,System.String)">
+            <summary>
+            Throws an exception if the string parameter is null or empty.
+            </summary>
+            <param name="param">The object to evaluate.</param>
+            <param name="methodName">Name of the method running the check.</param>
+            <param name="paramName">Name of the parameter being cheecked.</param>
+            <exception cref="T:System.ArgumentException">if 'param' is null or empty.</exception>
+        </member>
+    </members>
+</doc>
