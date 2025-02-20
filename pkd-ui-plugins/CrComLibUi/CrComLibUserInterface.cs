@@ -310,9 +310,8 @@ public class CrComLibUserInterface :
 		FindComponent<IErrorInterface>()?.ClearDeviceError(id);
 	}
 
-	public void SetVideoWallData(ReadOnlyCollection<VideoWallInfoContainer> videoWalls,
-		ReadOnlyCollection<AvSourceInfoContainer> sources) =>
-		FindComponent<IVideoWallUserInterface>()?.SetVideoWallData(videoWalls, sources);
+	public void SetVideoWallData(ReadOnlyCollection<VideoWallInfoContainer> videoWalls) =>
+		FindComponent<IVideoWallUserInterface>()?.SetVideoWallData(videoWalls);
 
 	public void UpdateActiveVideoWallLayout(string controlId, string layoutId) =>
 		FindComponent<IVideoWallUserInterface>()?.UpdateActiveVideoWallLayout(controlId, layoutId);

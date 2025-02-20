@@ -17,10 +17,10 @@ public static class WallData
                 Height = 2,
                 Cells =
                 [
-                    new VideoWallCell { Id = "vw01c01", XPosition = 1, YPosition = 1 },
-                    new VideoWallCell { Id = "vw01c02", XPosition = 2, YPosition = 1 },
-                    new VideoWallCell { Id = "vw01c03", XPosition = 1, YPosition = 2 },
-                    new VideoWallCell { Id = "vw01c04", XPosition = 2, YPosition = 2 }
+                    new VideoWallCell { Id = "vw01c01", XPosition = 1, YPosition = 1, DefaultSourceId = "vws01"},
+                    new VideoWallCell { Id = "vw01c02", XPosition = 2, YPosition = 1, DefaultSourceId = "vws02" },
+                    new VideoWallCell { Id = "vw01c03", XPosition = 1, YPosition = 2, DefaultSourceId = "vws03" },
+                    new VideoWallCell { Id = "vw01c04", XPosition = 2, YPosition = 2, DefaultSourceId = "vws04" }
                 ]
             },
             new()
@@ -30,14 +30,14 @@ public static class WallData
                Width = 4,
                Height = 2,
                Cells = [
-                   new VideoWallCell { Id = "vw02c01", XPosition = 1, YPosition = 1 },
-                   new VideoWallCell { Id = "vw02c02", XPosition = 2, YPosition = 1 },
-                   new VideoWallCell { Id = "vw02c03", XPosition = 3, YPosition = 1 },
-                   new VideoWallCell { Id = "vw02c04", XPosition = 4, YPosition = 1 },
-                   new VideoWallCell { Id = "vw02c05", XPosition = 1, YPosition = 2 },
-                   new VideoWallCell { Id = "vw02c06", XPosition = 2, YPosition = 2 },
-                   new VideoWallCell { Id = "vw02c07", XPosition = 3, YPosition = 2 },
-                   new VideoWallCell { Id = "vw02c08", XPosition = 4, YPosition = 2 },
+                   new VideoWallCell { Id = "vw02c01", XPosition = 1, YPosition = 1, DefaultSourceId = "vws01" },
+                   new VideoWallCell { Id = "vw02c02", XPosition = 2, YPosition = 1, DefaultSourceId = "vws02" },
+                   new VideoWallCell { Id = "vw02c03", XPosition = 3, YPosition = 1, DefaultSourceId = "vws03" },
+                   new VideoWallCell { Id = "vw02c04", XPosition = 4, YPosition = 1, DefaultSourceId = "vws04" },
+                   new VideoWallCell { Id = "vw02c05", XPosition = 1, YPosition = 2, DefaultSourceId = "vws05" },
+                   new VideoWallCell { Id = "vw02c06", XPosition = 2, YPosition = 2, DefaultSourceId = "vws06" },
+                   new VideoWallCell { Id = "vw02c07", XPosition = 3, YPosition = 2, DefaultSourceId = "vws07" },
+                   new VideoWallCell { Id = "vw02c08", XPosition = 4, YPosition = 2, DefaultSourceId = "vws08" },
                ]
             },
             new()
@@ -47,8 +47,8 @@ public static class WallData
                 Width = 2,
                 Height = 1,
                 Cells = [
-                    new VideoWallCell { Id = "vw03c01", XPosition = 1, YPosition = 1 },
-                    new VideoWallCell { Id = "vw03c02", XPosition = 2, YPosition = 1 },
+                    new VideoWallCell { Id = "vw03c01", XPosition = 1, YPosition = 1, DefaultSourceId = "vws01" },
+                    new VideoWallCell { Id = "vw03c02", XPosition = 2, YPosition = 1, DefaultSourceId = "vws02" },
                 ]
             },
             new()
@@ -57,7 +57,7 @@ public static class WallData
                 Label = "Full Screen",
                 Width = 1,
                 Height = 1,
-                Cells = [ new VideoWallCell { Id = "vw04c01", XPosition = 1, YPosition = 1 } ]
+                Cells = [ new VideoWallCell { Id = "vw04c01", XPosition = 1, YPosition = 1, DefaultSourceId = "vws01"} ]
             }
         ];
         

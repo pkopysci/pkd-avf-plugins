@@ -15,6 +15,8 @@ public class VideoWallEmulator : IVideoWallDevice
 
     public string Id { get; private set; } = "DefaultId";
     public string Label { get; private set; } = string.Empty;
+    
+    public string StartupLayoutId { get; } = "vw01";
     public bool IsOnline { get; private set; }
     public bool IsInitialized { get; private set; }
     public List<VideoWallLayout> Layouts { get; private set; } = [];
@@ -58,6 +60,11 @@ public class VideoWallEmulator : IVideoWallDevice
         _activeLayout = found;
         var temp = VideoWallLayoutChanged;
         temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
+
+        foreach (var cell in _activeLayout.Cells)
+        {
+            SetCellSource(cell.Id, cell.DefaultSourceId);
+        }
     }
 
     public string GetActiveLayoutId()

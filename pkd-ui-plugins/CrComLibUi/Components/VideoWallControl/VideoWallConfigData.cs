@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using pkd_application_service.AvRouting;
 using pkd_application_service.VideoWallControl;
 
 namespace CrComLibUi.Components.VideoWallControl;
@@ -30,6 +31,8 @@ public class VideoWallControlData
     public bool IsOnline { get; set; }
     public List<string> Tags { get; set; } = [];
     public List<VideoWallLayoutData> Layouts { get; set; } = [];
+    
+    public List<AvSourceInfoContainer> Sources { get; set; } = [];
 }
 
 public static class ConfigDataFactory
@@ -48,6 +51,7 @@ public static class ConfigDataFactory
                 Tags = wall.Tags,
                 Layouts = CreateVideoWallLayoutData(wall.Layouts),
                 IsOnline = wall.IsOnline,
+                Sources = wall.Sources.ToList(),
             });
         }
         

@@ -1,4 +1,6 @@
-﻿namespace VideoWallAppService;
+﻿using pkd_application_service.AvRouting;
+
+namespace VideoWallAppService;
 
 using System.Collections.ObjectModel;
 using pkd_application_service;
@@ -38,6 +40,16 @@ public class VideoWallApplication : ApplicationService, IVideoWallApp
         }
         
         base.Initialize(hwService, domain);
+    }
+
+    public override void SetActive()
+    {
+        foreach (var wall in HwService.VideoWallDevices.GetAllDevices())
+        {
+            wall.SetActiveLayout(wall.StartupLayoutId);
+        }
+        
+        base.SetActive();
     }
 
     /// <summary>
@@ -200,6 +212,17 @@ public class VideoWallApplication : ApplicationService, IVideoWallApp
                 Height = layout.Height
             });
         }
+
+        var deviceSources = new List<AvSourceInfoContainer>();
+        foreach (var source in device.Sources)
+        {
+            deviceSources.Add(new AvSourceInfoContainer(
+                source.Id,
+                source.Label,
+                source.Icon,
+                source.Tags,
+                source.Control));
+        }
             
         var wallInfo = new VideoWallInfoContainer(
             config.Id,
@@ -208,7 +231,8 @@ public class VideoWallApplication : ApplicationService, IVideoWallApp
             config.Tags,
             device.IsOnline)
         {
-            Layouts = new ReadOnlyCollection<VideoWallLayoutInfo>(layouts)
+            Layouts = new ReadOnlyCollection<VideoWallLayoutInfo>(layouts),
+            Sources = new ReadOnlyCollection<AvSourceInfoContainer>(deviceSources),
         };
         
         return wallInfo;

@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using CrComLibUi.Api;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json.Linq;
-using pkd_application_service.AvRouting;
 using pkd_application_service.UserInterface;
 using pkd_application_service.VideoWallControl;
 using pkd_common_utils.GenericEventArgs;
@@ -21,7 +20,6 @@ internal class VideoWallComponent(
     private const string ConnectionCommand = "CONNECTION";
     private const string ConfigCommand = "CONFIG";
     private List<VideoWallControlData> _videoWalls = [];
-    private List<AvSourceInfoContainer> _sources = [];
     
     public event EventHandler<GenericDualEventArgs<string, string>>? VideoWallLayoutChangeRequest;
     public event EventHandler<GenericTrippleEventArgs<string, string, string>>? VideoWallRouteRequest;
@@ -66,11 +64,9 @@ internal class VideoWallComponent(
     }
 
     public void SetVideoWallData(
-        ReadOnlyCollection<VideoWallInfoContainer> videoWalls,
-        ReadOnlyCollection<AvSourceInfoContainer> sources)
+        ReadOnlyCollection<VideoWallInfoContainer> videoWalls)
     {
         _videoWalls = ConfigDataFactory.CreateControllerCollection(videoWalls);
-        _sources = sources.ToList();
     }
 
     public void UpdateActiveVideoWallLayout(string controlId, string layoutId)
@@ -173,7 +169,6 @@ internal class VideoWallComponent(
         var message = MessageFactory.CreateGetResponseObject();
         message.Command = ConfigCommand;
         message.Data["Controllers"] = JToken.FromObject(_videoWalls);
-        message.Data["Sources"] = JToken.FromObject(_sources);
         Send(message, ApiHooks.VideoWall);
     }
 
@@ -261,7 +256,7 @@ internal class VideoWallComponent(
             return;
         }
 
-        if (!_sources.Exists(x => x.Id == sourceId))
+        if (!wall.Sources.Exists(x => x.Id == sourceId))
         {
             SendError($"Invalid route POSt request: no source exists with id {sourceId}", ApiHooks.VideoWall);
             return;

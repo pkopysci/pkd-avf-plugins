@@ -1,0 +1,2355 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>pkd-application-service</name>
+    </assembly>
+    <members>
+        <member name="T:pkd_application_service.ApplicationControlFactory">
+            <summary>
+            Helper class for creating an implementation of IApplicationService.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.ApplicationControlFactory.CreateAppService(pkd_hardware_service.IInfrastructureService,pkd_domain_service.IDomainService)">
+            <summary>
+            Creates the application service implementation and stores the hardware connections and control data.
+            If there is no custom application service defined in the domain then the default application service will be created.
+            </summary>
+            <param name="hwService">The infrastructure implementation for controlling devices.</param>
+            <param name="domain">The system configuration data provider.</param>
+            <returns>a populated application service that is ready for initialization.</returns>
+            <exception cref="T:System.ArgumentNullException">if hwService or domain is null.</exception>
+        </member>
+        <member name="T:pkd_application_service.ApplicationService">
+            <summary>
+            Class for controlling interactions between the external control interfaces and the hardware service.
+            A plugin can use this class to override functionality for a custom application service without needing to completely
+            rewrite the IApplicationService implementation.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.Disposables">
+            <summary>
+            Collection of objects that need to be disposed when this object is disposed.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.InterfaceData">
+            <summary>
+            Collection of all user interfaces defined in the configuration.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.DisplayControl">
+            <summary>
+            internal control object for managing display control state.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.SystemPowerControl">
+            <summary>
+            Internal control object for managing system power state and requests
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.EndpointControl">
+            <summary>
+            Internal control object for managing relay endpoint control requests.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.HwService">
+            <summary>
+            The hardware device interface manager part of the AV framework.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.Domain">
+            <summary>
+            The system configuration representation of the AV Framework.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.AudioControl">
+            <summary>
+            Internal control object for managing audio state and requests.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.RoutingControl">
+            <summary>
+            Internal control object for managing video routing state and requests.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.TransportControl">
+            <summary>
+            Internal control object for managing dvd, cable tv, and other transport-based requests.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.LightingControl">
+            <summary>
+            Internal control object for managing all lighting states and requests.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.ApplicationService.UseAvrMuteFreeze">
+            <summary>
+            Flag to indicate whether to use an AV Router in the configuration for video mute and freeze or if these controls
+            should be sent to the individual displays.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.Finalize">
+            <summary>
+            Allows an object to try to free resources and perform other cleanup operations before it is reclaimed by garbage collection.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.Initialize(pkd_hardware_service.IInfrastructureService,pkd_domain_service.IDomainService)">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.SystemStateChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.DisplayPowerChange">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.DisplayBlankChange">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.DisplayFreezeChange">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.DisplayConnectChange">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.DisplayInputChanged">
+            <inheritdoc />
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.EndpointRelayChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.EndpointConnectionChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.RouteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.AudioOutputRouteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.RouterConnectChange">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.AudioOutputLevelChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.AudioOutputMuteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.AudioInputLevelChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.AudioInputMuteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.AudioZoneEnableChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.AudioDspConnectionStatusChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.LightingLoadLevelChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.LightingSceneChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.LightingControlConnectionChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.GlobalVideoBlankChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.ApplicationService.GlobalVideoFreezeChanged">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_application_service.ApplicationService.CurrentSystemState">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_application_service.ApplicationService.AutoShutdownEnabled">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetAllUserInterfaces">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetFusionInterface">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetRoomInfo">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetActive">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetStandby">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.AutoShutdownEnable">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.AutoShutdownDisable">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetAutoShutdownTime(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetDisplayPower(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.DisplayPowerQuery(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetDisplayBlank(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.DisplayBlankQuery(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetDisplayFreeze(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.DisplayFreezeQuery(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.RaiseScreen(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.LowerScreen(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetInputLectern(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetInputStation(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.DisplayInputLecternQuery(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.DisplayInputStationQuery(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetAllDisplayInfo">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.PulseEndpointRelay(System.String,System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.LatchRelayClosed(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.LatchRelayOpen(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetAudioInputChannels">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetAudioOutputChannels">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetAllAudioDspDevices">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryAudioDspConnectionStatus(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryAudioInputLevel(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryAudioOutputLevel(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryAudioInputMute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryAudioOutputMute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryAudioOutputRoute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryAudioZoneState(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetAudioInputLevel(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetAudioInputMute(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetAudioOutputLevel(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetAudioOutputMute(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetAudioOutputRoute(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.ToggleAudioZoneState(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryRouterConnectionStatus(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetAllAvSources">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetAllAvDestinations">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetAllAvRouters">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.MakeRoute(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.RouteToAll(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.ReportGraph">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryCurrentRoute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetGlobalVideoFreeze(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryGlobalVideoBlank">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryGlobalVideoFreeze">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetGlobalVideoBlank(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetAllCableBoxes">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportPowerOn(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportPowerOff(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportPowerToggle(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportDial(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportDialFavorite(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportDash(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportChannelUp(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportChannelDown(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportPageUp(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportPageDown(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportGuide(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportMenu(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportInfo(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportExit(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportBack(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportPlay(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportPause(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportStop(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportRecord(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportScanForward(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportScanReverse(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportSkipForward(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportSelect(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportSkipReverse(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportNavUp(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportNavDown(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportNavLeft(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportNavRight(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportRed(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportGreen(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportYellow(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.TransportBlue(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.RecallLightingScene(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetLightingLoad(System.String,System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetActiveScene(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetAllLightingDeviceInfo">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.GetZoneLoad(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.Dispose(System.Boolean)">
+            <summary>
+            Dispose all objects in <see cref="F:pkd_application_service.ApplicationService.Disposables"/>.
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.HandleStartupShutdownPresets">
+            <summary>
+            recalls any startup or shutdown DSP presets that exist in the system configuration.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.HandleLightingStartupShutdown">
+            <summary>
+            Trigger any startup or shutdown lighting presets if they exist in the system configuration.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.OnSystemChange">
+            <summary>
+            Triggers any AV routes flagged for the startup or shutdown events. Also recalls <see cref="M:pkd_application_service.ApplicationService.HandleStartupShutdownPresets"/>
+            and <see cref="M:pkd_application_service.ApplicationService.HandleLightingStartupShutdown"/>.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SubscribeEvents">
+            <summary>
+            subscribes to all events triggered by the internal subject-specific control objects.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetAvrVideoFreeze(System.Boolean)">
+            <summary>
+            Iterate through all AVRs in the system configuration and set their video freeze state to the given value, if
+            they support this feature.
+            </summary>
+            <param name="state">true = freeze active, false = freeze inactive.</param>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.SetAvrVideoBlank(System.Boolean)">
+            <summary>
+            Iterate through all AVRs in the system configuration and set their video blank state to the given value, if
+            they support this feature.
+            </summary>
+            <param name="state">true = blank active, false = blank inactive.</param>
+        </member>
+        <member name="T:pkd_application_service.AudioControl.AudioChannelInfoContainer">
+            <summary>
+            Data object for sending information to subscribers about a single audio channel in the system.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioChannelInfoContainer.#ctor(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.Collections.Generic.List{pkd_application_service.Base.InfoContainer})">
+            <summary>
+            Creates a new instance of <see cref="T:pkd_application_service.AudioControl.AudioChannelInfoContainer"/>.
+            </summary>
+            <param name="id">The unique ID of the channel. Used for internal referencing.</param>
+            <param name="label">The user-friendly name of the channel.</param>
+            <param name="icon">The image tag used for referencing the UI icon.</param>
+            <param name="tags">A collection of custom tags used by the subscribed service.</param>
+            <param name="zoneEnables">A collection of data objects that define what audio zones this channel can be routed to.</param>
+        </member>
+        <member name="P:pkd_application_service.AudioControl.AudioChannelInfoContainer.ZoneEnableControls">
+            <summary>
+            Gets a collection of audio zone data objects that define where this channel can be routed to.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.AudioControl.AudioControlApp">
+            <summary>
+            Class for handling audio adjustments and updates.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.#ctor(pkd_hardware_service.BaseDevice.DeviceContainer{pkd_hardware_service.AudioDevices.IAudioControl},System.Collections.Generic.List{pkd_application_service.AudioControl.AudioChannelInfoContainer},System.Collections.Generic.List{pkd_application_service.AudioControl.AudioChannelInfoContainer},System.Collections.Generic.Dictionary{System.String,System.Collections.Generic.List{pkd_application_service.Base.InfoContainer}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_application_service.AudioControl.AudioControlApp"/> class.
+            </summary>
+            <param name="dspDevices">Collection of all devices in the system with audio controls.</param>
+            <param name="inputChannels">Collection of all input audio channels in the system with level control.</param>
+            <param name="outputChannels">Collection of all audio output channels in the system with level control.</param>
+            <param name="allPresets">Collection of audio preset data that was included in the config.</param>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.AudioControlApp.AudioOutputLevelChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.AudioControlApp.AudioOutputMuteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.AudioControlApp.AudioInputLevelChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.AudioControlApp.AudioInputMuteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.AudioControlApp.AudioDspConnectionStatusChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.AudioControlApp.AudioOutputRouteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.AudioControlApp.AudioZoneEnableChanged">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.GetAudioInputChannels">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.GetAudioOutputChannels">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.GetAllAudioDspDevices">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.QueryAudioDspConnectionStatus(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.QueryAudioInputLevel(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.QueryAudioOutputLevel(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.QueryAudioOutputMute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.QueryAudioOutputRoute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.QueryAudioInputMute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.QueryAudioZoneState(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.SetAudioInputLevel(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.SetAudioInputMute(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.SetAudioOutputLevel(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.SetAudioOutputMute(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.SetAudioOutputRoute(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.ToggleAudioZoneState(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.QueryDspAudioPresets(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.RecallAudioPreset(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_application_service.AudioControl.IAudioControlApp">
+            <summary>
+            Common properties and methods for audio device control management.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.IAudioControlApp.AudioOutputLevelChanged">
+            <summary>
+            Triggered when the internal audio monitor detects a change on an output channel level status.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.IAudioControlApp.AudioOutputMuteChanged">
+            <summary>
+            Triggered when the internal audio monitor detects a change on an output channel mute status.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.IAudioControlApp.AudioInputLevelChanged">
+            <summary>
+            Triggered when the internal audio monitor detects a change on an input channel level status.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.IAudioControlApp.AudioInputMuteChanged">
+            <summary>
+            Triggered when the internal audio monitor detects a change on an input channel mute status.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.IAudioControlApp.AudioDspConnectionStatusChanged">
+            <summary>
+            Triggered whenever the connection to the DSP changes (if a DSP is present in the system).
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.IAudioControlApp.AudioOutputRouteChanged">
+            <summary>
+            Triggered whenever an audio-routable DSP reports a route change on an output channel.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.AudioControl.IAudioControlApp.AudioZoneEnableChanged">
+            <summary>
+            Triggered whenever the system detects an audio zone enable/disable event.
+            Args package: arg1 = the channel ID that was changed, arg2 = the zone ID that was changed.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.GetAudioInputChannels">
+            <summary>
+            Get all input channels defined in the system configuration (both DSP and AV switch channels
+            that support audio control).
+            </summary>
+            <returns>All AV input channels in the system design.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.GetAudioOutputChannels">
+            <summary>
+            Get all output channels defined in the system configuration (both DSP and AV switch channels
+            that support audio control).
+            </summary>
+            <returns>All AV output channels in the system design.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.GetAllAudioDspDevices">
+            <summary>
+            Gets information about all audio DSP devices that exist in the configuration.
+            An empty collection is returned if there are none.
+            </summary>
+            <returns>A collection of information on all DSP devices in the system.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.QueryAudioDspConnectionStatus(System.String)">
+            <summary>
+            Get the current connection status of the target DSP. False is returned if there is no
+            DSP with a matching ID.
+            </summary>
+            <param name="id">The unique ID of the DSP to query.</param>
+            <returns>True if the device exists and is online, false otherwise.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.QueryAudioInputLevel(System.String)">
+            <summary>
+            Get the current level of the target input.
+            </summary>
+            <param name="id">The unique ID of the input to query.</param>
+            <returns>a value in the range 0-100 representing the current volume level of the input.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.QueryAudioOutputLevel(System.String)">
+            <summary>
+            Get the current level of the target output.
+            </summary>
+            <param name="id">The unique ID of the output to query.</param>
+            <returns>A value in the range 0-100 representing the current volume level of the output.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.QueryAudioOutputMute(System.String)">
+            <summary>
+            Get the current mute status of the target output.
+            </summary>
+            <param name="id">The unique ID of the output to query.</param>
+            <returns>True if the output exists and is muted, false otherwise.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.QueryAudioOutputRoute(System.String)">
+            <summary>
+            Get the current route status of the target output
+            </summary>
+            <param name="id">The unique ID of the output channel to query.</param>
+            <returns>The unique ID of the input channel that is routed to that output.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.QueryAudioInputMute(System.String)">
+            <summary>
+            Get the current mute status of the target input.
+            </summary>
+            <param name="id">The unique ID of the input to query.</param>
+            <returns>True if the input exists and is muted, false otherwise.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.QueryAudioZoneState(System.String,System.String)">
+            <summary>
+            Get the current state of the target zone enable control for the given channel.
+            </summary>
+            <param name="channelId">The unique ID of the audio channel to query.</param>
+            <param name="zoneId">The unique ID of the zone control for the channel that will be queried.</param>
+            <returns>the current state of the zone enable or false if no channel/zone pair was found.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.SetAudioInputLevel(System.String,System.Int32)">
+            <summary>
+            Send a request to change the audio level of an input channel.
+            </summary>
+            <param name="id">The unique ID of the input channel to adjust.</param>
+            <param name="level">a 0-100 value representing the new level</param>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.SetAudioInputMute(System.String,System.Boolean)">
+            <summary>
+            Send a request to change the mute state of an input channel.
+            </summary>
+            <param name="id">The unique ID of the input channel to update.</param>
+            <param name="mute">True = enable mute (no audio), false = disable mute (pass audio)</param>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.SetAudioOutputLevel(System.String,System.Int32)">
+            <summary>
+            Send a request to change the audio level of an output channel.
+            </summary>
+            <param name="id">The unique ID of the output channel to adjust.</param>
+            <param name="level">a 0-100 value representing the new level</param>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.SetAudioOutputMute(System.String,System.Boolean)">
+            <summary>
+            Send a request to change the mute state of an output channel.
+            </summary>
+            <param name="id">The unique ID of the output channel to update.</param>
+            <param name="mute">True = enable mute (no audio), false = disable mute (pass audio)</param>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.SetAudioOutputRoute(System.String,System.String)">
+            <summary>
+            Set the audio route on the target output channel.
+            </summary>
+            <param name="srcId">The unique ID of the input channel to route.</param>
+            <param name="destId">The unique ID of the output channel to update.</param>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.ToggleAudioZoneState(System.String,System.String)">
+            <summary>
+            Send a command to the hardware service to toggle the current enable state of the target
+            channel and zone combination.
+            
+            Does nothing if a channel ID/ zone ID match cannot be found.
+            </summary>
+            <param name="channelId">The unique ID of the audio channel to modify.</param>
+            <param name="zoneId">The unique ID of the zone toggle to change.</param>
+        </member>
+        <member name="T:pkd_application_service.AudioControl.IAudioPresetApp">
+            <summary>
+            required methods when implementing an application service that supports managing audio presets.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioPresetApp.QueryDspAudioPresets(System.String)">
+            <summary>
+            Get a collection of all audio presets that can be recalled associated with the target DSP.
+            </summary>
+            <param name="dspId">The unique ID of the DSP to query.</param>
+            <returns>All the DSP info objects for that DSP. Will return an empty collection if dspId is not found.</returns>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioPresetApp.RecallAudioPreset(System.String,System.String)">
+            <summary>
+            Send a preset/snapshot recall request to the target DSP.
+            </summary>
+            <param name="dspId">The unique ID of the DSP to control.</param>
+            <param name="presetId">The unique ID of the preset associated with the DSP that will be recalled.</param>
+        </member>
+        <member name="E:pkd_application_service.AvRouting.AvRoutingApp.RouteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.AvRouting.AvRoutingApp.RouterConnectChange">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.AvRoutingApp.QueryRouterConnectionStatus(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.AvRoutingApp.GetAllAvSources">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.AvRoutingApp.GetAllAvDestinations">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.AvRoutingApp.GetAllAvRouters">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.AvRoutingApp.MakeRoute(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.AvRoutingApp.RouteToAll(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.AvRoutingApp.QueryCurrentRoute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.AvRoutingApp.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_application_service.AvRouting.AvSourceInfoContainer">
+            <summary>
+            Container object for sending information a single audio/video source to subscribers.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.AvRouting.AvSourceInfoContainer.Empty">
+            <summary>
+            Default / Empty AV source.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.AvSourceInfoContainer.#ctor(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.String)">
+            <summary>
+            Creates a new instance of <see cref="T:pkd_application_service.AvRouting.AvSourceInfoContainer"/>
+            </summary>
+            <param name="id">The unique ID of the source. Used for internal referencing.</param>
+            <param name="label">The user-friendly name of the source.</param>
+            <param name="icon">The image tag used for referencing the UI icon.</param>
+            <param name="tags">A collection of custom tags used by the subscribed service.</param>
+            <param name="controlId">The unique ID of the transport device that is associated with the source if it exists.</param>
+        </member>
+        <member name="P:pkd_application_service.AvRouting.AvSourceInfoContainer.ControlId">
+            <summary>
+            Gets the controllable device that is associated with this source.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.AvRouting.IAvRoutingApp">
+            <summary>
+            Common properties and methods for Audio and video routing applications.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.AvRouting.IAvRoutingApp.RouteChanged">
+            <summary>
+            Triggered when a destination in the routing map changes what input is displayed.
+            Args package contains the ID of the destination that was changed.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.AvRouting.IAvRoutingApp.RouterConnectChange">
+            <summary>
+            Triggered when an AV routing device in the system has come online or gone offline.
+            Args package contains the ID of the device that changed.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.QueryRouterConnectionStatus(System.String)">
+            <summary>
+            Request the current online/offline status of the target AV routing device.
+            </summary>
+            <param name="id">The unique ID of the device to query.</param>
+            <returns>True if the device is online, false otherwise.</returns>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.GetAllAvSources">
+            <summary>
+            Query the service for all routable audio/video inputs.
+            </summary>
+            <returns>A data collection of all AV inputs in the system configuration.</returns>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.GetAllAvDestinations">
+            <summary>
+            Query the service for all routable audio/video outputs.
+            </summary>
+            <returns>A data collection of all AV outputs in the system configuration.</returns>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.GetAllAvRouters">
+            <summary>
+            Query the service for all AVR devices.
+            </summary>
+            <returns>A data collection representing all AV routing devices in the configuration.</returns>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.MakeRoute(System.String,System.String)">
+            <summary>
+            Request to route the target input to the target output.
+            </summary>
+            <param name="inputId">The unique ID of the input to route.</param>
+            <param name="outputId">The unique ID of the output to be routed to.</param>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.RouteToAll(System.String)">
+            <summary>
+            Route the target input to all destinations in the system.
+            </summary>
+            <param name="inputId">The unique ID of the input to route.</param>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.ReportGraph">
+            <summary>
+            Print out the current state of the routing graph.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.QueryCurrentRoute(System.String)">
+            <summary>
+            Query the routing system for what input is currently routed to that endpoint.
+            If no route is made then the return object will contain an ID of "NONE".
+            </summary>
+            <param name="outputId">The target output to query.</param>
+            <returns>An information container with data about the currently routed source, or an id of "NONE" if no route is active.</returns>
+        </member>
+        <member name="T:pkd_application_service.AvRouting.Pathfinder.Edge">
+            <summary>
+            Data object representing an edge between to vertices in a matrix routing graph.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.Pathfinder.Edge.#ctor(pkd_application_service.AvRouting.Pathfinder.Vertex,pkd_application_service.AvRouting.Pathfinder.Vertex,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_application_service.AvRouting.Pathfinder.Edge"/> class.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.AvRouting.Pathfinder.Edge.Weight">
+            <summary>
+            Gets or sets the cost of walking this edge if used in a weighted pathfinding.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.AvRouting.Pathfinder.Edge.Source">
+            <summary>
+            Gets or sets the first vertex in the edge.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.AvRouting.Pathfinder.Edge.Destination">
+            <summary>
+            Gets or sets the second vertex in the edge.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.AvRouting.Pathfinder.Graph">
+            <summary>
+            Matrix routing graph for finding source -> destination paths
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.Pathfinder.Graph.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_application_service.AvRouting.Pathfinder.Graph"/> class.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.AvRouting.Pathfinder.Graph.AdjList">
+            <summary>
+            Gets the currently stored map of vertex and its associated edges.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.Pathfinder.Graph.AddEdgeUndirected(pkd_application_service.AvRouting.Pathfinder.Vertex,pkd_application_service.AvRouting.Pathfinder.Vertex,System.Int32)">
+            <summary>
+            Create an edge between to vertices. This adds two edges to indicate a bidirectional
+            path.
+            </summary>
+            <param name="source">The first vertex in the edge.</param>
+            <param name="destination">The second vertex in the edge.</param>
+            <param name="weight">Value used if a weighted pathfinding analysis is used.</param>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.Pathfinder.Graph.ReportGraph">
+            <summary>
+            Prints out all vertices and their associated edges. 
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.AvRouting.Pathfinder.PathRouter">
+            <summary>
+            Based on pathfinding solution shared by JB on Dev.To:
+            https://dev.to/jjb/part-17-finding-shortest-paths-in-graphs-using-dijkstra-s-bfs-554m
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.Pathfinder.PathRouter.GetRoutePath(pkd_application_service.AvRouting.Pathfinder.Graph,pkd_application_service.AvRouting.Pathfinder.Vertex,pkd_application_service.AvRouting.Pathfinder.Vertex)">
+            <summary>
+            Conduct an unweighted shortest path search on the given graph.
+            </summary>
+            <param name="graph">The routing matrix to analyze.</param>
+            <param name="source">the starting point of the path.</param>
+            <param name="dest">The target endpoint.</param>
+            <returns>A collection of all nodes in the shortest path.</returns>
+        </member>
+        <member name="T:pkd_application_service.AvRouting.Pathfinder.Vertex">
+            <summary>
+            Represents a routing node used for pathfinding when routing a source to a destination.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.Pathfinder.Vertex.#ctor(System.String,pkd_application_service.AvRouting.Pathfinder.VertexType)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_application_service.AvRouting.Pathfinder.Vertex"/> class.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.AvRouting.Pathfinder.Vertex.Key">
+            <summary>
+            Gets or sets the unique ID of the source/destination/matrix node that
+            this vertex represents.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.AvRouting.Pathfinder.Vertex.VertexType">
+            <summary>
+            Gets or sets the type of vertex. This is used to call routing commands on devices.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.AvRouting.Pathfinder.Vertex.ParentId">
+            <summary>
+            Gets or sets the up-stream vertex that this object is connected to.
+            Used for updating destination feedback.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.AvRouting.Pathfinder.Vertex.TargetId">
+            <summary>
+            Gets or sets the down-stream vertex that this object is connected to.
+            Used for updating destination feedback.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.AvRouting.Pathfinder.VertexType">
+            <summary>
+            Defines how a routing point should bet treated when conducting
+            a pathfinding action.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.Base.BaseApp`2">
+            <summary>
+            Data container object that assists in storing a data type and referencing it by ID.
+            </summary>
+            <typeparam name="TDevice">Defines what type of device will be stored in this container.</typeparam>
+            <typeparam name="TDeviceData">Existing domain data objects representing the devices.</typeparam>
+        </member>
+        <member name="F:pkd_application_service.Base.BaseApp`2.Devices">
+            <summary>
+            Container for managing the hardware interaction objects.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.Base.BaseApp`2.Data">
+            <summary>
+            Collection of configuration data representing the devices.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.Base.BaseApp`2.#ctor(pkd_hardware_service.BaseDevice.DeviceContainer{`0},System.Collections.ObjectModel.ReadOnlyCollection{`1})">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_application_service.Base.BaseApp`2"/> class.
+            </summary>
+            <param name="devices">The collection of devices that will be controlled by the app.</param>
+            <param name="data">The collection of config data associated with the devices being controlled.</param>
+        </member>
+        <member name="M:pkd_application_service.Base.BaseApp`2.Finalize">
+            <summary>
+            Finalizes an instance of the <see cref="T:pkd_application_service.Base.BaseApp`2"/> class.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.Base.BaseApp`2.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.Base.BaseApp`2.GetDevice(System.String)">
+            <summary>
+            Attempt to read the collection of devices and find the specific device.
+            </summary>
+            <param name="id">The unique ID of the device to find.</param>
+            <returns>The device control object if found, otherwise null.</returns>
+        </member>
+        <member name="M:pkd_application_service.Base.BaseApp`2.GetDeviceInfo(System.String)">
+            <summary>
+            Get the configuration information for the target device.
+            </summary>
+            <param name="id">The unique ID of the devices to look for.</param>
+            <returns>The configuration info for the device, or null if the device cannot be found.</returns>
+        </member>
+        <member name="M:pkd_application_service.Base.BaseApp`2.GetAllDevices">
+            <summary>
+            Get all the devices in the collection
+            </summary>
+            <returns>the collection of devices.</returns>
+        </member>
+        <member name="M:pkd_application_service.Base.BaseApp`2.Dispose(System.Boolean)">
+            <summary>
+            Dispose of all managed objects.
+            </summary>
+            <param name="disposing">true = this device is disposing, false = not disposing.</param>
+        </member>
+        <member name="T:pkd_application_service.Base.InfoContainer">
+            <summary>
+            Base data container class containing common attributes for all device objects.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.Base.InfoContainer.Empty">
+            <summary>
+            Default / Empty data object.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.Base.InfoContainer.#ctor(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.Boolean)">
+            <summary>
+            Instantiates a new instance of <see cref="T:pkd_application_service.Base.InfoContainer"/>
+            </summary>
+            <param name="id">The unique ID of the device. Used for internal referencing.</param>
+            <param name="label">The user-friendly name of the device.</param>
+            <param name="icon">The image tag used for referencing the UI icon.</param>
+            <param name="tags">A collection of custom tags used by the subscribed service.</param>
+            <param name="isOnline">true = the device is currently connected for communication, false = device offline (defaults to false)</param>
+        </member>
+        <member name="P:pkd_application_service.Base.InfoContainer.Id">
+            <summary>
+            Gets the unique ID of this data item.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.InfoContainer.Label">
+            <summary>
+            Gets the user-friendly label of this data item.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.InfoContainer.Icon">
+            <summary>
+            Gets the Icon key for this data item.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.InfoContainer.IsOnline">
+            <summary>
+            Gets a value indicating whether the device is currently online or offline.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.InfoContainer.Tags">
+            <summary>
+            Gets the various tags that are associated with this data item.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.Base.RoomInfoContainer">
+            <summary>
+            Data object containing general information about the controlled location.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.Base.RoomInfoContainer.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            Instantiates an instance of <see cref="T:pkd_application_service.Base.RoomInfoContainer"/>.
+            </summary>
+            <param name="id">The unique ID of the room set in the configuration.</param>
+            <param name="label">The user-friendly room name.</param>
+            <param name="helpContact">The contact information to use when contacting tech support.</param>
+            <param name="systemType">The system behavior identifier that was set in the configuration file.</param>
+        </member>
+        <member name="P:pkd_application_service.Base.RoomInfoContainer.HelpContact">
+            <summary>
+            Gets the help contact information that was set in the room configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.RoomInfoContainer.SystemType">
+            <summary>
+            Gets the system type for this room that was set in the configuration file.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.Base.TransportInfoContainer">
+            <summary>
+            data object for sending information about a Transport device (Blu-ray, Cable TV, DVD, etc.) to subscribers.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.Base.TransportInfoContainer.#ctor(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.Boolean,System.Boolean,System.Collections.Generic.List{pkd_application_service.Base.TransportFavorite})">
+            <summary>
+            Instantiates a new instance of <see cref="T:pkd_application_service.Base.TransportInfoContainer"/>.
+            </summary>
+            <param name="id">The unique ID of the transport device. Used for internal referencing.</param>
+            <param name="label">The user-friendly name of the transport device.</param>
+            <param name="icon">The image tag used for referencing the UI icon.</param>
+            <param name="tags">A collection of custom tags used by the subscribed service.</param>
+            <param name="supportsColors">true = enable colored buttons for this device, false = disable colored buttons</param>
+            <param name="supportsDiscretePower">true = enable power on/off control, false = enable power toggle controls.</param>
+            <param name="favorites">A collection of data objects that provide information on favorite channels.</param>
+        </member>
+        <member name="P:pkd_application_service.Base.TransportInfoContainer.SupportsColors">
+            <summary>
+            Gets a value indicating that this transport device supports color buttons (red, green, blue, yellow).
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.TransportInfoContainer.SupportsDiscretePower">
+            <summary>
+            Gets a value indicating whether this transport device supports discrete power on/off (false = supports toggle only).
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.TransportInfoContainer.Favorites">
+            <summary>
+            Gets a collection of data objects containing information on favorite channels for this transport device.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.Base.TransportFavorite">
+            <summary>
+            Data object for storing and sending channel information to subscribers.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.Base.TransportFavorite.#ctor(System.String,System.String)">
+            <summary>
+            Creates a new instance of <see cref="T:pkd_application_service.Base.TransportFavorite"/>.
+            </summary>
+            <param name="id">The unique ID of the favorite. Used for internal referencing.</param>
+            <param name="label">The user-friendly name of the favorite</param>
+        </member>
+        <member name="P:pkd_application_service.Base.TransportFavorite.Id">
+            <summary>
+            Gets the unique ID of this transport device. Used for internal referencing.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.TransportFavorite.Label">
+            <summary>
+            Gets the user-friendly name of the favorite.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.CustomEvents.CustomEventAppService">
+            <summary>
+            An extension of the base ApplicationService class. This adds custom event features, such as entering and exiting a "theater mode" or other non-standard
+            system states.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.CustomEvents.CustomEventAppService.customEvents">
+            <summary>
+            A collection of custom event tags and the action to invoke associated with them.
+            </summary>
+        </member>
+        <member name="F:pkd_application_service.CustomEvents.CustomEventAppService.events">
+            <summary>
+            A collection of event data objects associated with all supported event tags.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.CustomEvents.CustomEventAppService.CustomEventStateChanged">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.CustomEvents.CustomEventAppService.QueryAllCustomEvents">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.CustomEvents.CustomEventAppService.ChangeCustomEventState(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.CustomEvents.CustomEventAppService.QueryCustomEventState(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.CustomEvents.CustomEventAppService.NotifyStateChange(System.String)">
+            <summary>
+            Triggers the CustomEventStateChanged event with the given tag.
+            </summary>
+            <param name="tag">The tag that will be sent to subscribers with the state change notice.</param>
+        </member>
+        <member name="T:pkd_application_service.CustomEvents.CustomEventInfoContainer">
+            <summary>
+            Data container for a single custom event.
+            </summary>
+            <param name="id">id of the event used for internal referencing</param>
+            <param name="label">human-friendly name of the event.</param>
+            <param name="icon">icon tag of the event to be used by a user interface</param>
+            <param name="tags">collection of behavior flags that may be used by the user interface or application service.</param>
+            <param name="isOnline">true = the device associated with the event is connected, false otherwise.</param>
+            <param name="isActive">true = this event is currently active/in use, false = this event is not selected.</param>
+        </member>
+        <member name="M:pkd_application_service.CustomEvents.CustomEventInfoContainer.#ctor(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.Boolean,System.Boolean)">
+            <summary>
+            Data container for a single custom event.
+            </summary>
+            <param name="id">id of the event used for internal referencing</param>
+            <param name="label">human-friendly name of the event.</param>
+            <param name="icon">icon tag of the event to be used by a user interface</param>
+            <param name="tags">collection of behavior flags that may be used by the user interface or application service.</param>
+            <param name="isOnline">true = the device associated with the event is connected, false otherwise.</param>
+            <param name="isActive">true = this event is currently active/in use, false = this event is not selected.</param>
+        </member>
+        <member name="P:pkd_application_service.CustomEvents.CustomEventInfoContainer.IsActive">
+            <summary>
+            Gets whether this event is currently active/selected or not.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.CustomEvents.ICustomEventAppService">
+            <summary>
+            Common properties and methods associated with a custom event application service.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.CustomEvents.ICustomEventAppService.CustomEventStateChanged">
+            <summary>
+            Triggered when a supported custom behavior changes state.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.CustomEvents.ICustomEventAppService.QueryAllCustomEvents">
+            <summary>
+            Queries the application service instance for custom behavior tags. These tags indicate any
+            non-standard behavior that is supported by the currently loaded application service.
+            </summary>
+            <returns>A collection of tags that represent any custom actions supported by the application service.</returns>
+        </member>
+        <member name="M:pkd_application_service.CustomEvents.ICustomEventAppService.ChangeCustomEventState(System.String,System.Boolean)">
+            <summary>
+            Trigger a non-standard behavior sequence that is supported by the Application Service implementation.
+            Logs a warning if no behavior with the supplied tag is found.
+            </summary>
+            <param name="tag">The unique tag for the behavior to trigger. Supported tags are provided by the QueryAllCustomBehaviors method.</param>
+            <param name="state"></param>
+        </member>
+        <member name="M:pkd_application_service.CustomEvents.ICustomEventAppService.QueryCustomEventState(System.String)">
+            <summary>
+            Query the application service for the current state of a target custom behavior.
+            </summary>
+            <param name="tag">The unique tag of the behavior to query.</param>
+            <returns>True if the behavior is active, false otherwise.</returns>
+        </member>
+        <member name="T:pkd_application_service.DisplayControl.DisplayControlApp">
+            <summary>
+            Display device control app.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.#ctor(pkd_hardware_service.BaseDevice.DeviceContainer{pkd_hardware_service.DisplayDevices.IDisplayDevice},System.Collections.ObjectModel.ReadOnlyCollection{pkd_domain_service.Data.DisplayData.Display},pkd_application_service.IApplicationService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_application_service.DisplayControl.DisplayControlApp"/> class.
+            </summary>
+            <param name="devices">System collection of display control objects.</param>
+            <param name="data">Configuration data for all displays in the system.</param>
+            <param name="parent">The application control service for the system.</param>
+        </member>
+        <member name="E:pkd_application_service.DisplayControl.DisplayControlApp.DisplayPowerChange">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.DisplayControl.DisplayControlApp.DisplayBlankChange">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.DisplayControl.DisplayControlApp.DisplayFreezeChange">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.DisplayControl.DisplayControlApp.DisplayConnectChange">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.DisplayControl.DisplayControlApp.DisplayInputChanged">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.DisplayBlankQuery(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.DisplayFreezeQuery(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.DisplayPowerQuery(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.DisplayInputLecternQuery(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.DisplayInputStationQuery(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.GetAllDisplayInfo">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.LowerScreen(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.RaiseScreen(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.SetDisplayBlank(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.SetDisplayFreeze(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.SetDisplayPower(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.SetInputLectern(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayControlApp.SetInputStation(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_application_service.DisplayControl.DisplayInfoContainer">
+            <summary>
+            Data object used for sending display information to subscribers.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.DisplayInfoContainer.#ctor(System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.Boolean,System.Boolean)">
+            <summary>
+            Instantiates a new instance of <see cref="T:pkd_application_service.DisplayControl.DisplayInfoContainer"/>.
+            </summary>
+            <param name="id">The unique ID of the display. Used for internal referencing.</param>
+            <param name="label">The user-friendly name of the display.</param>
+            <param name="icon">The image tag used for referencing the UI icon.</param>
+            <param name="tags">A collection of custom tags used by the subscribed service.</param>
+            <param name="hasScreen">true = there is a screen associated with this display, false = no screen associated</param>
+            <param name="isOnline">true = device is online, false = device is offline.</param>
+        </member>
+        <member name="P:pkd_application_service.DisplayControl.DisplayInfoContainer.HasScreen">
+            <summary>
+            Gets a value indicating whether this display has an associated screen.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.DisplayControl.DisplayInfoContainer.Inputs">
+            <summary>
+            Gets or sets a collection of all selectable inputs on the display.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.DisplayControl.DisplayInput">
+            <summary>
+            data object representing a single input on a display or projector device.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.DisplayControl.DisplayInput.Id">
+            <summary>
+            The id of the input, used for internal referencing. Defaults to "DI-DEFAULT".
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.DisplayControl.DisplayInput.Label">
+            <summary>
+            Human-friendly name of the input. Defaults to "Display Input".
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.DisplayControl.DisplayInput.InputNumber">
+            <summary>
+            The input index on the display device for this input.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.DisplayControl.DisplayInput.Tags">
+            <summary>
+            Collection of functional tags that are associated with this input. These tags can be used by the application service
+            or user interface implementation.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.DisplayControl.IDisplayControlApp">
+            <summary>
+            Common properties and methods for display control applications.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.DisplayControl.IDisplayControlApp.DisplayPowerChange">
+            <summary>
+            Triggered whenever a display in the collection report a change in power status.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.DisplayControl.IDisplayControlApp.DisplayBlankChange">
+            <summary>
+            Triggered whenever a display in the collection report a change in video blank status.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.DisplayControl.IDisplayControlApp.DisplayFreezeChange">
+            <summary>
+            Triggered whenever a display in the collection report a change in video freeze status.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.DisplayControl.IDisplayControlApp.DisplayConnectChange">
+            <summary>
+            Triggered whenever a display in the collection report a change in connection status.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.DisplayControl.IDisplayControlApp.DisplayInputChanged">
+            <summary>
+            Triggered whenever a display indicates the on-device input selection has changed.
+            On triggers for displays that implement IVideoRoutable.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.SetDisplayPower(System.String,System.Boolean)">
+            <summary>
+            Request to change the power state of a target display.
+            </summary>
+            <param name="id">The unique ID of the display to change.</param>
+            <param name="newState">true = turn on, false = turn off.</param>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.DisplayPowerQuery(System.String)">
+            <summary>
+            Query the system for the current power state of a target display.
+            </summary>
+            <param name="id">The unique ID of the display to query.</param>
+            <returns>True = display power is on, false = display power is off.</returns>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.DisplayInputLecternQuery(System.String)">
+            <summary>
+            Gets a value indication whether the target routable display is on the lectern input source.
+            </summary>
+            <param name="id">The unique ID of the display to query.</param>
+            <returns>True if the display is IVideoRoutable and has the lectern source selected, false otherwise.</returns>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.DisplayInputStationQuery(System.String)">
+            <summary>
+            Gets a value indication whether the target routable display is on the Station input source.
+            </summary>
+            <param name="id">The unique ID of the display to query.</param>
+            <returns>True if the display is IVideoRoutable and has the station source selected, false otherwise.</returns>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.SetDisplayBlank(System.String,System.Boolean)">
+            <summary>
+            Request to change the video blank state of the target display.
+            </summary>
+            <param name="id">The unique ID of the display to change.</param>
+            <param name="newState">true = set blank on, false = set blank off.</param>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.DisplayBlankQuery(System.String)">
+            <summary>
+            Query the system for the current video blank status of the target display.
+            </summary>
+            <param name="id">The unique ID of the display to query.</param>
+            <returns>The current state of the display blank or false if the display was not found.</returns>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.SetDisplayFreeze(System.String,System.Boolean)">
+            <summary>
+            Request to change the video freeze state of the target display
+            </summary>
+            <param name="id">The unique ID of the display to change</param>
+            <param name="state">true = set freeze on, false = set freeze off</param>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.DisplayFreezeQuery(System.String)">
+            <summary>
+            Query the system for the current video freeze state of the target display.
+            </summary>
+            <param name="id">The unique ID of the display to query</param>
+            <returns>true = video is frozen, false = video motion is active.</returns>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.RaiseScreen(System.String)">
+            <summary>
+            Request to raise the relay-controlled screen associated with the target display.
+            </summary>
+            <param name="displayId">The unique ID of the display associated with the screen being raised.</param>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.LowerScreen(System.String)">
+            <summary>
+            Request to lower the relay-controlled screen associated with the target display.
+            </summary>
+            <param name="displayId">The unique ID of the display associated with the screen being lowered.</param>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.SetInputLectern(System.String)">
+            <summary>
+            Request to set the target station display to the Lectern source defined in the configuration. This will do nothing
+            if the target display does not implement Infrastructure.Routable.IVideoRoutable.
+            </summary>
+            <param name="displayId">The target station display to attempt to change.</param>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.SetInputStation(System.String)">
+            <summary>
+            Request to set the target station display to the local station source defined in the configuration. This will do nothing
+            if the target display does not implement Infrastructure.Routable.IVideoRoutable.
+            </summary>
+            <param name="displayId">The target station display to attempt to change.</param>
+        </member>
+        <member name="M:pkd_application_service.DisplayControl.IDisplayControlApp.GetAllDisplayInfo">
+            <summary>
+            Get the configuration information for all displays in the system.
+            </summary>
+            <returns>A collection of display data for all displays in the system.</returns>
+        </member>
+        <member name="T:pkd_application_service.EndpointControl.EndpointControlApp">
+            <summary>
+            Endpoint device control application.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.EndpointControl.EndpointControlApp.#ctor(pkd_hardware_service.BaseDevice.DeviceContainer{pkd_hardware_service.EndpointDevices.IEndpointDevice},System.Collections.ObjectModel.ReadOnlyCollection{pkd_domain_service.Data.EndpointData.Endpoint})">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_application_service.EndpointControl.EndpointControlApp"/> class.
+            </summary>
+            <param name="devices">System collection of endpoint control objects.</param>
+            <param name="data">Configuration data for all endpoints in the system.</param>
+        </member>
+        <member name="E:pkd_application_service.EndpointControl.EndpointControlApp.EndpointRelayChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.EndpointControl.EndpointControlApp.EndpointConnectionChanged">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.EndpointControl.EndpointControlApp.LatchRelayClosed(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.EndpointControl.EndpointControlApp.LatchRelayOpen(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.EndpointControl.EndpointControlApp.PulseEndpointRelay(System.String,System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_application_service.EndpointControl.IEndpointControlApp">
+            <summary>
+            Common properties and methods for endpoint control applications.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.EndpointControl.IEndpointControlApp.EndpointRelayChanged">
+            <summary>
+            Event triggered whenever a relay on an endpoint changes state.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.EndpointControl.IEndpointControlApp.EndpointConnectionChanged">
+            <summary>
+            Event triggered whenever a control connection status changes for an endpoint.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.EndpointControl.IEndpointControlApp.PulseEndpointRelay(System.String,System.Int32,System.Int32)">
+            <summary>
+            Close a relay on the target endpoint for the given amount of time.
+            </summary>
+            <param name="id">The unique ID of the endpoint to control</param>
+            <param name="index">the 0-based relay index on the endpoint.</param>
+            <param name="timeMs">The amount of time to latch the relay closed.</param>
+        </member>
+        <member name="M:pkd_application_service.EndpointControl.IEndpointControlApp.LatchRelayClosed(System.String,System.Int32)">
+            <summary>
+            Set the relay closed on the target device until manually set to open or pulsed.
+            </summary>
+            <param name="id">The unique ID of the endpoint to control.</param>
+            <param name="index">The 0-based index of the relay on the endpoint.</param>
+        </member>
+        <member name="M:pkd_application_service.EndpointControl.IEndpointControlApp.LatchRelayOpen(System.String,System.Int32)">
+            <summary>
+            Set the relay open on the target device until manually set to open or pulsed.
+            </summary>
+            <param name="id">The unique ID of the endpoint to control.</param>
+            <param name="index">The 0-based index of the relay on the endpoint.</param>
+        </member>
+        <member name="T:pkd_application_service.IApplicationService">
+            <summary>
+            Application service common properties and methods.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.IApplicationService.GlobalVideoFreezeChanged">
+            <summary>
+            Triggered when the global freeze has been changed.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.IApplicationService.GlobalVideoBlankChanged">
+            <summary>
+            Triggered when the global video blank status has changed.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.IApplicationService.GetAllUserInterfaces">
+            <summary>
+            Query the service for information on all user interfaces that are including in the
+            system configuration.
+            </summary>
+            <returns>A data collection representing all user interfaces that will connect with this system.</returns>
+        </member>
+        <member name="M:pkd_application_service.IApplicationService.GetFusionInterface">
+            <summary>
+            Query the service for the Fusion connection information. Data container properties that contain
+            information are:
+            Id = GUID used for Fusion discovery
+            Label = the room name to display in Fusion
+            IpId = the IP-ID used to establish a connection with the Fusion server
+            </summary>
+            <returns>The fusion information as defined in the system configuration.</returns>
+        </member>
+        <member name="M:pkd_application_service.IApplicationService.GetRoomInfo">
+            <summary>
+            Query the application service for the room information that was set in the configuration file.
+            </summary>
+            <returns>A data object containing general room information.</returns>
+        </member>
+        <member name="M:pkd_application_service.IApplicationService.SetGlobalVideoBlank(System.Boolean)">
+            <summary>
+            Blank the output on all video endpoints. This can either be set at the displays
+            or on the AV routing hardware.
+            </summary>
+            <param name="state">true = set blank active (no video), false = set blank off (show video).</param>
+        </member>
+        <member name="M:pkd_application_service.IApplicationService.SetGlobalVideoFreeze(System.Boolean)">
+            <summary>
+            Freeze the video output on all display endpoints. This can bet set either at the displays or
+            on the AV routing hardware.
+            </summary>
+            <param name="state">true = freeze on (no motion), false = freeze off (normal video).</param>
+        </member>
+        <member name="M:pkd_application_service.IApplicationService.QueryGlobalVideoBlank">
+            <summary>
+            Get the current state of the global video blank
+            </summary>
+            <returns>true if video output is blanked, false if video output is showing.</returns>
+        </member>
+        <member name="M:pkd_application_service.IApplicationService.QueryGlobalVideoFreeze">
+            <summary>
+            Get the current state of the global video freeze.
+            </summary>
+            <returns>True = global video is frozen, false = normal video output.</returns>
+        </member>
+        <member name="M:pkd_application_service.IApplicationService.Initialize(pkd_hardware_service.IInfrastructureService,pkd_domain_service.IDomainService)">
+            <summary>
+            Creates internal hooks and instantiates application logic objects.
+            </summary>
+            <param name="hwService">The hardware control service used to send commands to devices.</param>
+            <param name="domain">The configuration domain for this system.</param>
+        </member>
+        <member name="T:pkd_application_service.ITechAuthGroupAppService">
+            <summary>
+            Interface for adding technician-level access during runtime, such as broadcasting requests to lock all interfaces that are not
+            tagged as a technician control point.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.ITechAuthGroupAppService.NonTechLockoutStateChangeRequest">
+            <summary>
+             will be triggered when the application service requires non-tech interfaces to be locked/unlocked.
+             </summary>
+        </member>
+        <member name="T:pkd_application_service.LightingControl.ILightingControlApp">
+            <summary>
+            Required events, methods, and properties for implementing an application service that supports lighting controls.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.LightingControl.ILightingControlApp.LightingLoadLevelChanged">
+            <summary>
+            Triggered whenever a lighting controller reports that a zone load level has changed.
+            args package is: arg1 = controller ID, arg 2 = zone ID.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.LightingControl.ILightingControlApp.LightingSceneChanged">
+            <summary>
+            Triggered whenever a lighting control reports that a new scene has been recalled.
+            Args package is the ID of the controller that reported a change.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.LightingControl.ILightingControlApp.LightingControlConnectionChanged">
+            <summary>
+            Triggered when any lighting controller device reports offline/online status.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.ILightingControlApp.RecallLightingScene(System.String,System.String)">
+            <summary>
+            Request to recall a saved lighting scene on the target controller.
+            </summary>
+            <param name="deviceId">The unique ID of the lighting controller to change.</param>
+            <param name="sceneId">The unique ID of the scene to recall.</param>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.ILightingControlApp.SetLightingLoad(System.String,System.String,System.Int32)">
+            <summary>
+            Request to change the load level of a zone on the target controller.
+            </summary>
+            <param name="deviceId">The unique ID of the lighting controller to change.</param>
+            <param name="zoneId">The unique ID of the zone to change.</param>
+            <param name="level">0-100 value representing the load level to set on the lighting zone.</param>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.ILightingControlApp.GetActiveScene(System.String)">
+            <summary>
+            Get the currently active scene on the lighting controller if scenes are supported.
+            </summary>
+            <param name="deviceId">The unique ID of the lighting controller to query.</param>
+            <returns>the unique ID of the active scene associated with the lighting controller.</returns>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.ILightingControlApp.GetZoneLoad(System.String,System.String)">
+            <summary>
+            Get the current load level of the target lighting zone.
+            </summary>
+            <param name="deviceId">The unique ID of the lighting controller to query.</param>
+            <param name="zoneId">The unique ID of the zone to query.</param>
+            <returns>0-100 value representing the current lighting load level.</returns>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.ILightingControlApp.GetAllLightingDeviceInfo">
+            <summary>
+            Get the configuration information for all lighting controllers in the system.
+            </summary>
+            <returns>A collection of lighting controller data for all devices in the system.</returns>
+        </member>
+        <member name="T:pkd_application_service.LightingControl.LightingControlApp">
+            <summary>
+            Application control class for handling lighting requests and events.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.LightingControlApp.#ctor(pkd_hardware_service.BaseDevice.DeviceContainer{pkd_hardware_service.LightingDevices.ILightingDevice},System.Collections.ObjectModel.ReadOnlyCollection{pkd_domain_service.Data.LightingData.LightingInfo},pkd_application_service.IApplicationService)">
+            <summary>
+            Instantiates a new instance of <see cref="T:pkd_application_service.LightingControl.LightingControlApp"/>.
+            </summary>
+            <param name="devices">Hardware control objects for all lighting controllers in the system.</param>
+            <param name="domainData">Configuration data for all lighting devices in the system.</param>
+            <param name="parent">The root application service associated with this lighting manager.</param>
+        </member>
+        <member name="E:pkd_application_service.LightingControl.LightingControlApp.LightingLoadLevelChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.LightingControl.LightingControlApp.LightingSceneChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_application_service.LightingControl.LightingControlApp.LightingControlConnectionChanged">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.LightingControlApp.RecallLightingScene(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.LightingControlApp.SetLightingLoad(System.String,System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.LightingControlApp.GetActiveScene(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.LightingControlApp.GetZoneLoad(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.LightingControlApp.GetAllLightingDeviceInfo">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_application_service.LightingControl.LightingControlInfoContainer">
+            <summary>
+            Data object representing a single lighting control object managed by the application service.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.LightingControl.LightingControlInfoContainer.#ctor(System.String,System.String,System.String,System.String,System.String,System.Collections.Generic.List{System.String},System.Collections.Generic.List{pkd_application_service.LightingControl.LightingItemInfoContainer},System.Collections.Generic.List{pkd_application_service.LightingControl.LightingItemInfoContainer})">
+            <summary>
+            Instantiates a new instance of <see cref="T:pkd_application_service.LightingControl.LightingControlInfoContainer"/>.
+            </summary>
+            <param name="id">The unique ID of the lighting control. Used for internal referencing.</param>
+            <param name="label">The user-friendly name of the controller.</param>
+            <param name="icon">The image tag used for referencing the UI icon.</param>
+            <param name="startupSceneId">the id of the startup scene to recall when prompted.</param>
+            <param name="shutdownSceneId">The id of the shutdown scene to recall when prompted.</param>
+            <param name="tags">A collection of custom tags used by the subscribed service.</param>
+            <param name="zones">A collection of data objects for all zones controlled by this device.</param>
+            <param name="scenes">A collection of data objects for all scenes that can be recalled by this device.</param>
+        </member>
+        <member name="P:pkd_application_service.LightingControl.LightingControlInfoContainer.Zones">
+            <summary>
+            A collection of all zones associated with this lighting controller.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.LightingControl.LightingControlInfoContainer.Scenes">
+            <summary>
+            A collection of all scenes associated with this lighting controller.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.LightingControl.LightingControlInfoContainer.StartupSceneId">
+            <summary>
+            The id of the lighting scene to recall when the system enters the active state.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.LightingControl.LightingControlInfoContainer.ShutdownSceneId">
+            <summary>
+            The id of the lighting scene to recall when the system enters the standby state.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.SystemPower.ISystemPowerApp">
+            <summary>
+            Common properties and methods for AV System power state management.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.SystemPower.ISystemPowerApp.SystemStateChanged">
+            <summary>
+            Triggered whenever the system changes power state (standby -> active or active -> standby).
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.SystemPower.ISystemPowerApp.CurrentSystemState">
+            <summary>
+            Gets a value indicating whether system is in use or in standby.
+            True = system is active, false = system is in standby.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.SystemPower.ISystemPowerApp.AutoShutdownEnabled">
+            <summary>
+            Gets a value indicating whether the auto-shutdown feature is enabled or disabled.
+            true = enabled, false = disabled.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.ISystemPowerApp.SetActive">
+            <summary>
+            Request to transition to the active state and trigger any startup automation.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.ISystemPowerApp.SetStandby">
+            <summary>
+            Request to transition to the standby state and trigger any shutdown automation.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.ISystemPowerApp.AutoShutdownEnable">
+            <summary>
+            Enable the automatic shutdown feature.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.ISystemPowerApp.AutoShutdownDisable">
+            <summary>
+            Disable tha automatic shutdown feature.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.ISystemPowerApp.SetAutoShutdownTime(System.Int32,System.Int32)">
+            <summary>
+            Configure the system power app to shut down at the specific time if enabled.
+            </summary>
+            <param name="hour">The hour when the system should shut down (24-hour format).</param>
+            <param name="minute">The specific minute when the system should shut down (0-59).</param>
+        </member>
+        <member name="T:pkd_application_service.SystemPower.SystemPowerApp">
+            <summary>
+            System state/power management app.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.SystemPowerApp.#ctor(pkd_hardware_service.IInfrastructureService,pkd_domain_service.IDomainService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_application_service.SystemPower.SystemPowerApp"/> class.
+            </summary>
+            <param name="infrastructure">The hardware control service section of the program.</param>
+            <param name="domain">The configuration service of the program.</param>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.SystemPowerApp.Finalize">
+            <summary>
+            Finalizes an instance of the <see cref="T:pkd_application_service.SystemPower.SystemPowerApp"/> class.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.SystemPower.SystemPowerApp.SystemStateChanged">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_application_service.SystemPower.SystemPowerApp.CurrentSystemState">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_application_service.SystemPower.SystemPowerApp.AutoShutdownEnabled">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.SystemPowerApp.AutoShutdownDisable">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.SystemPowerApp.AutoShutdownEnable">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.SystemPowerApp.SetActive">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.SystemPowerApp.SetStandby">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.SystemPowerApp.SetAutoShutdownTime(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.SystemPowerApp.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.SystemPower.SystemPowerApp.Dispose(System.Boolean)">
+            <summary>
+            Standard disposing pattern.
+            </summary>
+            <param name="disposing">Disposing flag.</param>
+        </member>
+        <member name="T:pkd_application_service.TransportControl.ITransportControlApp">
+            <summary>
+            Common attributes and methods for controlling one or more transport devices.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.GetAllCableBoxes">
+            <summary>
+            Get a collection of data objects representing all available cable boxes in the system.
+            </summary>
+            <returns>All cable box data objects in the system, or an empty collection if none exist.</returns>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportPowerOn(System.String)">
+            <summary>
+            Send the power on command to the target transport device
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportPowerOff(System.String)">
+            <summary>
+            Send the power off command to the target transport device
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportPowerToggle(System.String)">
+            <summary>
+            Send the power toggle command to the target transport device
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportDial(System.String,System.String)">
+            <summary>
+            Send a channel number to dial to the target transport device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+            <param name="channel">The channel that will be dialed on the device. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportDialFavorite(System.String,System.String)">
+            <summary>
+            Send a request to dial the target favorite channel to the device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+            <param name="favoriteId">the unique ID of the favorite to recall.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportDash(System.String)">
+            <summary>
+            Send the dash (-) command to the target device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportChannelUp(System.String)">
+            <summary>
+            Send a command to the device to increase the channel number by 1.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportChannelDown(System.String)">
+            <summary>
+            Send a command to the device to decrease the channel number by 1.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportPageUp(System.String)">
+            <summary>
+            Send a command to the device to increase the page or channel listing by 1
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportPageDown(System.String)">
+            <summary>
+            Send a command to the device to decrease the page or channel listing by 1
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportGuide(System.String)">
+            <summary>
+            Send a command to the transport device to display the guide menu.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportMenu(System.String)">
+            <summary>
+            SEnd a command to the device to display the main menu.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportInfo(System.String)">
+            <summary>
+            Send a command to the device to display the information pop-up.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportExit(System.String)">
+            <summary>
+            Send a command to the device to exist the current menu.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportBack(System.String)">
+            <summary>
+            Send a command to the device to go back one menu or step.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportPlay(System.String)">
+            <summary>
+            Send a "play" command to the device if supported
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportPause(System.String)">
+            <summary>
+            Send the "pause" command to the device if supported
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportStop(System.String)">
+            <summary>
+            send the stop command to the device if supported.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportRecord(System.String)">
+            <summary>
+            send the record command to the device if it is supported.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportScanForward(System.String)">
+            <summary>
+            Send the scan forward / fast-forward command to the device if it is supported.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportScanReverse(System.String)">
+            <summary>
+            Send the scan backwards / rewind command to the device if it is supported.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportSkipForward(System.String)">
+            <summary>
+            Send the Next / Skip Forward command to the device if it is supported.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportSkipReverse(System.String)">
+            <summary>
+            Send the back / skip reverse command to the device if it is supported.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportNavUp(System.String)">
+            <summary>
+            Send the D-pad up/ nav up command to the device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportNavDown(System.String)">
+            <summary>
+            Send the d-pad down / nav down command to the device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportNavLeft(System.String)">
+            <summary>
+            Send the d-pad left/ nav left command to the device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportNavRight(System.String)">
+            <summary>
+            Send the D-pad right / Nav right command to the device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportRed(System.String)">
+            <summary>
+            Send the red (C) button command to the device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportGreen(System.String)">
+            <summary>
+            Send the Green (D) button command to the device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportYellow(System.String)">
+            <summary>
+            Send the yellow (A) command to the device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportBlue(System.String)">
+            <summary>
+            Send the Blue (B) command to the device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.ITransportControlApp.TransportSelect(System.String)">
+            <summary>
+            Send the 'select' command to the device.
+            </summary>
+            <param name="deviceId">The unique ID of the device to control. Cannot be null or empty.</param>
+        </member>
+        <member name="T:pkd_application_service.TransportControl.TransportControlApp">
+            <summary>
+            Application object for managing all transport-controlled devices, such as Cable TV devices and Blu-ray players.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.#ctor(pkd_hardware_service.BaseDevice.DeviceContainer{pkd_hardware_service.TransportDevices.ITransportDevice},System.Collections.ObjectModel.ReadOnlyCollection{pkd_domain_service.Data.TransportDeviceData.CableBox})">
+            <summary>
+            Creates a new instance of <see cref="T:pkd_application_service.TransportControl.TransportControlApp"/>.
+            </summary>
+            <param name="cableBoxes">All cable box hardware control objects in the system.</param>
+            <param name="cableBoxData">Configuration data for the cable box control objects.</param>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.GetAllCableBoxes">
+            <returns>A collection of data objects representing all controllable cable boxes in the system.</returns>
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportPowerOn(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportPowerOff(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportPowerToggle(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportDial(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportDialFavorite(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportDash(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportChannelUp(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportChannelDown(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportPageUp(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportPageDown(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportGuide(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportMenu(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportInfo(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportExit(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportBack(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportPlay(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportPause(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportStop(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportRecord(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportScanForward(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportScanReverse(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportSkipForward(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportSkipReverse(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportNavUp(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportNavDown(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportNavLeft(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportNavRight(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportRed(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportGreen(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportYellow(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportBlue(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_application_service.TransportControl.TransportControlApp.TransportSelect(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:pkd_application_service.UserInterface.MenuItemDataContainer">
+            <summary>
+            Data object for sending UI menu items to subscribers.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.UserInterface.MenuItemDataContainer.#ctor(System.String,System.String,System.String,System.String,System.String,System.Collections.Generic.List{System.String})">
+            <summary>
+            Instantiates a new instance of <see cref="T:pkd_application_service.UserInterface.MenuItemDataContainer"/>.
+            </summary>
+            <param name="id">The unique ID of the channel. Used for internal referencing.</param>
+            <param name="label">The user-friendly name of the channel.</param>
+            <param name="icon">The image tag used for referencing the UI icon.</param>
+            <param name="control">The activity associated with this menu item.</param>
+            <param name="sourceSelect">DEPRECATED - The source ID to route on selection (can be the empty string "").</param>
+            <param name="tags">collection of behavior tags associated with the item. Values are determined by the interface plugin implementation.</param>
+        </member>
+        <member name="P:pkd_application_service.UserInterface.MenuItemDataContainer.Control">
+            <summary>
+            the device controls or activity to display when selected.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.UserInterface.MenuItemDataContainer.SourceSelect">
+            <summary>
+            If associated with an input to route, this is the ID of the source to send to all destinations.
+            </summary>
+        </member>
+        <member name="T:pkd_application_service.UserInterface.UserInterfaceDataContainer">
+            <summary>
+            Data object for sending information about an interface to subscribers.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.UserInterface.UserInterfaceDataContainer.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.Int32,System.Collections.Generic.List{System.String})">
+            <summary>
+            Instantiates a new instance of <see cref="T:pkd_application_service.UserInterface.UserInterfaceDataContainer"/>.
+            </summary>
+            <param name="id">The unique ID of the channel. Used for internal referencing.</param>
+            <param name="label">The user-friendly name of the interface or room name.</param>
+            <param name="helpContact">The IT support phone number or other contact information to display on the UI.</param>
+            <param name="icon">The image tag used for referencing the UI icon.</param>
+            <param name="model">The specific model of the UI, such as TSW-770, TSW-760, XPANEL, etc.</param>
+            <param name="className">The name of the plugin class to instantiate.</param>
+            <param name="library">The name of the plugin library used to instantiate a className object.</param>
+            <param name="sgdFile">The smart graphics data file used when creating the UI interface.</param>
+            <param name="defaultActivity">The default activity that should be displayed on the UI during startup.</param>
+            <param name="ipId">The unique Crestron IP-ID used when connecting to the hardware.</param>
+            <param name="tags"></param>
+        </member>
+        <member name="P:pkd_application_service.UserInterface.UserInterfaceDataContainer.HelpContact">
+            <summary>
+            Gets the IT support phone number or other contact information to display on the UI.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.UserInterface.UserInterfaceDataContainer.Model">
+            <summary>
+            Gets the specific model of the UI, such as TSW-770, TSW-760, XPANEL, etc.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.UserInterface.UserInterfaceDataContainer.DefaultActivity">
+            <summary>
+            Gets the default activity that should be displayed on the UI during startup.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.UserInterface.UserInterfaceDataContainer.SgdFile">
+            <summary>
+            Gets the smart graphics data file used when creating the UI interface.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.UserInterface.UserInterfaceDataContainer.IpId">
+            <summary>
+            Gets the unique Crestron IP-ID used when connecting to the hardware.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.UserInterface.UserInterfaceDataContainer.ClassName">
+            <summary>
+            Gets the plugin class name that will be used to create a user interface object.
+            If this is the empty string("") then the "Model" property will be used to create a default
+            interface.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.UserInterface.UserInterfaceDataContainer.Library">
+            <summary>
+            Gets the full name of the plugin library (including .dll extension) that will be used to create a user interface object.
+            If this is the empty string("") then the "Model" property will be used to create a default
+            interface.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.UserInterface.UserInterfaceDataContainer.MenuItems">
+            <summary>
+            Gets a collection of menu data objects that will be displayed on the user interface.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.UserInterface.UserInterfaceDataContainer.AddMenuItem(pkd_application_service.UserInterface.MenuItemDataContainer)">
+            <summary>
+            Add a menu data object to the MenuItems collection.
+            </summary>
+            <param name="item">The unique item data object to add. Cannot be null.</param>
+        </member>
+        <member name="T:pkd_application_service.VideoWallControl.IVideoWallApp">
+            <summary>
+            required events, methods, and properties for managing video wall devices.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.VideoWallControl.IVideoWallApp.VideoWallLayoutChanged">
+            <summary>
+            Args package must be the id of the new layout id.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.VideoWallControl.IVideoWallApp.VideoWallCellRouteChanged">
+            <summary>
+            Args package must be:<br/>
+            Arg1 - the id of the video wall controller that changed.<br/>
+            Arg2 - the id of the cell in the active layout that changed.
+            </summary>
+        </member>
+        <member name="E:pkd_application_service.VideoWallControl.IVideoWallApp.VideoWallConnectionStatusChanged">
+            <summary>
+            Args package must be the id of the controller that changed.
+            </summary>
+        </member>
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.GetAllVideoWalls">
+            <returns>Get a collection of data objects representing all controllable video wall devices.</returns>
+        </member>
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.QueryVideoWallConnectionStatus(System.String)">
+            <param name="controlId">the id of the video wall controller to query.</param>
+            <returns>true = device is online, false = device is offline.</returns>
+        </member>
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.QueryActiveVideoWallLayout(System.String)">
+            <param name="controlId">the id of the video wall controller to query.</param>
+            <returns>the id of the layout that is currently selected on the controller.</returns>
+        </member>
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.QueryVideoWallCellSource(System.String,System.String)">
+            <param name="controlId">the id of the video wall controller to query.</param>
+            <param name="cellId">the id of the cell that is part of the active layout.</param>
+            <returns>the id of the source currently routed to the cell/window.</returns>
+        </member>
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.SetActiveVideoWallLayout(System.String,System.String)">
+            <summary>
+            Send a request to the hardware service to select a new layout.
+            </summary>
+            <param name="controlId">the id of the video wall controller to change.</param>
+            <param name="layoutId">the id of the new layout to set as active.</param>
+        </member>
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.SetVideoWallCellRoute(System.String,System.String,System.String)">
+            <param name="controlId">the id of the video wall controller to change.</param>
+            <param name="cellId">The id of the cell/window in the active layout to change.</param>
+            <param name="sourceId">the id of the video source to route to the cell/window.</param>
+        </member>
+    </members>
+</doc>

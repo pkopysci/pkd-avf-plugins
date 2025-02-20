@@ -835,12 +835,11 @@
             Arg3 - id of the source to route.
             </summary>
         </member>
-        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.SetVideoWallData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.VideoWallControl.VideoWallInfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AvRouting.AvSourceInfoContainer})">
+        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.SetVideoWallData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.VideoWallControl.VideoWallInfoContainer})">
             <summary>
             Provide the user interface with the video wall system configuration.
             </summary>
             <param name="videoWalls">Collection of device data for all video wall controllers in the system.</param>
-            <param name="sources">Collection of all sources that are routable to the video wall.</param>
         </member>
         <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateActiveVideoWallLayout(System.String,System.String)">
             <summary>

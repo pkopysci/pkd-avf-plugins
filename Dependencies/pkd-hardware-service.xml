@@ -1405,6 +1405,11 @@
             A collection of all <see cref="T:pkd_domain_service.Data.RoutingData.Source"/> objects that are routable. 
             </summary>
         </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.StartupLayoutId">
+            <summary>
+            The id of the layout that should be selected on system startup or boot.
+            </summary>
+        </member>
         <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.MaxHeight">
             <summary>
             The total height of physical video wall displays.
@@ -1465,6 +1470,12 @@
         <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.SourceId">
             <summary>
             The unique id of the currently routed video source.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.DefaultSourceId">
+            <summary>
+            The id of the routable video wall source that should be sent to this cell/window when the parent layout
+            is selected.
             </summary>
         </member>
         <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.XPosition">
