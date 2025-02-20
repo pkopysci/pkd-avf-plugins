@@ -318,8 +318,10 @@ public class CrComLibUserInterface :
 		FindComponent<IVideoWallUserInterface>()?.UpdateActiveVideoWallLayout(controlId, layoutId);
 
 
-	public void UpdateCellRoutedSource(string controlId, string cellId, string sourceId) =>
+	public void UpdateCellRoutedSource(string controlId, string cellId, string sourceId)
+	{
 		FindComponent<IVideoWallUserInterface>()?.UpdateCellRoutedSource(controlId, cellId, sourceId);
+	}
 
 	public void UpdateVideoWallConnectionStatus(string controlId, bool onlineStatus) =>
 		FindComponent<IVideoWallUserInterface>()?.UpdateVideoWallConnectionStatus(controlId, onlineStatus);
@@ -344,8 +346,6 @@ public class CrComLibUserInterface :
 	/// <inheritdoc/>
 	public void SetDisplayData(ReadOnlyCollection<DisplayInfoContainer> displayData)
 	{
-		Logger.Debug("CrComLibUserInterface.SetDisplayData()");
-
 		if (_uiComponents.Count < 0)
 		{
 			Logger.Error("CrComLibUi.CrComLibUserInterface.SetDisplayData() - Component data has not been set.");
@@ -358,7 +358,6 @@ public class CrComLibUserInterface :
 	/// <inheritdoc/>
 	public void UpdateDisplayPower(string id, bool state)
 	{
-		Logger.Debug("CrComLibUserInterface.UpdateDisplayPower()");
 		if (_uiComponents.Count < 0)
 		{
 			Logger.Error("CrComLibUi.CrComLibUserInterface.UpdateDisplayPower() - Component data has not been set.");

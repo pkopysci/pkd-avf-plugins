@@ -82,7 +82,7 @@ public class VideoWallEmulator : IVideoWallDevice
         
         cell.SourceId = sourceId;
         var temp = VideoWallCellSourceChanged;
-        temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
+        temp?.Invoke(this, new GenericSingleEventArgs<string>(cell.Id));
     }
 
     public string GetCellSourceId(string cellId)

@@ -34,10 +34,10 @@ public static class WallData
                    new VideoWallCell { Id = "vw02c02", XPosition = 2, YPosition = 1 },
                    new VideoWallCell { Id = "vw02c03", XPosition = 3, YPosition = 1 },
                    new VideoWallCell { Id = "vw02c04", XPosition = 4, YPosition = 1 },
-                   new VideoWallCell { Id = "vw02c01", XPosition = 1, YPosition = 2 },
-                   new VideoWallCell { Id = "vw02c02", XPosition = 2, YPosition = 2 },
-                   new VideoWallCell { Id = "vw02c03", XPosition = 3, YPosition = 2 },
-                   new VideoWallCell { Id = "vw02c04", XPosition = 4, YPosition = 2 },
+                   new VideoWallCell { Id = "vw02c05", XPosition = 1, YPosition = 2 },
+                   new VideoWallCell { Id = "vw02c06", XPosition = 2, YPosition = 2 },
+                   new VideoWallCell { Id = "vw02c07", XPosition = 3, YPosition = 2 },
+                   new VideoWallCell { Id = "vw02c08", XPosition = 4, YPosition = 2 },
                ]
             },
             new()

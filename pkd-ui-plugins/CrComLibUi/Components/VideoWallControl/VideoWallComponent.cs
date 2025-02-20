@@ -124,6 +124,7 @@ internal class VideoWallComponent(
         message.Data["ControlId"] = controlId;
         message.Data["CellId"] = cellId;
         message.Data["SourceId"] = sourceId;
+        Send(message, ApiHooks.VideoWall);
     }
 
     public void UpdateVideoWallConnectionStatus(string controlId, bool onlineStatus)
