@@ -316,7 +316,6 @@ public class CrComLibUserInterface :
 	public void UpdateActiveVideoWallLayout(string controlId, string layoutId) =>
 		FindComponent<IVideoWallUserInterface>()?.UpdateActiveVideoWallLayout(controlId, layoutId);
 
-
 	public void UpdateCellRoutedSource(string controlId, string cellId, string sourceId)
 	{
 		FindComponent<IVideoWallUserInterface>()?.UpdateCellRoutedSource(controlId, cellId, sourceId);
@@ -391,6 +390,9 @@ public class CrComLibUserInterface :
 
 		FindComponent<IDisplayUserInterface>()?.UpdateDisplayFreeze(id, state);
 	}
+	
+	public void UpdateDisplayConnectionStatus(string id, bool isOnline) => 
+		FindComponent<IDisplayUserInterface>()?.UpdateDisplayConnectionStatus(id, isOnline);
 
 	/// <inheritdoc/>
 	public void SetAudioData(
@@ -518,6 +520,10 @@ public class CrComLibUserInterface :
 		FindComponent<ILightingUserInterface>()?.UpdateLightingZoneLoad(controlId, zoneId, level);
 	}
 
+	/// <inheritdoc/>
+	public void UpdateLightingControlConnectionStatus(string controlId, bool isOnline) => 
+		FindComponent<ILightingUserInterface>()?.UpdateLightingControlConnectionStatus(controlId, isOnline);
+	
 	/// <inheritdoc/>
 	public void SetCableBoxData(ReadOnlyCollection<TransportInfoContainer> data)
 	{

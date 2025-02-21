@@ -539,6 +539,13 @@
             <param name="id">The unique ID of the display to update.</param>
             <param name="newState">True = freeze on (no motion), false = freeze off (show motion).</param>
         </member>
+        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.UpdateDisplayConnectionStatus(System.String,System.Boolean)">
+            <summary>
+            Update the UI with the current connection status of the target display/projector.
+            </summary>
+            <param name="id">The id of the displays being updated.</param>
+            <param name="isOnline">True = device is connected, false = device is disconnected.</param>
+        </member>
         <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.SetDisplayData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.DisplayControl.DisplayInfoContainer})">
             <summary>
             Updates the user interface to display the new collection of controllable video outputs.
@@ -623,6 +630,10 @@
             <param name="controlId">The unique ID of the lighting controller.</param>
             <param name="zoneId">The unique ID of the zone being updated.</param>
             <param name="level">The new load level of the target zone.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ILightingUserInterface.UpdateLightingControlConnectionStatus(System.String,System.Boolean)">
+            <param name="controlId">The id of the lighting controller that changed.</param>
+            <param name="isOnline">true = device is connected, false = device is disconnected.</param>
         </member>
         <member name="T:pkd_ui_service.Interfaces.IRoutingUserInterface">
             <summary>

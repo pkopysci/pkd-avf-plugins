@@ -185,13 +185,19 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 
 	public void UpdateDisplayPower(string id, bool newState)
 	{
-		if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayPower"))
-			return;
-
+		if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayPower")) return;
 		var display = FindDisplay("UpdateDisplayPower", id);
 		if (display == null) return;
-
 		display.PowerState = newState;
+		SendDisplayStatus(display);
+	}
+
+	public void UpdateDisplayConnectionStatus(string id, bool isOnline)
+	{
+		if (!CheckInitialized("DisplayControlComponent", nameof(UpdateDisplayConnectionStatus))) return;
+		var display = FindDisplay(nameof(UpdateDisplayConnectionStatus), id);
+		if (display == null) return;
+		display.IsOnline = isOnline;
 		SendDisplayStatus(display);
 	}
 

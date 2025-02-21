@@ -19,6 +19,7 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 	private const string CommandConfig = "CONFIG";
 	private const string CommandZone = "LOAD";
 	private const string CommandScene = "SCENE";
+	private const string CommandStatus = "STATUS";
 	private List<LightingData> _lights;
 
 	public LightingComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
@@ -31,6 +32,7 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 		PostHandlers.Add(CommandScene, PostSceneHandler);
 		_lights = [];
 	}
+
 
 	/// <inheritdoc/>
 	public event EventHandler<GenericDualEventArgs<string, string>>? LightingSceneRecallRequest;
@@ -147,6 +149,23 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 			Send(message, ApiHooks.LightingControl);
 		}
 	}
+	
+	/// <inheritdoc/>
+	public void UpdateLightingControlConnectionStatus(string controlId, bool isOnline)
+	{
+		var control = _lights.FirstOrDefault(x => x.Id == controlId);
+		if (control == null)
+		{
+			Logger.Error($"CrComLibUi.LightingComponent.UpdateLightingControlConnectionStatus() - no controller with id {controlId}");
+			return;
+		}
+
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandStatus;
+		message.Data["ControlId"] = controlId;
+		message.Data["IsOnline"] = isOnline;
+		Send(message, ApiHooks.LightingControl);
+	}
 
 	/// <inheritdoc/>
 	public void UpdateLightingZoneLoad(string controlId, string zoneId, int level)
@@ -167,7 +186,7 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 			break;
 		}
 	}
-
+	
 	private void HandleGetRequests(ResponseBase response)
 	{
 		if (GetHandlers.TryGetValue(response.Command, out var handler))
