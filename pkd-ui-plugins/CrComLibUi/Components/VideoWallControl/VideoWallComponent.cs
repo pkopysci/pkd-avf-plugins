@@ -17,7 +17,7 @@ internal class VideoWallComponent(
 {
     private const string LayoutCommand = "LAYOUT";
     private const string RouteCommand = "ROUTE";
-    private const string ConnectionCommand = "CONNECTION";
+    private const string StatusCommand = "STATUS";
     private const string ConfigCommand = "CONFIG";
     private List<VideoWallControlData> _videoWalls = [];
     
@@ -134,7 +134,7 @@ internal class VideoWallComponent(
 
         found.IsOnline = onlineStatus;
         var message = MessageFactory.CreateGetResponseObject();
-        message.Command = ConnectionCommand;
+        message.Command = StatusCommand;
         message.Data["ControlId"] = controlId;
         message.Data["OnlineStatus"] = onlineStatus;
         Send(message, ApiHooks.VideoWall);

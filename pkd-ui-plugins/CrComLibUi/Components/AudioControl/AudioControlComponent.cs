@@ -1,4 +1,6 @@
-﻿namespace CrComLibUi.Components.AudioControl;
+﻿using pkd_application_service.Base;
+
+namespace CrComLibUi.Components.AudioControl;
 
 using Api;
 using Crestron.SimplSharpPro.DeviceSupport;
@@ -20,9 +22,11 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 	private const string CommandMute = "MUTE";
 	private const string CommandLevel = "LEVEL";
 	private const string CommandMicZone = "ZONE";
+	private const string CommandStatus = "STATUS";
 	private readonly Dsp _audioDsp;
 	private List<AudioChannel> _inputs;
 	private List<AudioChannel> _outputs;
+	private ReadOnlyCollection<InfoContainer> _audioDevices;
 
 	public AudioControlComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
 		: base(ui, uiData)
@@ -40,6 +44,7 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 
 		_inputs = [];
 		_outputs = [];
+		_audioDevices = new ReadOnlyCollection<InfoContainer>([]);
 
 		// TODO: add support for audio DSP information once the framework exposes that API
 		_audioDsp = new Dsp() { Id = "Placeholder", IsOnline = true, Manufacturer = "FAKE", Model = "Some DSP Model" };
@@ -100,10 +105,12 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 	/// <inheritdoc/>
 	public void SetAudioData(
 		ReadOnlyCollection<AudioChannelInfoContainer> inputs,
-		ReadOnlyCollection<AudioChannelInfoContainer> outputs)
+		ReadOnlyCollection<AudioChannelInfoContainer> outputs,
+		ReadOnlyCollection<InfoContainer> audioDevices)
 	{
 		_inputs = CreateChannelCollection(inputs);
 		_outputs = CreateChannelCollection(outputs);
+		_audioDevices = audioDevices;
 	}
 
 	/// <inheritdoc/>
@@ -282,6 +289,22 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		message.Command = CommandMicZone;
 		message.Data["InId"] = JToken.FromObject(channel.Id);
 		message.Data["Zones"] = JToken.FromObject(channel.Zones);
+		Send(message, ApiHooks.AudioControl);
+	}
+
+	public void UpdateAudioDeviceConnectionStatus(string deviceId, bool isOnline)
+	{
+		var found = _audioDevices.FirstOrDefault(x => x.Id == deviceId);
+		if (found == null)
+		{
+			Logger.Error($"CrComLibUI.AudioControlComponent.UpdateAudioDeviceConnectionStatus() - no device with id {deviceId}");
+			return;
+		}
+
+		found.IsOnline = isOnline;
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandStatus;
+		message.Data["AudioDevice"] = JToken.FromObject(found);
 		Send(message, ApiHooks.AudioControl);
 	}
 	#endregion

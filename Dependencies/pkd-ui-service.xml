@@ -380,12 +380,10 @@
             Args package: arg1 = channel ID, arg2 = zone ID.
             </summary>
         </member>
-        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.SetAudioData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AudioControl.AudioChannelInfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AudioControl.AudioChannelInfoContainer})">
-            <summary>
-            Update the UI with all supported input and output audio channels.
-            </summary>
+        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.SetAudioData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AudioControl.AudioChannelInfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AudioControl.AudioChannelInfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.Base.InfoContainer})">
             <param name="inputs">Collection of input/microphone data that the user can control.</param>
             <param name="outputs">Collection of output data that the user can control.</param>
+            <param name="audioDevices">Collection of audio controllers in the system configuration.</param>
         </member>
         <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioInputLevel(System.String,System.Int32)">
             <summary>
@@ -429,6 +427,10 @@
             <param name="channelId">The unique ID of the audio channel that will be updated.</param>
             <param name="zoneId">The unique ID of the zone that was changed.</param>
             <param name="newState">True = audio for that channel is active in the zone, false = audio disabled for that channel/zone.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioDeviceConnectionStatus(System.String,System.Boolean)">
+            <param name="deviceId">The id of the audio controller being updated.</param>
+            <param name="isOnline">true = device is online, false = device is offline.</param>
         </member>
         <member name="T:pkd_ui_service.Interfaces.ICrestronUserInterface">
             <summary>
@@ -659,6 +661,10 @@
             <param name="sources">Collection of all source data in the system configuration.</param>
             <param name="destinations">Collection of all destinations in the system configuration.</param>
             <param name="avRouters">Collection of all AVR devices in the system configuration.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IRoutingUserInterface.UpdateAvRouterConnectionStatus(System.String,System.Boolean)">
+            <param name="avrId">the id of the AV router that is being updated.</param>
+            <param name="isOnline">true = device is online, false = device is offline.</param>
         </member>
         <member name="T:pkd_ui_service.Interfaces.ISecurityUserInterface">
             <summary>

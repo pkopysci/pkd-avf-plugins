@@ -342,6 +342,10 @@ public class CrComLibUserInterface :
 	}
 
 	/// <inheritdoc/>
+	public void UpdateAvRouterConnectionStatus(string avrId, bool isOnline) => 
+		FindComponent<IRoutingUserInterface>()?.UpdateAvRouterConnectionStatus(avrId, isOnline);
+	
+	/// <inheritdoc/>
 	public void SetDisplayData(ReadOnlyCollection<DisplayInfoContainer> displayData)
 	{
 		if (_uiComponents.Count < 0)
@@ -397,7 +401,8 @@ public class CrComLibUserInterface :
 	/// <inheritdoc/>
 	public void SetAudioData(
 		ReadOnlyCollection<AudioChannelInfoContainer> inputs,
-		ReadOnlyCollection<AudioChannelInfoContainer> outputs)
+		ReadOnlyCollection<AudioChannelInfoContainer> outputs,
+		ReadOnlyCollection<InfoContainer> audioDevices)
 	{
 		Logger.Debug("CrComLibUserInterface.SetAudioData()");
 
@@ -407,7 +412,7 @@ public class CrComLibUserInterface :
 			return;
 		}
 
-		FindComponent<IAudioUserInterface>()?.SetAudioData(inputs, outputs);
+		FindComponent<IAudioUserInterface>()?.SetAudioData(inputs, outputs, audioDevices);
 	}
 
 	/// <inheritdoc/>
@@ -485,6 +490,9 @@ public class CrComLibUserInterface :
 		}
 		FindComponent<IAudioUserInterface>()?.UpdateAudioZoneState(channelId, zoneId, newState);
 	}
+
+	public void UpdateAudioDeviceConnectionStatus(string deviceId, bool isOnline) =>
+		FindComponent<IAudioUserInterface>()?.UpdateAudioDeviceConnectionStatus(deviceId, isOnline);
 
 	/// <inheritdoc/>
 	public void SetLightingData(ReadOnlyCollection<LightingControlInfoContainer> lightingData)

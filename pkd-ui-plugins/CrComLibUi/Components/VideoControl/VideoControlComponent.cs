@@ -22,6 +22,7 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 	private const string CommandRoute = "ROUTE";
 	private const string CommandFreeze = "GLOBALFREEZE";
 	private const string CommandBlank = "GLOBALBLANK";
+	private const string CommandStatus = "STATUS";
 	private readonly List<VideoDestinationInfo> _destinations;
 	private ReadOnlyCollection<AvSourceInfoContainer> _sources;
 	private ReadOnlyCollection<InfoContainer> _routers;
@@ -136,6 +137,22 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 		message.Command = CommandFreeze;
 		message.Data.Add(new JProperty("State", _globalFreezeState));
 		Send (message, ApiHooks.VideoControl);
+	}
+
+	public void UpdateAvRouterConnectionStatus(string avrId, bool isOnline)
+	{
+		var found = _routers.FirstOrDefault(x => x.Id == avrId);
+		if (found == null)
+		{
+			Logger.Error($"CrComLibUi.VideoControlComponent.UpdateAvRouterConnectionStatus() - {avrId} not found.");
+			return;
+		}
+
+		found.IsOnline = isOnline;
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandStatus;
+		message.Data["Avr"] = JObject.FromObject(found);
+		Send(message, ApiHooks.VideoControl);
 	}
 
 	/// <inheritdoc/>
