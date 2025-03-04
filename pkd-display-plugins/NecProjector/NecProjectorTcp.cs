@@ -93,6 +93,12 @@ public class NecProjectorTcp : IDisplayDevice, IVideoRoutable, IDisposable
 
 	/// <inheritdoc/>
 	public string Label { get; private set; } = string.Empty;
+	
+	/// <inheritdoc/>
+	public string Manufacturer { get; set; } = "NEC";
+
+	/// <inheritdoc/>
+	public string Model { get; set; } = "Projector";
 
 	/// <inheritdoc/>
 	public bool EnableReconnect

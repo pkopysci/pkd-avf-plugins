@@ -28,6 +28,10 @@ public class DisplayEmulatorTcp : IDisplayDevice, IVideoRoutable
 
 	public string Label { get; private set; } = string.Empty;
 
+	public string Manufacturer { get; set; } = "Emulation, Inc.";
+
+	public string Model { get; set; } = "Display Emulator";
+
 	public string Id { get; private set; } = string.Empty;
 
 	public bool FreezeState { get; private set; }

@@ -15,7 +15,8 @@ public class VideoWallEmulator : IVideoWallDevice
 
     public string Id { get; private set; } = "DefaultId";
     public string Label { get; private set; } = string.Empty;
-    
+    public string Manufacturer { get; set; } = "Emulation Inc.";
+    public string Model { get; set; } = "VW Emulator 9001";
     public string StartupLayoutId { get; } = "vw01";
     public bool IsOnline { get; private set; }
     public bool IsInitialized { get; private set; }

@@ -58,6 +58,9 @@
 				{ BroadataCommandTypes.Volume, HandleVolumeRx },
 				{ BroadataCommandTypes.MicVolume, HandleMicRx }
 			};
+
+			Manufacturer = "Broadata";
+			Model = "Av Switch";
 		}
 
 		~BroadataAvSwitchTcp()

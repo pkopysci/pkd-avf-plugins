@@ -108,6 +108,9 @@ namespace KramerAvSwitch
 			_mics = [];
 			_cmdQueue = new Queue<string>();
 			_hostname = string.Empty;
+
+			Manufacturer = "Kramer";
+			Model = "VP-440X";
 		}
 
 		~KramerAvSwitchTcp()

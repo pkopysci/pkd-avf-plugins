@@ -233,6 +233,8 @@ public class VideoWallApplication : ApplicationService, IVideoWallApp
         {
             Layouts = new ReadOnlyCollection<VideoWallLayoutInfo>(layouts),
             Sources = new ReadOnlyCollection<AvSourceInfoContainer>(deviceSources),
+            Manufacturer = device.Manufacturer,
+            Model = device.Model,
         };
         
         return wallInfo;

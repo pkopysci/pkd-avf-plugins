@@ -39,6 +39,9 @@
 			Id = "NexiaDspDefaultID";
 			Label = "Nexia DSP";
 			_rxBuilder = new StringBuilder();
+
+			Manufacturer = "Biamp";
+			Model = "Nexia";
 		}
 
 		~NexiaDspTcp()

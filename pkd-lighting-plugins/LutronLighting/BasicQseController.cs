@@ -65,6 +65,12 @@ public class BasicQseController : ILightingDevice, IDisposable
 	/// <inheritdoc/>
 	public string Label { get; private set; } = string.Empty;
 
+	/// <inheritdoc />
+	public string Manufacturer { get; set; } = "Lutron";
+
+	/// <inheritdoc />
+	public string Model { get; set; } = "QSE Controller";
+
 	/// <inheritdoc/>
 	public ReadOnlyCollection<string> SceneIds
 	{
