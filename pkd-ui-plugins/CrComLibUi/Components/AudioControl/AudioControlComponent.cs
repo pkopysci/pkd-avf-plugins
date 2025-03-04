@@ -23,7 +23,6 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 	private const string CommandLevel = "LEVEL";
 	private const string CommandMicZone = "ZONE";
 	private const string CommandStatus = "STATUS";
-	private readonly Dsp _audioDsp;
 	private List<AudioChannel> _inputs;
 	private List<AudioChannel> _outputs;
 	private ReadOnlyCollection<InfoContainer> _audioDevices;
@@ -45,9 +44,6 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		_inputs = [];
 		_outputs = [];
 		_audioDevices = new ReadOnlyCollection<InfoContainer>([]);
-
-		// TODO: add support for audio DSP information once the framework exposes that API
-		_audioDsp = new Dsp() { Id = "Placeholder", IsOnline = true, Manufacturer = "FAKE", Model = "Some DSP Model" };
 	}
 
 	/// <inheritdoc/>
@@ -307,7 +303,7 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		message.Data["AudioDevice"] = JToken.FromObject(found);
 		Send(message, ApiHooks.AudioControl);
 	}
-	#endregion
+	#endregion	
 
 	#region Private Methods
 	private void HandleGetConfigRequest(ResponseBase response)
@@ -316,7 +312,7 @@ internal class AudioControlComponent : BaseComponent, IAudioUserInterface, IAudi
 		message.Command = CommandConfig;
 		message.Data["Inputs"] = JToken.FromObject(_inputs);
 		message.Data["Outputs"] = JToken.FromObject(_outputs);
-		message.Data["Dsp"] = JToken.FromObject(_audioDsp);
+		message.Data["Dsp"] = JToken.FromObject(_audioDevices);
 		Send(message, ApiHooks.AudioControl);
 	}
 
