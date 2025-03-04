@@ -1,4 +1,6 @@
-﻿namespace KramerAvSwitch
+﻿// warning disabled due to public API.
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+namespace KramerAvSwitch
 {
 	using Crestron.SimplSharp;
 	using Crestron.SimplSharp.CrestronSockets;
@@ -20,38 +22,34 @@
 	/// </summary>
 	public class KramerAvSwitchTcp : BaseDevice, IAvSwitcher, IDisposable, IVideoControllable, IAudioControl
 	{
-		private static readonly int RX_TIMEOUT_LENGTH = 3000;
-		private static readonly int POLL_TIME = 15000;
-		private static readonly uint VIDEO_OUTPUT_NUMBER = 1;
-		private static readonly uint MIC_NUMBER = 0;
-		private static readonly string ID_RX = @"~(?<id>\d{2})@ OK\r\n";
-		private static readonly string ROUTE_RX = @"~(?<id>\d{2})@ROUTE (?<layer>\d+),(?<output>\d+),(?<input>\d)+";
-		private static readonly string FREEZE_RX = @"~(?<id>\d{2})@VFRZ (?<output>\d+),(?<flag>\d)";
-		private static readonly string VMUTE_RX = @"~(?<id>\d{2})@VMUTE (?<output>\d+),(?<flag>\d)";
-		private static readonly string AMUTE_RX = @"~(?<id>\d{2})@MUTE (?<output>\d+),(?<state>\d)";
-		private static readonly string ALEVEL_RX = @"~(?<id>\d{2})@AUD-LVL (?<mode>\d+),(?<index>\d+),(?<level>\d+)";
-		private static readonly string MICLEVEL_RX = @"~(?<id>\d{2})@MIC-GAIN (?<micId>\d+),(?<level>\d+)";
-		private static readonly string ERR_RX = @"~(?<id>\d{2})@ERR (?<err>\d+)";
-		private readonly Dictionary<string, Action<string>> supportedResponses;
-		private readonly Queue<string> cmdQueue;
-		private readonly List<KramerAvChannel> avOutputs;
-		private readonly List<KramerAvChannel> avInputs;
-		private readonly List<KramerAvChannel> mics;
-		private BasicTcpClient client;
-		private CTimer rxTimer;
-		private CTimer pollTimer;
-		private short devId;
-		private bool disposed;
-		private int numInputs;
-		private int numOutputs;
-		private bool sending;
+		private const int RxTimeoutLength = 3000;
+		private const int PollTime = 15000;
+		private const uint VideoOutputNumber = 1;
+		private const uint MicNumber = 0;
+		private const string IdRx = @"~(?<id>\d{2})@ OK\r\n";
+		private const string RouteRx = @"~(?<id>\d{2})@ROUTE (?<layer>\d+),(?<output>\d+),(?<input>\d)+";
+		private const string FreezeRx = @"~(?<id>\d{2})@VFRZ (?<output>\d+),(?<flag>\d)";
+		private const string VmuteRx = @"~(?<id>\d{2})@VMUTE (?<output>\d+),(?<flag>\d)";
+		private const string AmuteRx = @"~(?<id>\d{2})@MUTE (?<output>\d+),(?<state>\d)";
+		private const string AlevelRx = @"~(?<id>\d{2})@AUD-LVL (?<mode>\d+),(?<index>\d+),(?<level>\d+)";
+		private const string MiclevelRx = @"~(?<id>\d{2})@MIC-GAIN (?<micId>\d+),(?<level>\d+)";
+		private const string ErrRx = @"~(?<id>\d{2})@ERR (?<err>\d+)";
+		private const int BufferSize = 1024;
+		private readonly Dictionary<string, Action<string>> _supportedResponses;
+		private readonly Queue<string> _cmdQueue;
+		private readonly List<KramerAvChannel> _avOutputs;
+		private readonly List<KramerAvChannel> _avInputs;
+		private readonly List<KramerAvChannel> _mics;
+		private BasicTcpClient? _client;
+		private CTimer? _rxTimer;
+		private CTimer? _pollTimer;
+		private bool _disposed;
+		private bool _sending;
+		private string _hostname;
+		private int _port;
 
-		private string hostname;
-		private int port;
-		private static readonly int bufferSize = 1024;
-
-		private static readonly string[] ERR_CODES =
-		{
+		private static readonly string[] ErrCodes =
+		[
 			"P3K_NO_ERROR",
 			"ERR_PROTOCOL_SYNTAX",
 			"ERR_COMMAND_NOT_AVAILABLE",
@@ -87,69 +85,70 @@
 			"ERR_SAME_CRC",
 			"ERR_WRONG_MODE",
 			"ERR_NOT_CONFIGURED"
-		};
+		];
 
 		/// <summary>
 		/// Instantiates a new instance of <see cref="KramerAvSwitchTcp"/>.  Call Initialize() to begin control.
 		/// </summary>
 		public KramerAvSwitchTcp()
 		{
-			this.supportedResponses = new Dictionary<string, Action<string>>
+			_supportedResponses = new Dictionary<string, Action<string>>
 			{
-				{ ID_RX, this.ParseIdResponse },
-				{ ROUTE_RX, this.ParseRouteResponse },
-				{ FREEZE_RX, this.ParseFreezeResponse },
-				{ VMUTE_RX, this.ParseBlankResponse },
-				{ ERR_RX, this.ParseErrorResponse },
-				{ AMUTE_RX, this.ParseAudioMuteRx },
-				{ ALEVEL_RX, this.ParseAudioLevelRx },
-				{ MICLEVEL_RX, this.ParseMicLevelRx }
+				{ IdRx, ParseIdResponse },
+				{ RouteRx, ParseRouteResponse },
+				{ FreezeRx, ParseFreezeResponse },
+				{ VmuteRx, ParseBlankResponse },
+				{ ErrRx, ParseErrorResponse },
+				{ AmuteRx, ParseAudioMuteRx },
+				{ AlevelRx, ParseAudioLevelRx },
+				{ MiclevelRx, ParseMicLevelRx }
 			};
-			this.avOutputs = new List<KramerAvChannel>();
-			this.avInputs = new List<KramerAvChannel>();
-			this.mics = new List<KramerAvChannel>();
-			this.cmdQueue = new Queue<string>();
+			_avOutputs = [];
+			_avInputs = [];
+			_mics = [];
+			_cmdQueue = new Queue<string>();
+			_hostname = string.Empty;
 		}
 
 		~KramerAvSwitchTcp()
 		{
-			this.Dispose(false);
+			Dispose(false);
 		}
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, uint>> VideoRouteChanged;
+		public event EventHandler<GenericDualEventArgs<string, uint>>? VideoRouteChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericSingleEventArgs<string>> VideoBlankChanged;
+		public event EventHandler<GenericSingleEventArgs<string>>? VideoBlankChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericSingleEventArgs<string>> VideoFreezeChanged;
+		public event EventHandler<GenericSingleEventArgs<string>>? VideoFreezeChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioOutputMuteChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioOutputMuteChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioOutputLevelChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioOutputLevelChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioInputMuteChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputMuteChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioInputLevelChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputLevelChanged;
 
 		/// <inheritdoc/>
 		public bool FreezeState
 		{
 			get
 			{
-				var found = this.avOutputs.Find(x => x.Number == 1);
-				if (found == default(KramerAvChannel))
+				var found = _avOutputs.Find(x => x.Number == 1);
+				if (found == null)
 				{
 					Logger.Warn("KramerAvSwitchTcp.FreezeState - could not find an output channel.");
 					return false;
 				}
 
-				return found.VideoFreeze; ;
+				return found.VideoFreeze;
 			}
 		}
 
@@ -158,8 +157,8 @@
 		{
 			get
 			{
-				var found = this.avOutputs.Find(x => x.Number == 1);
-				if (found == default(KramerAvChannel))
+				var found = _avOutputs.Find(x => x.Number == 1);
+				if (found == null)
 				{
 					Logger.Warn("KramerAvSwitchTcp.BlankState - could not find an output channel.");
 					return false;
@@ -168,6 +167,11 @@
 				return found.VideoMute;
 			}
 		}
+
+		/// <summary>
+		/// Gets the ID of the Kramer device as it is defined on the hardware as of the last query response.
+		/// </summary>
+		public short DeviceId { get; private set; }
 
 		/// <inheritdoc/>
 		public IEnumerable<string> GetAudioPresetIds()
@@ -178,74 +182,72 @@
 		/// <inheritdoc/>
 		public IEnumerable<string> GetAudioInputIds()
 		{
-			return this.mics.Select(x => x.Id).ToList();
+			return _mics.Select(x => x.Id).ToList();
 		}
 
 		/// <inheritdoc/>
 		public IEnumerable<string> GetAudioOutputIds()
 		{
-			return this.avOutputs.Select(x => x.Id).ToList();
+			return _avOutputs.Select(x => x.Id).ToList();
 		}
 
 		/// <inheritdoc/>
 		public void Dispose()
 		{
-			this.Dispose(true);
+			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
 
 		/// <inheritdoc/>
 		public void Initialize(string hostName, int port, string id, string label, int numInputs, int numOutputs)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(id, "Ctor", "id");
-			ParameterValidator.ThrowIfNullOrEmpty(label, "Ctor", "label");
-			ParameterValidator.ThrowIfNullOrEmpty(hostName, "Ctor", "hostName");
+			ParameterValidator.ThrowIfNullOrEmpty(id, "Ctor", nameof(id));
+			ParameterValidator.ThrowIfNullOrEmpty(label, "Ctor", nameof(label));
+			ParameterValidator.ThrowIfNullOrEmpty(hostName, "Ctor", nameof(hostName));
 
-			this.Id = id;
-			this.Label = label;
-			this.numInputs = numInputs;
-			this.numOutputs = numOutputs;
-			this.hostname = hostName;
-			this.port = port;
+			Id = id;
+			Label = label;
+			_hostname = hostName;
+			_port = port;
 
-			if (client != null)
+			if (_client != null)
 			{
-				this.UnsubscribeClient();
-				this.client.Dispose();
+				UnsubscribeClient();
+				_client.Dispose();
 			}
 
-			this.client = new BasicTcpClient(hostName, port, 1024)
+			_client = new BasicTcpClient(hostName, port, 1024)
 			{
 				EnableReconnect = true
 			};
-			this.SubscribeClient();
+			SubscribeClient();
 		}
 
 		/// <inheritdoc/>
 		public override void Connect()
 		{
-			if (this.client != null && !this.IsOnline)
+			if (_client != null && !IsOnline)
 			{
-				Logger.Debug("KramverAvSwitchTcp {0} - Connect()", this.Id);
-				this.client.Connect();
+				Logger.Debug("KramerAvSwitchTcp {0} - Connect()", Id);
+				_client.Connect();
 			}
 		}
 
 		/// <inheritdoc/>
 		public override void Disconnect()
 		{
-			if (this.client != null && this.IsOnline)
+			if (_client != null && IsOnline)
 			{
-				Logger.Debug("KramverAvSwitchTcp {0} - Disconnect()", this.Id);
-				this.client.Disconnect();
+				Logger.Debug("KramerAvSwitchTcp {0} - Disconnect()", Id);
+				_client.Disconnect();
 			}
 		}
 
 		/// <inheritdoc/>
 		public uint GetCurrentVideoSource(uint output)
 		{
-			var found = this.avOutputs.Find(x => x.Number == output);
-			if (found == default(KramerAvChannel))
+			var found = _avOutputs.Find(x => x.Number == output);
+			if (found == null)
 			{
 				Logger.Error("KramerAvSwitchTcp.GetCurrentVideoSource({0}) - cannot find channel.", output);
 				return 0;
@@ -257,10 +259,10 @@
 		/// <inheritdoc/>
 		public void RouteVideo(uint source, uint output)
 		{
-			if (this.IsOnline)
+			if (IsOnline)
 			{
-				this.cmdQueue.Enqueue(string.Format("#ROUTE 1,{0},{1}\r\n", output, source));
-				this.TrySend();
+				_cmdQueue.Enqueue($"#ROUTE 1,{output},{source}\r\n");
+				TrySend();
 			}
 		}
 
@@ -270,40 +272,40 @@
 		/// <inheritdoc/>
 		public void VideoBlankOn()
 		{
-			if (this.IsOnline)
+			if (IsOnline)
 			{
-				this.cmdQueue.Enqueue(string.Format("#VMUTE {0},1\r\n", VIDEO_OUTPUT_NUMBER));
-				this.TrySend();
+				_cmdQueue.Enqueue($"#VMUTE {VideoOutputNumber},1\r\n");
+				TrySend();
 			}
 		}
 
 		/// <inheritdoc/>
 		public void VideoBlankOff()
 		{
-			if (this.IsOnline)
+			if (IsOnline)
 			{
-				this.cmdQueue.Enqueue(string.Format("#VMUTE {0},0\r\n", VIDEO_OUTPUT_NUMBER));
-				this.TrySend();
+				_cmdQueue.Enqueue($"#VMUTE {VideoOutputNumber},0\r\n");
+				TrySend();
 			}
 		}
 
 		/// <inheritdoc/>
 		public void FreezeOn()
 		{
-			if (this.IsOnline)
+			if (IsOnline)
 			{
-				this.cmdQueue.Enqueue(string.Format("#VFRZ {0},1\r\n", VIDEO_OUTPUT_NUMBER));
-				this.TrySend();
+				_cmdQueue.Enqueue($"#VFRZ {VideoOutputNumber},1\r\n");
+				TrySend();
 			}
 		}
 
 		/// <inheritdoc/>
 		public void FreezeOff()
 		{
-			if (this.IsOnline)
+			if (IsOnline)
 			{
-				this.cmdQueue.Enqueue(string.Format("#VFRZ {0},0\r\n", VIDEO_OUTPUT_NUMBER));
-				this.TrySend();
+				_cmdQueue.Enqueue($"#VFRZ {VideoOutputNumber},0\r\n");
+				TrySend();
 			}
 		}
 
@@ -320,11 +322,11 @@
 
 			// Check to see if there already is an input channel with the given index. If so, change the ID to match
 			// what is expected by the using application.
-			var existing = this.mics.Find(x => x.Number == bankIndex);
-			if (existing == default(KramerAvChannel))
+			var existing = _mics.Find(x => x.Number == bankIndex);
+			if (existing == null)
 			{
-				Logger.Debug("KramerAvSwitchTcp at ID {0}: adding new channel: {1}", this.Id, id);
-				this.mics.Add(new KramerAvChannel()
+				Logger.Debug("KramerAvSwitchTcp at ID {0}: adding new channel: {1}", Id, id);
+				_mics.Add(new KramerAvChannel()
 				{
 					Id = id,
 					Number = (uint)bankIndex,
@@ -349,10 +351,10 @@
 
 			// Check to see if there already is an output channel with the given index. If so, change the ID to match
 			// what is expected by the using application.
-			var existing = this.avOutputs.FirstOrDefault(x => x.Number == bankIndex);
-			if (existing == default(KramerAvChannel))
+			var existing = _avOutputs.FirstOrDefault(x => x.Number == bankIndex);
+			if (existing == null)
 			{
-				this.avOutputs.Add(new KramerAvChannel()
+				_avOutputs.Add(new KramerAvChannel()
 				{
 					Id = id,
 					Number = (uint)bankIndex,
@@ -377,7 +379,7 @@
 		{
 			Logger.Warn(
 				"KramerAvSwitchTcp {0} AddPreset({1},{2}) - Presets not supported by this device.",
-				this.Id,
+				Id,
 				id,
 				index);
 		}
@@ -385,9 +387,9 @@
 		/// <inheritdoc/>
 		public void SetAudioOutputLevel(string id, int level)
 		{
-			if (this.IsOnline)
+			if (IsOnline)
 			{
-				var found = this.FindOrCreateOutput(VIDEO_OUTPUT_NUMBER);
+				var found = FindOrCreateOutput(VideoOutputNumber);
 				int newVal = level;
 				if (newVal < 0)
 				{
@@ -398,17 +400,17 @@
 					newVal = 100;
 				}
 
-				string cmd = string.Format("#AUD-LVL {0},{1},{2}\r\n", 1, found.Number - 1, newVal);
-				this.cmdQueue.Enqueue(cmd);
-				this.TrySend();
+				string cmd = $"#AUD-LVL {1},{found.Number - 1},{newVal}\r\n";
+				_cmdQueue.Enqueue(cmd);
+				TrySend();
 			}
 		}
 
 		/// <inheritdoc/>
 		public int GetAudioOutputLevel(string id)
 		{
-			var found = this.avOutputs.Find(x => x.Number == 1);
-			if (found == default(KramerAvChannel))
+			var found = _avOutputs.Find(x => x.Number == 1);
+			if (found == null)
 			{
 				Logger.Warn("KramerAvSwitchTcp.AudioOutputLevel - could not find an output channel.");
 				return 0;
@@ -420,8 +422,8 @@
 		/// <inheritdoc/>
 		public bool GetAudioOutputMute(string id)
 		{
-			var found = this.avOutputs.Find(x => x.Id == id);
-			if (found == default(KramerAvChannel))
+			var found = _avOutputs.Find(x => x.Id == id);
+			if (found == null)
 			{
 				Logger.Warn("KramerAvSwitchTcp.AudioOutputMute - could not find an output channel.");
 				return false;
@@ -433,84 +435,82 @@
 		/// <inheritdoc/>
 		public void SetAudioOutputMute(string id, bool state)
 		{
-			if (this.IsOnline)
+			if (!IsOnline) return;
+			var found = _avOutputs.FirstOrDefault(x => x.Id == id);
+			if (found == null)
 			{
-				var found = this.avOutputs.FirstOrDefault(x => x.Id == id);
-				if (found == default(KramerAvChannel))
-				{
-					Logger.Warn("KramerAvSwitchTcp.SetAudioOutputMute() - Unable to find an audio output.");
-					return;
-				}
-
-				int newState = state ? 1 : 0;
-				string cmd = string.Format("#MUTE {0},{1}\r\n", found.Number, newState);
-				this.cmdQueue.Enqueue(cmd);
-				this.TrySend();
+				Logger.Warn("KramerAvSwitchTcp.SetAudioOutputMute() - Unable to find an audio output.");
+				return;
 			}
+
+			var newState = state ? 1 : 0;
+			var cmd = $"#MUTE {found.Number},{newState}\r\n";
+			_cmdQueue.Enqueue(cmd);
+			TrySend();
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioInputLevel(string id, int level)
 		{
-			if (this.IsOnline)
+			if (!IsOnline) return;
+			var found = _mics.FirstOrDefault(x => x.Id == id);
+			if (found == null)
 			{
-				var found = this.mics.FirstOrDefault(x => x.Id == id);
-				Logger.Debug("KramerAvSwitchTcp at ID {0}: found channel with ID {1} and bank {2}", this.Id, found.Id, found.Number);
-
-				int newVal = level;
-				if (newVal < 0)
-				{
-					newVal = 0;
-				}
-				else if (newVal > 100)
-				{
-					newVal = 100;
-				}
-
-				string cmd = string.Format("#MIC-GAIN {0},{1}\r\n", found.Number, newVal);
-				this.cmdQueue.Enqueue(cmd);
-				this.TrySend();
+				Logger.Error($"KramerAvSwitchTcp.{nameof(SetAudioInputLevel)}({id}, {level}) - Unable to find audio output.");
+				return;
 			}
+				
+			Logger.Debug("KramerAvSwitchTcp at ID {0}: found channel with ID {1} and bank {2}", Id, found.Id, found.Number);
+
+			//int newVal = level;
+			var newVal = level switch
+			{
+				< 0 => 0,
+				> 100 => 100,
+				_ => level
+			};
+
+			var cmd = $"#MIC-GAIN {found.Number},{newVal}\r\n";
+			_cmdQueue.Enqueue(cmd);
+			TrySend();
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioInputMute(string id, bool state)
 		{
-			if (this.IsOnline)
+			if (!IsOnline) return;
+			var found = _mics.FirstOrDefault(x => x.Id == id);
+			if (found == null)
 			{
-				var found = this.mics.FirstOrDefault(x => x.Id == id);
-				if (found == default(KramerAvChannel))
-				{
-					Logger.Warn("KramerAvSwitchTcp.SetAudioInputMute() - Unable to find an audio input.");
-					return;
-				}
-
-				if (found.AudioMute == state)
-				{
-					return;
-				}
-
-				// The Kramer P3000 doesn't have an explicit mic mute so we have to set the level to 0 and save the
-				// current level for when the channel is unmuted.
-				if (state)
-				{
-					found.UnmutedLevel = found.AudioLevel;
-					this.cmdQueue.Enqueue(string.Format("#MIC-GAIN {0},0\r\n", found.Number));
-				}
-				else
-				{
-					this.cmdQueue.Enqueue(string.Format("#MIC-GAIN {0},{1}\r\n", found.Number, found.UnmutedLevel));
-				}
-
-				this.TrySend();
+				Logger.Warn("KramerAvSwitchTcp.SetAudioInputMute() - Unable to find an audio input.");
+				return;
 			}
+
+			if (found.AudioMute == state)
+			{
+				return;
+			}
+
+			// The Kramer P3000 doesn't have an explicit mic mute so we have to set the level to 0 and save the
+			// current level for when the channel is unmuted.
+			if (state)
+			{
+				found.UnmutedLevel = found.AudioLevel;
+				_cmdQueue.Enqueue($"#MIC-GAIN {found.Number},0\r\n");
+			}
+			else
+			{
+				_cmdQueue.Enqueue($"#MIC-GAIN {found.Number},{found.UnmutedLevel}\r\n");
+			}
+
+			TrySend();
 		}
 
 		/// <inheritdoc/>
 		public int GetAudioInputLevel(string id)
 		{
-			var found = this.mics.Find(x => x.Id == id);
-			if (found == default(KramerAvChannel))
+			var found = _mics.Find(x => x.Id == id);
+			if (found == null)
 			{
 				Logger.Warn("KramerAvSwitchTcp.AudioInputLevel - Could not find a mic channel.");
 				return 0;
@@ -522,8 +522,8 @@
 		/// <inheritdoc/>
 		public bool GetAudioInputMute(string id)
 		{
-			var found = this.mics.Find(x => x.Id == id);
-			if (found == default(KramerAvChannel))
+			var found = _mics.Find(x => x.Id == id);
+			if (found == null)
 			{
 				Logger.Warn("KramerAvSwitchTcp.AudioInputLevel - Could not find a mic channel.");
 				return false;
@@ -534,98 +534,94 @@
 
 		private void Dispose(bool disposing)
 		{
-			if (!this.disposed)
+			if (_disposed) return;
+			if (disposing)
 			{
-				if (disposing)
+				if (_client != null)
 				{
-					if (this.client != null)
-					{
-						this.UnsubscribeClient();
-						this.client.Dispose();
-						this.client = null;
-					}
-
-					this.rxTimer?.Dispose();
+					UnsubscribeClient();
+					_client.Dispose();
+					_client = null;
 				}
 
-				this.disposed = true;
+				_rxTimer?.Dispose();
 			}
+
+			_disposed = true;
 		}
 
 		private void QueryState()
 		{
-			var found = this.FindOrCreateOutput(VIDEO_OUTPUT_NUMBER);
-			this.cmdQueue.Enqueue(string.Format("#ROUTE? 1,{0}\r\n", found.Number));
-			this.cmdQueue.Enqueue(string.Format("#VMUTE? {0}\r\n", found.Number));
-			this.cmdQueue.Enqueue(string.Format("#VFRZ? {0}\r\n", found.Number));
-			this.cmdQueue.Enqueue(string.Format("#MUTE? {0}\r\n", found.Number));
-			this.cmdQueue.Enqueue(string.Format("#AUD-LVL? 1,{0}\r\n", found.Number - 1));
+			var found = FindOrCreateOutput(VideoOutputNumber);
+			_cmdQueue.Enqueue($"#ROUTE? 1,{found.Number}\r\n");
+			_cmdQueue.Enqueue($"#VMUTE? {found.Number}\r\n");
+			_cmdQueue.Enqueue($"#VFRZ? {found.Number}\r\n");
+			_cmdQueue.Enqueue($"#MUTE? {found.Number}\r\n");
+			_cmdQueue.Enqueue($"#AUD-LVL? 1,{found.Number - 1}\r\n");
 
-			found = this.FindOrCreateMic(MIC_NUMBER);
-			this.cmdQueue.Enqueue(string.Format("#MIC-GAIN? {0}\r\n", found.Number));
-			this.TrySend();
+			found = FindOrCreateMic(MicNumber);
+			_cmdQueue.Enqueue($"#MIC-GAIN? {found.Number}\r\n");
+			TrySend();
 		}
 
-		private void RxTimeoutHandler(object callbackObject)
+		private void RxTimeoutHandler(object? callbackObject)
 		{
-			if (this.cmdQueue.Count > 0)
+			if (_cmdQueue.Count > 0)
 			{
-				string command = this.cmdQueue.Dequeue();
-				Logger.Error("KramerAvSwitchTcp {0} - no response to command {1}.", this.Id, command);
+				string command = _cmdQueue.Dequeue();
+				Logger.Error("KramerAvSwitchTcp {0} - no response to command {1}.", Id, command);
 			}
 
-			this.cmdQueue.Clear();
-			this.client.Disconnect();
+			_cmdQueue.Clear();
+			_client?.Disconnect();
 
-			this.UnsubscribeClient();
-			this.client.Dispose();
-			this.client = new BasicTcpClient(hostname, port, bufferSize)
+			UnsubscribeClient();
+			_client?.Dispose();
+			_client = new BasicTcpClient(_hostname, _port, BufferSize)
 			{
 				EnableReconnect = true
 			};
-			this.SubscribeClient();
-			this.client.Connect();
+			SubscribeClient();
+			_client.Connect();
 		}
 
-		private void PollTimerHandler(object callbackObject)
+		private void PollTimerHandler(object? callbackObject)
 		{
-			if (!sending)
+			if (!_sending)
 			{
-				var found = this.FindOrCreateInput(VIDEO_OUTPUT_NUMBER);
-				cmdQueue.Enqueue(string.Format("#ROUTE? 1,{0}\r\n", found.Number));
+				var found = FindOrCreateInput(VideoOutputNumber);
+				_cmdQueue.Enqueue($"#ROUTE? 1,{found.Number}\r\n");
 				TrySend();
 			}
 
-			if (pollTimer != null && !disposed)
+			if (_pollTimer != null && !_disposed)
 			{
-				pollTimer.Reset(POLL_TIME);
+				_pollTimer.Reset(PollTime);
 			}
 		}
 
 		private void TrySend()
 		{
-			if (this.IsOnline && !sending && this.cmdQueue.Count > 0)
-			{
-				this.sending = true;
-				this.client.Send(this.cmdQueue.Dequeue());
+			if (!IsOnline || _sending || _cmdQueue.Count <= 0) return;
+			_sending = true;
+			_client?.Send(_cmdQueue.Dequeue());
 
-				if (this.rxTimer == null)
-				{
-					this.rxTimer = new CTimer(this.RxTimeoutHandler, RX_TIMEOUT_LENGTH);
-				}
-				else
-				{
-					this.rxTimer.Reset(RX_TIMEOUT_LENGTH);
-				}
+			if (_rxTimer == null)
+			{
+				_rxTimer = new CTimer(RxTimeoutHandler, RxTimeoutLength);
+			}
+			else
+			{
+				_rxTimer.Reset(RxTimeoutLength);
 			}
 		}
 
-		private void ClientStringReceived(object sender, GenericSingleEventArgs<string> e)
+		private void ClientStringReceived(object? sender, GenericSingleEventArgs<string> e)
 		{
-			Logger.Debug("KramverAvSwitchTcp {0} - ClientStringReceived() - {1}", this.Id, e.Arg);
-			this.rxTimer.Stop();
-			this.sending = false;
-			foreach (var kvp in this.supportedResponses)
+			Logger.Debug("KramerAvSwitchTcp {0} - ClientStringReceived() - {1}", Id, e.Arg);
+			_rxTimer?.Stop();
+			_sending = false;
+			foreach (var kvp in _supportedResponses)
 			{
 				if (Regex.IsMatch(e.Arg, kvp.Key))
 				{
@@ -633,42 +629,42 @@
 				}
 			}
 
-			this.TrySend();
+			TrySend();
 		}
 
-		private void ClientStatusChangedHandler(object sender, EventArgs e)
+		private void ClientStatusChangedHandler(object? sender, EventArgs e)
 		{
-			if (!this.client.Connected)
+			if (_client is not { Connected: true })
 			{
-				this.cmdQueue.Clear();
-				this.sending = false;
+				_cmdQueue.Clear();
+				_sending = false;
 			}
 
-			this.IsOnline = this.client.Connected;
-			this.NotifyOnlineStatus();
+			IsOnline = _client?.Connected ?? false;
+			NotifyOnlineStatus();
 		}
 
-		private void ClientConnectFailedHandler(object sender, GenericSingleEventArgs<SocketStatus> e)
+		private void ClientConnectFailedHandler(object? sender, GenericSingleEventArgs<SocketStatus> e)
 		{
-			this.IsOnline = this.client.Connected;
-			this.cmdQueue.Clear();
-			this.sending = false;
-			this.NotifyOnlineStatus();
+			IsOnline = _client?.Connected ?? false;
+			_cmdQueue.Clear();
+			_sending = false;
+			NotifyOnlineStatus();
 		}
 
-		private void ClientConnectedHandler(object sender, EventArgs e)
+		private void ClientConnectedHandler(object? sender, EventArgs e)
 		{
-			this.IsOnline = this.client.Connected;
-			this.NotifyOnlineStatus();
-			this.QueryState();
+			IsOnline = _client?.Connected ?? false;
+			NotifyOnlineStatus();
+			QueryState();
 
-			if (pollTimer == null)
+			if (_pollTimer == null)
 			{
-				pollTimer = new CTimer(PollTimerHandler, POLL_TIME);
+				_pollTimer = new CTimer(PollTimerHandler, PollTime);
 			}
 			else
 			{
-				pollTimer.Reset(POLL_TIME);
+				_pollTimer.Reset(PollTime);
 			}
 		}
 
@@ -677,8 +673,8 @@
 		{
 			try
 			{
-				Match match = Regex.Match(response, ID_RX);
-				this.devId = short.Parse(match.Groups["id"].Value);
+				Match match = Regex.Match(response, IdRx);
+				DeviceId = short.Parse(match.Groups["id"].Value);
 			}
 			catch (Exception e)
 			{
@@ -690,19 +686,19 @@
 		{
 			try
 			{
-				Match match = Regex.Match(response, ROUTE_RX);
+				Match match = Regex.Match(response, RouteRx);
 				uint output = uint.Parse(match.Groups["output"].Value);
 				uint input = uint.Parse(match.Groups["input"].Value);
 
-				KramerAvChannel channel = this.FindOrCreateOutput(output);
+				KramerAvChannel channel = FindOrCreateOutput(output);
 				channel.CurrentSource = input;
 
-				var temp = this.VideoRouteChanged;
-				temp?.Invoke(this, new GenericDualEventArgs<string, uint>(this.Id, output));
+				var temp = VideoRouteChanged;
+				temp?.Invoke(this, new GenericDualEventArgs<string, uint>(Id, output));
 			}
 			catch (Exception ex)
 			{
-				Logger.Error(ex, "KramerAvSwitchTcp.ParseRouteResponsee()");
+				Logger.Error(ex, "KramerAvSwitchTcp.ParseRouteResponse()");
 			}
 		}
 
@@ -710,15 +706,15 @@
 		{
 			try
 			{
-				Match match = Regex.Match(response, FREEZE_RX);
+				Match match = Regex.Match(response, FreezeRx);
 				uint output = uint.Parse(match.Groups["output"].Value);
 				uint state = uint.Parse(match.Groups["flag"].Value);
 
-				KramerAvChannel channel = this.FindOrCreateOutput(output);
+				KramerAvChannel channel = FindOrCreateOutput(output);
 				channel.VideoFreeze = state != 0;
 
-				var temp = this.VideoFreezeChanged;
-				temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
+				var temp = VideoFreezeChanged;
+				temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
 
 			}
 			catch (Exception e)
@@ -732,15 +728,15 @@
 		{
 			try
 			{
-				Match match = Regex.Match(response, VMUTE_RX);
+				Match match = Regex.Match(response, VmuteRx);
 				uint output = uint.Parse(match.Groups["output"].Value);
 				uint state = uint.Parse(match.Groups["flag"].Value);
 
-				KramerAvChannel channel = this.FindOrCreateOutput(output);
+				KramerAvChannel channel = FindOrCreateOutput(output);
 				channel.VideoMute = (state == 1);
 
-				var temp = this.VideoBlankChanged;
-				temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
+				var temp = VideoBlankChanged;
+				temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
 			}
 			catch (Exception e)
 			{
@@ -752,14 +748,14 @@
 		{
 			try
 			{
-				short errCode = short.Parse(Regex.Match(response, ERR_RX).Groups["err"].Value);
-				if (errCode >= 0 && errCode < ERR_CODES.Length)
+				short errCode = short.Parse(Regex.Match(response, ErrRx).Groups["err"].Value);
+				if (errCode >= 0 && errCode < ErrCodes.Length)
 				{
-					Logger.Error("KramerAvSwitchTcp at ID {0}: ERROR response received: {1}", this.Id, ERR_CODES[errCode]);
+					Logger.Error("KramerAvSwitchTcp at ID {0}: ERROR response received: {1}", Id, ErrCodes[errCode]);
 				}
 				else
 				{
-					Logger.Error("KramerAvSwitchTcp at ID {0}: Unknown error code received: {1}", this.Id, errCode);
+					Logger.Error("KramerAvSwitchTcp at ID {0}: Unknown error code received: {1}", Id, errCode);
 				}
 			}
 			catch (Exception e)
@@ -772,20 +768,19 @@
 		{
 			try
 			{
-				Match match = Regex.Match(response, AMUTE_RX);
+				Match match = Regex.Match(response, AmuteRx);
 				uint output = uint.Parse(match.Groups["output"].Value);
 				uint state = uint.Parse(match.Groups["state"].Value);
 
-				KramerAvChannel channel = this.FindOrCreateOutput(output);
+				KramerAvChannel channel = FindOrCreateOutput(output);
 				channel.AudioMute = (state == 1);
 
 				var temp = AudioOutputMuteChanged;
-				temp?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, channel.Id));
+				temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, channel.Id));
 			}
 			catch (Exception e)
 			{
 				Logger.Error(e, "KramerAvSwitchTcp.ParseAudioMuteRx()");
-				Logger.Error("{0}", e.StackTrace);
 			}
 		}
 
@@ -793,7 +788,7 @@
 		{
 			try
 			{
-				Match match = Regex.Match(response, ALEVEL_RX);
+				Match match = Regex.Match(response, AlevelRx);
 				uint mode = uint.Parse(match.Groups["mode"].Value);
 				uint index = uint.Parse(match.Groups["index"].Value);
 				int level = int.Parse(match.Groups["level"].Value);
@@ -801,20 +796,20 @@
 				if (mode == 1)
 				{
 					// level change is on an output channel
-					KramerAvChannel channel = this.FindOrCreateOutput(index + 1);
+					KramerAvChannel channel = FindOrCreateOutput(index + 1);
 					channel.AudioLevel = level;
 
-					var temp = this.AudioOutputLevelChanged;
-					temp?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, channel.Id));
+					var temp = AudioOutputLevelChanged;
+					temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, channel.Id));
 				}
 				else
 				{
 					// level change is an input
-					KramerAvChannel input = this.FindOrCreateInput(index);
+					KramerAvChannel input = FindOrCreateInput(index);
 					input.AudioLevel = level;
 
-					var temp = this.AudioInputLevelChanged;
-					temp?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, this.Id));
+					var temp = AudioInputLevelChanged;
+					temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, Id));
 				}
 			}
 			catch (Exception e)
@@ -827,21 +822,21 @@
 		{
 			try
 			{
-				Match match = Regex.Match(response, MICLEVEL_RX);
+				Match match = Regex.Match(response, MiclevelRx);
 				uint index = uint.Parse(match.Groups["micId"].Value);
 				int level = int.Parse(match.Groups["level"].Value);
 
-				KramerAvChannel mic = this.FindOrCreateMic(index);
+				KramerAvChannel mic = FindOrCreateMic(index);
 				mic.AudioLevel = level;
-				var temp = this.AudioInputLevelChanged;
-				temp?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, mic.Id));
+				var temp = AudioInputLevelChanged;
+				temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, mic.Id));
 
 				bool muted = level < 1;
 				if (muted != mic.AudioMute)
 				{
 					mic.AudioMute = muted;
-					temp = this.AudioInputMuteChanged;
-					temp?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, mic.Id));
+					temp = AudioInputMuteChanged;
+					temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, mic.Id));
 				}
 			}
 			catch (Exception ex)
@@ -852,26 +847,28 @@
 
 		private void UnsubscribeClient()
 		{
-			this.client.ConnectionFailed -= this.ClientConnectFailedHandler;
-			this.client.ClientConnected -= this.ClientConnectedHandler;
-			this.client.StatusChanged -= this.ClientStatusChangedHandler;
-			this.client.RxRecieved -= this.ClientStringReceived;
+			if (_client == null) return;
+			_client.ConnectionFailed -= ClientConnectFailedHandler;
+			_client.ClientConnected -= ClientConnectedHandler;
+			_client.StatusChanged -= ClientStatusChangedHandler;
+			_client.RxReceived -= ClientStringReceived;
 		}
 
 		private void SubscribeClient()
 		{
-			this.client.ConnectionFailed += this.ClientConnectFailedHandler;
-			this.client.ClientConnected += this.ClientConnectedHandler;
-			this.client.StatusChanged += this.ClientStatusChangedHandler;
-			this.client.RxRecieved += this.ClientStringReceived;
+			if (_client == null) return;
+			_client.ConnectionFailed += ClientConnectFailedHandler;
+			_client.ClientConnected += ClientConnectedHandler;
+			_client.StatusChanged += ClientStatusChangedHandler;
+			_client.RxReceived += ClientStringReceived;
 		}
 
 		private KramerAvChannel FindOrCreateOutput(uint number)
 		{
-			KramerAvChannel found = this.avOutputs.Find(x => x.Number == number);
-			if (found == default(KramerAvChannel))
+			var found = _avOutputs.Find(x => x.Number == number);
+			if (found == null)
 			{
-				KramerAvChannel newChannel = new KramerAvChannel()
+				var newChannel = new KramerAvChannel()
 				{
 					Id = "OUT" + number,
 					Number = number,
@@ -882,21 +879,19 @@
 					CurrentSource = 0,
 				};
 
-				this.avOutputs.Add(newChannel);
+				_avOutputs.Add(newChannel);
 				return newChannel;
 			}
-			else
-			{
-				return found;
-			}
+			
+			return found;
 		}
 
 		private KramerAvChannel FindOrCreateInput(uint number)
 		{
-			KramerAvChannel found = this.avInputs.Find(x => x.Number == number);
-			if (found == default(KramerAvChannel))
+			var found = _avInputs.Find(x => x.Number == number);
+			if (found == null)
 			{
-				KramerAvChannel newChannel = new KramerAvChannel()
+				var newChannel = new KramerAvChannel()
 				{
 					Id = "INPUT" + number,
 					Number = number,
@@ -907,21 +902,19 @@
 					CurrentSource = 0
 				};
 
-				this.avInputs.Add(newChannel);
+				_avInputs.Add(newChannel);
 				return newChannel;
 			}
-			else
-			{
-				return found;
-			}
+			
+			return found;
 		}
 
 		private KramerAvChannel FindOrCreateMic(uint number)
 		{
-			KramerAvChannel found = this.mics.Find(x => x.Number == number);
-			if (found == default(KramerAvChannel))
+			var found = _mics.Find(x => x.Number == number);
+			if (found == null)
 			{
-				KramerAvChannel newChannel = new KramerAvChannel()
+				var newChannel = new KramerAvChannel()
 				{
 					Id = "MIC" + number,
 					Number = number,
@@ -932,13 +925,11 @@
 					CurrentSource = 0
 				};
 
-				this.mics.Add(newChannel);
+				_mics.Add(newChannel);
 				return newChannel;
 			}
-			else
-			{
-				return found;
-			}
+			
+			return found;
 		}
 	}
 }

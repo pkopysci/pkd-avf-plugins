@@ -1,0 +1,433 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>pkd-domain-service</name>
+    </assembly>
+    <members>
+        <member name="T:pkd_domain_service.Data.BaseData">
+            <summary>
+            Base data object for all configuration items.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.BaseData.Id">
+            <summary>
+            Gets or sets a Unique identifier for the data object.
+            Used to reference the information durring runtime.
+            </summary>
+        </member>
+        <member name="T:pkd_domain_service.Data.ConnectionData.Authentication">
+            <summary>
+            Login information used to connect to a device for TCP/IP control.
+            </summary>
+            
+        </member>
+        <member name="P:pkd_domain_service.Data.ConnectionData.Authentication.UserName">
+            <summary>
+            Gets or sets the username used to log into the target device for control.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.ConnectionData.Authentication.Password">
+            <summary>
+            Gets or sets the password used to log into the target device for control.
+            </summary>
+        </member>
+        <member name="T:pkd_domain_service.Data.ConnectionData.Connection">
+            <summary>
+            Configuration data object for TCP/IP, RS-232, or IR control of a device.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.ConnectionData.Connection.Transport">
+            <summary>
+            Gets or sets the communication method (tcp, ir, or serial).
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.ConnectionData.Connection.Driver">
+            <summary>
+            Gets or sets the DLL that should be loaded when using Crestron Certified Drivers.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.ConnectionData.Connection.Host">
+            <summary>
+            Gets or sets the IP address or hostname used to control the device.
+            if Transport is serial or IR, then this should contain either 'control' for the root control system,
+            or the ID of the endpoint the device is connected to.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.ConnectionData.Connection.Port">
+            <summary>
+            Gets or sets the TCP/IP, rs-232, or ir port used to control the device.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.ConnectionData.Connection.Authentication">
+            <summary>
+            Gets or sets the credentials used to log into the device.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.ConnectionData.Connection.ComSpec">
+            <summary>
+            Gets or sets the serial communication protocol if the device is serial controlled.
+            </summary>
+        </member>
+        <member name="T:pkd_domain_service.Data.DataContainer">
+            <summary>
+            Object representation of the JSON configuration file.
+            </summary>
+        </member>
+        <member name="T:pkd_domain_service.Data.DriverData.UserAttribute">
+            <summary>
+            Configuration item for a tcp or serial connection.
+            Valid values:
+            String, Number, Hex, Boolean.
+            </summary>
+        </member>
+        <member name="T:pkd_domain_service.Data.RoomInfoData.RoomInfo">
+            <summary>
+            Configuration item for setting the basic room information in the system.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.RoomInfoData.RoomInfo.RoomName">
+            <summary>
+            Gets or sets the name / number of the room from the config.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.RoomInfoData.RoomInfo.HelpContact">
+            <summary>
+            Gets or sets the phone number or other contact information in the config.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.RoomInfoData.RoomInfo.SystemType">
+            <summary>
+            What system behavior will be expected by this system (baseline, active, lecture).
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.RoomInfoData.RoomInfo.Logic">
+            <summary>
+            The application service plug-in used to drive the room. If this is empty then the default
+            choice related to "SystemType" will be loaded.
+            </summary>
+        </member>
+        <member name="T:pkd_domain_service.Data.UserInterfaceData.MenuItem">
+            <summary>
+            Configuration data for a single UI menu control.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.MenuItem.Visible">
+            <summary>
+            Gets or sets a value indicating whether this menu item should be visible on the UI or not.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.MenuItem.Label">
+            <summary>
+            Gets or sets the label to display on the UI for the control.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.MenuItem.Icon">
+            <summary>
+            Gets or sets the icon to display on the UI for the control.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.MenuItem.Control">
+            <summary>
+            Gets or sets the control / activity that will be displayed when
+            the menu item is selected.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.MenuItem.SourceSelect">
+            <summary>
+            Gets or sets the ID of the source to route when the menu item is selected.
+            Can be the empty string ("").
+            </summary>
+        </member>
+        <member name="T:pkd_domain_service.Data.UserInterfaceData.UserInterface">
+            <summary>
+            Configuration data for a single user interface.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.UserInterface.IpId">
+            <summary>
+            Gets or sets the IP-ID used to connect to the user interface. This is an integer representation
+            of a hex value.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.UserInterface.Model">
+            <summary>
+            Gets or sets the model of the touchsceen (I.E. tsw760, tsw770, etc.).
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.UserInterface.Sgd">
+            <summary>
+            The smart graphics data library needed if the UI is a VTPro-e based project.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.UserInterface.DefaultActivity">
+            <summary>
+            Gets or sets the default activity to present when the system enters the active state.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.UserInterface.Menu">
+            <summary>
+            Gets or sets the collection of main menu items to display on the UI.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.Data.UserInterfaceData.UserInterface.Tags">
+            <summary>
+            Collection of tags that can define special behavior for the UI.
+            </summary>
+        </member>
+        <member name="T:pkd_domain_service.DomainFactory">
+            <summary>
+            Help class for building an IDomain hardware provider service.
+            </summary>
+        </member>
+        <member name="M:pkd_domain_service.DomainFactory.CreateDomainFromJson(System.String)">
+            <summary>
+            Attempt to create an IDomain object from the given configuration data.
+            </summary>
+            <param name="data">The serialized JSON data to parse.</param>
+            <returns>A new IDomainService based on the provided JSON data.</returns>
+        </member>
+        <member name="T:pkd_domain_service.DomainService">
+            <summary>
+            Implementation of the Domain hardware provider service.
+            </summary>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_domain_service.DomainService"/> class.
+            </summary>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.#ctor(pkd_domain_service.Data.DataContainer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_domain_service.DomainService"/> class.
+            </summary>
+            <param name="configuration">The configuration object representing the system setup.</param>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.Displays">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.Dsps">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.AudioChannels">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.Cameras">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.Lighting">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.UserInterfaces">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.Endpoints">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.Blurays">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.CableBoxes">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.VideoWalls">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.Fusion">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.RoutingInfo">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.RoomInfo">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_domain_service.DomainService.ServerInfo">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.GetDisplay(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.GetDsp(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.GetCamera(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.GetLightingInfo(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.GetUserInterface(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.GetEndpoint(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.GetBluray(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.GetCableBox(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_domain_service.DomainService.GetVideoWall(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_domain_service.IDomainService">
+            <summary>
+            Common properties and methods for the Domain hardware provider service.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.Displays">
+            <summary>
+            Gets a collection all display devices defined in the configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.Dsps">
+            <summary>
+            Gets a collection of all DSP devices defined in the configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.Cameras">
+            <summary>
+            Gets a collection of all camera devices defined in the configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.Lighting">
+            <summary>
+            Gets a collection of all Lighting data defined in the configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.UserInterfaces">
+            <summary>
+            Gets a collection of all UI data models defined in the configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.Endpoints">
+            <summary>
+            Gets a collection of all audio/video endpoints defined in the configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.Blurays">
+            <summary>
+            Gets a collection of all Blu-ray devices defined in the configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.CableBoxes">
+            <summary>
+            Gets a collection of all cable box devices defined in the configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.AudioChannels">
+            <summary>
+            Gets a collection of all audio channels defined in the configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.VideoWalls">
+            <summary>
+            Gets a collection of all video wall controllers defined in the configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.Fusion">
+            <summary>
+            Gets the Fusion configuration data defined in the config file.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.RoutingInfo">
+            <summary>
+            Gets the routing map defined in the configuration file.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.RoomInfo">
+            <summary>
+            Gets the basic room information as defined in the configuration file.
+            </summary>
+        </member>
+        <member name="P:pkd_domain_service.IDomainService.ServerInfo">
+            <summary>
+            Get the remote dependency server information as defined in the configuration file.
+            </summary>
+        </member>
+        <member name="M:pkd_domain_service.IDomainService.GetDisplay(System.String)">
+            <summary>
+            Search through all displays in the configuration for one with an ID that matches
+            'id'.
+            If a display cannot be found a warning is written to the logging system.
+            </summary>
+            <param name="id">The ID of the display to search for.</param>
+            <returns>The first instance that matches id, or an empty display object.</returns>
+        </member>
+        <member name="M:pkd_domain_service.IDomainService.GetDsp(System.String)">
+            <summary>
+            Search through all DSPs in the configuration for one with an ID that matches
+            'id'.
+            If a DSP cannot be found a warning is written to the logging system.
+            </summary>
+            <param name="id">The ID of the DSP to search for.</param>
+            <returns>The first instance that matches id, or an empty DSP object.</returns>
+        </member>
+        <member name="M:pkd_domain_service.IDomainService.GetCamera(System.String)">
+            <summary>
+            Search through all cameras in the configuration for one with an ID that matches
+            'id'.
+            If a camera cannot be found a warning is written to the logging system.
+            </summary>
+            <param name="id">The ID of the camera to search for.</param>
+            <returns>The first instance that matches id, or an empty camera object.</returns>
+        </member>
+        <member name="M:pkd_domain_service.IDomainService.GetLightingInfo(System.String)">
+            <summary>
+            Search through all lights in the configuration for one with an ID that matches
+            'id'.
+            If a light cannot be found a warning is written to the logging system.
+            </summary>
+            <param name="id">The ID of the light to search for.</param>
+            <returns>The first instance that matches id, or an empty camera object.</returns>
+        </member>
+        <member name="M:pkd_domain_service.IDomainService.GetUserInterface(System.String)">
+            <summary>
+            Search through all user interfaces in the configuration for one with an ID that matches
+            'id'.
+            If a user interface cannot be found a warning is written to the logging system.
+            </summary>
+            <param name="id">The ID of the user interface to search for.</param>
+            <returns>The first instance that matches id, or an empty user interface object.</returns>
+        </member>
+        <member name="M:pkd_domain_service.IDomainService.GetEndpoint(System.String)">
+            <summary>
+            Search through all AV endpoints in the configuration for one with an ID that matches
+            'id'.
+            If an AV endpoint cannot be found a warning is written to the logging system.
+            </summary>
+            <param name="id">The ID of the AV endpoint to search for.</param>
+            <returns>The first instance that matches id, or an empty AV endpoint object.</returns>
+        </member>
+        <member name="M:pkd_domain_service.IDomainService.GetBluray(System.String)">
+            <summary>
+            Search through all Blu-rays in the configuration for one with an ID that matches
+            'id'.
+            If a Blu-ray cannot be found a warning is written to the logging system.
+            </summary>
+            <param name="id">The ID of the Blu-ray to search for.</param>
+            <returns>The first instance that matches id, or an empty Blu-ray object.</returns>
+        </member>
+        <member name="M:pkd_domain_service.IDomainService.GetCableBox(System.String)">
+            <summary>
+            Search through all cable boxes in the configuration for one with and ID
+            that matches 'id'.
+            </summary>
+            <param name="id">The ID of the cable box to search for.</param>
+            <returns>The first instance that matches 'id', or an empty cable box object.</returns>
+        </member>
+        <member name="M:pkd_domain_service.IDomainService.GetVideoWall(System.String)">
+            <summary>
+            Search through all video walls in the configuration for one with a matching id.
+            </summary>
+            <param name="id">the id of the video wall to search for.</param>
+            <returns>The first instance that matches 'id' or an empty video wall object.</returns>
+        </member>
+        <member name="T:pkd_domain_service.Transports.TransportCommands">
+            <summary>
+            Generic transport commands used for DVD players, Blu-ray players, and TV Tuners.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,4 +1,6 @@
-﻿namespace QscDsp
+﻿using QscQsys.NamedControls;
+
+namespace QscDsp
 {
 	using Crestron.SimplSharp;
 	using pkd_common_utils.GenericEventArgs;
@@ -13,15 +15,16 @@
 	/// </summary>
 	internal class QscAudioChannel
 	{
-		private readonly QsysNamedControl levelControl;
-		private readonly QsysNamedControl muteControl;
-		private readonly QsysNamedControl routerControl;
-		private readonly QscZoneEnable zoneEnables;
-		private readonly string coreId;
-		private readonly string muteTag;
-		private readonly string levelTag;
-		private readonly string routerTag;
-		private uint currentAudioSource;
+		private readonly QsysNamedControl _levelControl;
+		private readonly QsysNamedControl _muteControl;
+		private readonly QsysNamedControl? _routerControl;
+		private readonly QscZoneEnable _zoneEnables;
+		private readonly string _coreId;
+		private readonly string _muteTag;
+		private readonly string _levelTag;
+		private readonly string _routerTag;
+		private uint _currentAudioSource;
+		private bool _registered;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QscAudioChannel"/> class.
@@ -30,51 +33,56 @@
 		/// <param name="deviceId">the unique ID for this channel used for referencing.</param>
 		/// <param name="muteTag">The named control for muting this channel.</param>
 		/// <param name="levelTag">The named control for adjust level of this channel.</param>
+		/// <param name="tags">A collection of tags used by the parent object for any custom behavior.</param>
+		/// <param name="routerIndex">the router position that is used for matrix routing.</param>
 		public QscAudioChannel(string coreId, string deviceId, string muteTag, string levelTag, string[] tags, int routerIndex)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(coreId, "QscAudioChannel.Ctor", "coreId");
-			ParameterValidator.ThrowIfNullOrEmpty(deviceId, "QscAudioChannel.Ctor", "deviceId");
-			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "QscAudioChannel.Ctor", "muteTag");
-			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "QscAudioChannel.Ctor", "levelTag");
-			ParameterValidator.ThrowIfNull(tags, "QscAudioChannel.Ctor", "tags");
+			ParameterValidator.ThrowIfNullOrEmpty(coreId, "QscAudioChannel.Ctor", nameof(coreId));
+			ParameterValidator.ThrowIfNullOrEmpty(deviceId, "QscAudioChannel.Ctor", nameof(deviceId));
+			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "QscAudioChannel.Ctor", nameof(muteTag));
+			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "QscAudioChannel.Ctor", nameof(levelTag));
+			ParameterValidator.ThrowIfNull(tags, "QscAudioChannel.Ctor", nameof(tags));
 
-			this.Id = deviceId;
-			this.Tags = tags;
-			this.muteTag = muteTag;
-			this.levelTag = levelTag;
-			this.coreId = coreId;
-			this.RouterIndex = routerIndex;
+			Id = deviceId;
+			Tags = tags;
+			_muteTag = muteTag;
+			_levelTag = levelTag;
+			_coreId = coreId;
+			_routerTag = string.Empty;
+			RouterIndex = routerIndex;
 
-			this.levelControl = new QsysNamedControl
+			_levelControl = new QsysNamedControl
 			{
-				newNamedControlUIntChange = this.LevelControlChanged
+				newNamedControlUIntChange = LevelControlChanged
 			};
 
-			this.muteControl = new QsysNamedControl
+			_muteControl = new QsysNamedControl
 			{
-				newNamedControlIntChange = this.MuteControlChanged
+				newNamedControlIntChange = MuteControlChanged
 			};
 
-			this.zoneEnables = new QscZoneEnable();
-			this.zoneEnables.ZoneControlChanged += this.ZoneEnableChangeHandler;
+			_zoneEnables = new QscZoneEnable();
+			_zoneEnables.ZoneControlChanged += ZoneEnableChangeHandler;
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="QscAudioChannel"/> class.
+		/// Initializes a new instance of the <see cref="QscAudioChannel"/> class that supports matrix routing.
 		/// </summary>
 		/// <param name="coreId">the ID of the core that contains the named control.</param>
 		/// <param name="deviceId">the unique ID for this channel used for referencing.</param>
 		/// <param name="muteTag">The named control for muting this channel.</param>
 		/// <param name="routerTag">The named control for routing audio inputs.</param>
 		/// <param name="levelTag">The named control for adjust level of this channel.</param>
+		/// <param name="tags"></param>
+		/// <param name="routerIndex"></param>
 		public QscAudioChannel(string coreId, string deviceId, string muteTag, string levelTag, string routerTag, string[] tags, int routerIndex)
 			: this(coreId, deviceId, muteTag, levelTag, tags, routerIndex)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(coreId, "QscAudioChannel.Ctor", "routerTag");
-			this.routerTag = routerTag;
-			this.routerControl = new QsysNamedControl
+			ParameterValidator.ThrowIfNullOrEmpty(coreId, "QscAudioChannel.Ctor", nameof(routerTag));
+			_routerTag = routerTag;
+			_routerControl = new QsysNamedControl
 			{
-				newNamedControlStringChange = this.RouterControlChanged
+				newNamedControlStringChange = RouterControlChanged
 			};
 		}
 
@@ -83,24 +91,24 @@
 		/// Triggered when a change in audio mute is reported by the QSC hardware.
 		/// arg 1 = ID of this channel, arg 2 = new mute state.
 		/// </summary>
-		public event EventHandler<GenericDualEventArgs<string, int>> AudioMuteChanged;
+		public event EventHandler<GenericDualEventArgs<string, int>>? AudioMuteChanged;
 
 		/// <summary>
 		/// Triggered when a change in volume level is reported by the QSC hardware.
 		/// arg1 = the ID of this channel, arg2 = new level state.
 		/// </summary>
-		public event EventHandler<GenericDualEventArgs<string, int>> AudioVolumeChanged;
+		public event EventHandler<GenericDualEventArgs<string, int>>? AudioVolumeChanged;
 
 		/// <summary>
 		/// Triggered whenever the internal router reports a change.
 		/// </summary>
-		public event EventHandler<GenericDualEventArgs<string, uint>> AudioRouteChanged;
+		public event EventHandler<GenericDualEventArgs<string, uint>>? AudioRouteChanged;
 
 		/// <summary>
 		/// Triggered whenever the internal zone enable monitor detects a change from the core.
 		/// Will not be triggered if no audio enable zones have been added.
 		/// </summary>
-		public event EventHandler<GenericDualEventArgs<string, string>> ZoneEnableChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioZoneEnableChanged;
 
 		/// <summary>
 		/// Gets the unique ID of this audio channel.
@@ -123,7 +131,7 @@
 		public bool AudioMute { get; private set; }
 
 		/// <summary>
-		/// The input or output index on the router blockassociated with this channel.
+		/// The input or output index on the router block associated with this channel.
 		/// The value will be 0 if not set during instantiation.
 		/// </summary>
 		public int RouterIndex { get; private set; }
@@ -131,28 +139,20 @@
 		/// <summary>
 		/// Gets the currently routed source if this is an output channel, otherwise 0.
 		/// </summary>
-		public uint AudioSource
-		{
-			get
-			{
-				return this.currentAudioSource;
-			}
-		}
+		public uint AudioSource => _currentAudioSource;
 
 		/// <summary>
-		/// Initializes the internal comunication objects and registers them with the core.
+		/// Initializes the internal communication objects and registers them with the core.
 		/// </summary>
 		public void Register()
 		{
-			this.levelControl.Initialize(this.coreId, this.levelTag, 1);
-			this.muteControl.Initialize(this.coreId, this.muteTag, 1);
-			this.zoneEnables.Register(this.coreId);
-
-			if (!string.IsNullOrEmpty(this.routerTag) && this.routerControl != null)
+			_levelControl.Initialize(_coreId, _levelTag, 1);
+			_muteControl.Initialize(_coreId, _muteTag, 1);
+			_zoneEnables.Register(_coreId);
+			if (!string.IsNullOrEmpty(_routerTag))
 			{
-				this.routerControl.Initialize(this.coreId, this.routerTag, 0);
+				_routerControl?.Initialize(_coreId, _routerTag, 0);
 			}
-
 		}
 
 		/// <summary>
@@ -161,13 +161,13 @@
 		/// </summary>
 		public void AudioLevelDown()
 		{
-			if (!this.CheckRegistered("AudioLevelDown()", this.levelControl))
+			if (!CheckRegistered("AudioLevelDown()", _levelControl))
 			{
 				return;
 			}
 
-			int tempLevel = this.AudioLevel;
-			this.levelControl.SetUnsignedInteger((ushort)(tempLevel - 3), 1);
+			int tempLevel = AudioLevel;
+			_levelControl.SetUnsignedInteger((ushort)(tempLevel - 3), 1);
 		}
 
 		/// <summary>
@@ -176,13 +176,13 @@
 		/// </summary>
 		public void AudioLevelUp()
 		{
-			if (!this.CheckRegistered("AudioLevelUp()", this.levelControl))
+			if (!CheckRegistered("AudioLevelUp()", _levelControl))
 			{
 				return;
 			}
 
-			int tempLevel = this.AudioLevel;
-			this.levelControl.SetUnsignedInteger((ushort)(tempLevel + 3), 1);
+			int tempLevel = AudioLevel;
+			_levelControl.SetUnsignedInteger((ushort)(tempLevel + 3), 1);
 		}
 
 		/// <summary>
@@ -192,12 +192,12 @@
 		/// <param name="level">The target volume level to set.</param>
 		public void SetAudioLevel(int level)
 		{
-			if (!this.CheckRegistered("SetAudioLevel()", this.levelControl))
+			if (!CheckRegistered("SetAudioLevel()", _levelControl))
 			{
 				return;
 			}
 
-			this.levelControl.SetUnsignedInteger((ushort)level, 1);
+			_levelControl.SetUnsignedInteger((ushort)level, 1);
 		}
 
 		/// <summary>
@@ -207,12 +207,12 @@
 		/// <param name="state">true = mute on, false = mute off</param>
 		public void SetAudioMute(bool state)
 		{
-			if (!this.CheckRegistered("SetAudioMute()", this.muteControl))
+			if (!CheckRegistered("SetAudioMute()", _muteControl))
 			{
 				return;
 			}
 
-			this.muteControl.SetBoolean(state ? 1 : 0);
+			_muteControl.SetBoolean((ushort)(state ? 1 : 0));
 		}
 
 		/// <summary>
@@ -222,26 +222,26 @@
 		/// <param name="inputIndex">the index of the input to attempt to route.</param>
 		public void SetAudioRoute(uint inputIndex)
 		{
-			if (this.routerControl == null || string.IsNullOrEmpty(this.routerTag))
+			if (string.IsNullOrEmpty(_routerTag))
 			{
 				return;
 			}
 
-			this.routerControl.SetString(inputIndex.ToString());
+			_routerControl?.SetString(inputIndex.ToString());
 		}
 
 		/// <summary>
-		/// Change the audio state to the inverse of what it is currently set to. Does nothing if this cannel has
+		/// Change the audio state to the inverse of what it is currently set to. Does nothing if this channel has
 		/// been registered with the hardware.
 		/// </summary>
 		public void ToggleAudioMute()
 		{
-			if (!this.CheckRegistered("ToggleAudioMute()", this.muteControl))
+			if (!CheckRegistered("ToggleAudioMute()", _muteControl))
 			{
 				return;
 			}
 
-			this.muteControl.SetBoolean(this.AudioMute ? 0 : 1);
+			_muteControl.SetBoolean((ushort)(AudioMute ? 0 : 1));
 		}
 
 		/// <summary>
@@ -251,9 +251,9 @@
 		/// <param name="controlTag">The DSP design named control used when changing zone enable state.</param>
 		public void AddZoneEnable(string zoneId, string controlTag)
 		{
-			if (!this.zoneEnables.TryAddZone(zoneId, controlTag))
+			if (!_zoneEnables.TryAddZone(zoneId, controlTag))
 			{
-				Logger.Error("QSC Audio channel {0} - Failed to add zone enable {1}", this.Id, zoneId);
+				Logger.Error("QSC Audio channel {0} - Failed to add zone enable {1}", Id, zoneId);
 			}
 		}
 
@@ -263,9 +263,9 @@
 		/// <param name="zoneId">The unique ID of the zone enable to remove.</param>
 		public void RemoveZoneEnable(string zoneId)
 		{
-			if (!this.zoneEnables.TryRemoveZone(zoneId))
+			if (!_zoneEnables.TryRemoveZone(zoneId))
 			{
-				Logger.Error("QSC Audio Channel {0} - Failed to remove zone enable {1}", this.Id, zoneId);
+				Logger.Error("QSC Audio Channel {0} - Failed to remove zone enable {1}", Id, zoneId);
 			}
 		}
 
@@ -275,46 +275,46 @@
 		/// <param name="zoneId">The unique ID of the zone enable control to adjust.</param>
 		public void ToggleZoneEnableState(string zoneId)
 		{
-			this.zoneEnables.ToggleZone(zoneId);
+			_zoneEnables.ToggleZone(zoneId);
 		}
 
 		/// <summary>
 		/// Query the DSP device for the current state of the zone enable control object.
 		/// </summary>
 		/// <param name="zoneId">The unique ID of the zone to query.</param>
-		/// <returns>the current state of the control object (true = enabled/unmuted, false = disabled/muted). Returns false if the object was not found.</returns>
+		/// <returns>the current state of the control object (true = enabled/not muted, false = disabled/muted). Returns false if the object was not found.</returns>
 		public bool QueryZoneEnableState(string zoneId)
 		{
-			return this.zoneEnables.QueryZone(zoneId);
+			return _zoneEnables.QueryZone(zoneId);
 		}
 
 		private void LevelControlChanged(SimplSharpString stringData, ushort shortData)
 		{
-			Logger.Debug("QscAudioChannel {0} - LevelControlChanged({1}, {2})", this.Id, shortData, stringData);
+			Logger.Debug("QscAudioChannel {0} - LevelControlChanged({1}, {2})", Id, shortData, stringData);
 
-			this.AudioLevel = (int)shortData;
-			var temp = this.AudioVolumeChanged;
-			temp?.Invoke(this, new GenericDualEventArgs<string, int>(this.Id, this.AudioLevel));
+			AudioLevel = shortData;
+			var temp = AudioVolumeChanged;
+			temp?.Invoke(this, new GenericDualEventArgs<string, int>(Id, AudioLevel));
 		}
 
 		private void MuteControlChanged(SimplSharpString stringData, short shortData)
 		{
-			Logger.Debug("QscAudioChannel {0} - MuteControlChanged({1}, {2})", this.Id, shortData, stringData);
+			Logger.Debug("QscAudioChannel {0} - MuteControlChanged({1}, {2})", Id, shortData, stringData);
 
-			this.AudioMute = shortData > 0;
-			var temp = this.AudioMuteChanged;
-			temp?.Invoke(this, new GenericDualEventArgs<string, int>(this.Id, this.AudioLevel));
+			AudioMute = shortData > 0;
+			var temp = AudioMuteChanged;
+			temp?.Invoke(this, new GenericDualEventArgs<string, int>(Id, AudioLevel));
 		}
 
 		private void RouterControlChanged(SimplSharpString name, SimplSharpString stringData)
 		{
-			Logger.Debug("QscAudioChannel {0} - RouterControlChanged({1}, {1})", this.Id, name, stringData);
+			Logger.Debug("QscAudioChannel {0} - RouterControlChanged({1}, {1})", Id, name, stringData);
 
 			try
 			{
-				this.currentAudioSource = uint.Parse(stringData.ToString());
-				var temp = this.AudioRouteChanged;
-				temp?.Invoke(this, new GenericDualEventArgs<string, uint>(this.Id, this.currentAudioSource));
+				_currentAudioSource = uint.Parse(stringData.ToString());
+				var temp = AudioRouteChanged;
+				temp?.Invoke(this, new GenericDualEventArgs<string, uint>(Id, _currentAudioSource));
 			}
 			catch (Exception e)
 			{
@@ -324,24 +324,23 @@
 
 		private bool CheckRegistered(string methodName, QsysNamedControl control)
 		{
-			if (control.IsRegistered)
+			if (!_registered)
 			{
 				return true;
 			}
-
+		
 			Logger.Error(
-				"QscAudioChannel.{0}() - Named control {1} is not registered on DSP {2}",
+				"QscAudioChannel.{0}() - DSP {2} not yet registered.",
 				methodName,
-				control.ComponentName,
-				this.coreId);
-
+				_coreId);
+		
 			return false;
 		}
 
-		private void ZoneEnableChangeHandler(object sender, GenericSingleEventArgs<string> e)
+		private void ZoneEnableChangeHandler(object? sender, GenericSingleEventArgs<string> e)
 		{
-			var temp = this.ZoneEnableChanged;
-			temp?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, e.Arg));
+			var temp = AudioZoneEnableChanged;
+			temp?.Invoke(this, new GenericDualEventArgs<string, string>(Id, e.Arg));
 		}
 	}
 }

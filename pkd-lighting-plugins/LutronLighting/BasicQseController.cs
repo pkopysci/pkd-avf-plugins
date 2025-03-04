@@ -1,535 +1,523 @@
-﻿namespace LutronLighting
+﻿namespace LutronLighting;
+
+using Crestron.SimplSharp;
+using pkd_common_utils.GenericEventArgs;
+using pkd_common_utils.Logging;
+using pkd_common_utils.NetComs;
+using pkd_hardware_service.LightingDevices;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text.RegularExpressions;
+
+public class BasicQseController : ILightingDevice, IDisposable
 {
-	using Crestron.SimplSharp;
-	using pkd_common_utils.GenericEventArgs;
-	using pkd_common_utils.Logging;
-	using pkd_common_utils.NetComs;
-	using pkd_hardware_service.LightingDevices;
-	using System;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	using System.Linq;
-	using System.Text.RegularExpressions;
+	private const string CmdRegex = @"(?<prompt>QSE>)*~(?<command>\w+),(?<id>.+),(?<component>\d+),(?<action>\d+),(?<data>[\w\.]+)\r\n*(?<prompt>QSE>)*";
+	private const string LoginRx = "login:";
+	private const int RxTimeoutLength = 3000;
+	private const string LoginSuccessRx = "connection established\r\n";
+	private const string LoginFailRx = @"login incorrect[\r\n]+";
+	private readonly Dictionary<int, Action<GroupCollection>> _baseActionHandlers;
+	private readonly Dictionary<string, LightingItem> _scenes;
+	private readonly Dictionary<string, LightingZoneItem> _zones;
+	private BasicTcpClient? _client;
+	private CTimer? _rxTimer;
+	private bool _disposed;
+	private string _userName = string.Empty;
+	private int _componentNumber;
+	private int _reconnectAttempts;
 
-	public class BasicQseController : ILightingDevice, IDisposable
+	public BasicQseController()
 	{
-		private static readonly string CMD_REGEX = @"(?<prompt>QSE>)*~(?<command>\w+),(?<id>.+),(?<component>\d+),(?<action>\d+),(?<data>[\w\.]+)\r\n*(?<prompt>QSE>)*";
-		private static readonly string LOGIN_RX = "login:";
-		private const int RX_TIMEOUT_LENGTH = 3000;
-		private static readonly string LOGIN_SUCCESS_RX = "connection established\r\n";
-		private static readonly string LOGIN_FAIL_RX = @"login incorrect[\r\n]+";
-		private readonly Dictionary<int, Action<GroupCollection>> baseActionHandlers;
-		private readonly Dictionary<string, LightingItem> scenes;
-		private readonly Dictionary<string, LightingZoneItem> zones;
-		private BasicTcpClient client;
-		private CTimer rxTimer;
-		private bool disposed;
-		private string userName;
-#pragma warning disable IDE0052 // Remove unread private members
-		private string password;
-#pragma warning restore IDE0052 // Remove unread private members
-		private int componentNumber;
-		private int reconnectAttempts;
-
-		public BasicQseController()
+		_scenes = new Dictionary<string, LightingItem>();
+		_zones = new Dictionary<string, LightingZoneItem>();
+		_baseActionHandlers = new Dictionary<int, Action<GroupCollection>>
 		{
-			this.scenes = new Dictionary<string, LightingItem>();
-			this.zones = new Dictionary<string, LightingZoneItem>();
-			this.baseActionHandlers = new Dictionary<int, Action<GroupCollection>>
+			{ 7, HandleSceneResponse }
+		};
+	}
+
+	~BasicQseController()
+	{
+		Dispose(false);
+	}
+
+
+	/// <inheritdoc/>
+	public event EventHandler<GenericSingleEventArgs<string>>? ActiveSceneChanged;
+
+	/// <inheritdoc/>
+	public event EventHandler<GenericSingleEventArgs<string>>? ZoneLoadChanged;
+
+	/// <inheritdoc/>
+	public event EventHandler<GenericSingleEventArgs<string>>? ConnectionChanged;
+
+	/// <inheritdoc/>
+	public string Id { get; private set; } = string.Empty;
+
+	/// <inheritdoc/>
+	public bool IsInitialized { get; private set; }
+
+	/// <inheritdoc/>
+	public bool IsOnline { get; private set; }
+
+	/// <inheritdoc/>
+	public string Label { get; private set; } = string.Empty;
+
+	/// <inheritdoc/>
+	public ReadOnlyCollection<string> SceneIds
+	{
+		get
+		{
+			List<string> keys = [];
+			foreach (var key in _scenes.Keys)
 			{
-				{ 7, this.HandleSceneResponse }
-			};
+				keys.Add(key);
+			}
+
+			return new ReadOnlyCollection<string>(keys);
+		}
+	}
+
+	/// <inheritdoc/>
+	public ReadOnlyCollection<string> ZoneIds
+	{
+		get
+		{
+			List<string> keys = [];
+			foreach (var key in _zones.Keys)
+			{
+				keys.Add(key);
+			}
+
+			return new ReadOnlyCollection<string>(keys);
+		}
+	}
+
+	/// <inheritdoc/>
+	public string ActiveSceneId { get; private set; } = string.Empty;
+
+	/// <inheritdoc/>
+	public void AddScene(string id, string label, int index)
+	{
+		if (
+			!CheckString("AddScene", id, "id", false) ||
+			!CheckString("AddScene", label, "label", false) ||
+			!CheckInt("AddScene", index, 0, 1000, "index"))
+		{
+			return;
 		}
 
-		~BasicQseController()
+		Logger.Debug("LutronLighting.BasicQseController.AddScene({0}, {1}, {2}", id, label, index);
+
+		if (_scenes.ContainsKey(id))
 		{
-			this.Dispose(false);
+			Logger.Warn("BasicQseController.AddScene() - scene with ID {0} already exists. Replacing...", id);
+			_scenes[id] = new LightingItem() { Id = id, Index = index, Label = label };
+		}
+		else
+		{
+			_scenes.Add(id, new LightingItem() { Id = id, Index = index, Label = label });
 		}
 
+	}
 
-		/// <inheritdoc/>
-		public event EventHandler<GenericSingleEventArgs<string>> ActiveSceneChanged;
-
-		/// <inheritdoc/>
-		public event EventHandler<GenericSingleEventArgs<string>> ZoneLoadChanged;
-
-		/// <inheritdoc/>
-		public event EventHandler<GenericSingleEventArgs<string>> ConnectionChanged;
-
-		/// <inheritdoc/>
-		public string Id { get; private set; }
-
-		/// <inheritdoc/>
-		public bool IsInitialized { get; private set; }
-
-		/// <inheritdoc/>
-		public bool IsOnline { get; private set; }
-
-		/// <inheritdoc/>
-		public string Label { get; private set; }
-
-		/// <inheritdoc/>
-		public ReadOnlyCollection<string> SceneIds
+	/// <inheritdoc/>
+	public void AddZone(string id, string label, int index)
+	{
+		if (
+			!CheckString("AddZone", id, "id", false) ||
+			!CheckString("AddZone", label, "label", false) ||
+			!CheckInt("AddZone", index, 0, 1000, "index"))
 		{
-			get
-			{
-				List<string> keys = new List<string>();
-				foreach (var key in this.scenes.Keys)
-				{
-					keys.Add(key);
-				}
-
-				return new ReadOnlyCollection<string>(keys);
-			}
+			return;
 		}
 
-		/// <inheritdoc/>
-		public ReadOnlyCollection<string> ZoneIds
+		if (_scenes.ContainsKey(id))
 		{
-			get
-			{
-				List<string> keys = new List<string>();
-				foreach (var key in this.zones.Keys)
-				{
-					keys.Add(key);
-				}
-
-				return new ReadOnlyCollection<string>(keys);
-			}
+			Logger.Warn("BasicQseController.AddZone() - scene with ID {0} already exists. Replacing...", id);
+			_zones[id] = new LightingZoneItem() { Id = id, Index = index, Label = label, Level = 0 };
 		}
-
-		/// <inheritdoc/>
-		public string ActiveSceneId { get; private set; }
-
-		/// <inheritdoc/>
-		public void AddScene(string id, string label, int index)
+		else
 		{
-			if (
-				!this.CheckString("AddScene", id, "id", false) ||
-				!this.CheckString("AddScene", label, "label", false) ||
-				!this.CheckInt("AddScene", index, 0, 1000, "index"))
-			{
-				return;
-			}
-
-			Logger.Debug("LutronLighting.BasicQseController.AddScene({0}, {1}, {2}", id, label, index);
-
-			if (this.scenes.ContainsKey(id))
-			{
-				Logger.Warn("BasicQseController.AddScene() - scene with ID {0} already exists. Replacing...", id);
-				this.scenes[id] = new LightingItem() { Id = id, Index = index, Label = label };
-			}
-			else
-			{
-				this.scenes.Add(id, new LightingItem() { Id = id, Index = index, Label = label });
-			}
-
+			_zones.Add(id, new LightingZoneItem() { Id = id, Index = index, Label = label, Level = 0 });
 		}
+	}
 
-		/// <inheritdoc/>
-		public void AddZone(string id, string label, int index)
+	/// <inheritdoc/>
+	public int GetZoneLoad(string id)
+	{
+		if (!CheckString("GetZoneLoad", id, "id", false))
 		{
-			if (
-				!this.CheckString("AddZone", id, "id", false) ||
-				!this.CheckString("AddZone", label, "label", false) ||
-				!this.CheckInt("AddZone", index, 0, 1000, "index"))
-			{
-				return;
-			}
-
-			if (this.scenes.ContainsKey(id))
-			{
-				Logger.Warn("BasicQseController.AddZone() - scene with ID {0} already exists. Replacing...", id);
-				this.zones[id] = new LightingZoneItem() { Id = id, Index = index, Label = label, Level = 0 };
-			}
-			else
-			{
-				this.zones.Add(id, new LightingZoneItem() { Id = id, Index = index, Label = label, Level = 0 });
-			}
-		}
-
-		/// <inheritdoc/>
-		public int GetZoneLoad(string id)
-		{
-			if (!this.CheckString("GetZoneLoad", id, "id", false))
-			{
-				return 0;
-			}
-
-			if (this.zones.TryGetValue(id, out LightingZoneItem found))
-			{
-				return found.Level;
-			}
-
 			return 0;
 		}
 
-		/// <inheritdoc/>
-		public void Initialize(
-			string hostName,
-			int port,
-			string id,
-			string label,
-			string userName,
-			string password,
-			List<string> tags)
+		if (_zones.TryGetValue(id, out var found))
 		{
-			this.IsInitialized = false;
-			this.DisposeClient();
-
-			if (!this.CheckString("BasicQscController.Initialize", hostName, "hostName", false) ||
-				!this.CheckString("BasicQscController.Initialize", label, "label", false) ||
-				!this.CheckString("BasicQscController.Initialize", userName, "userName", true) ||
-				!this.CheckString("BasicQscController.Initialize", password, "password", true) ||
-				!this.CheckInt("BasicQscController.Initialize", port, 0, 23, "port"))
-			{
-				Logger.Error("LutronLighting.BasicQseController.Initialize() - Initialization failed.");
-				return;
-			}
-
-			this.reconnectAttempts = 0;
-			this.ParseComponentId(tags);
-			this.Id = id;
-			this.Label = label;
-			this.userName = userName;
-			this.password = password;
-			this.client = new BasicTcpClient(hostName, port);
-			this.client.ConnectionFailed += this.Client_ConnectionFailed;
-			this.client.ClientConnected += this.Client_ClientConnected;
-			this.client.RxRecieved += Client_RxRecieved;
-			this.client.StatusChanged += this.Client_StatusChanged;
-
-			this.IsInitialized = true;
+			return found.Level;
 		}
 
-		/// <inheritdoc/>
-		public void RecallScene(string id)
+		return 0;
+	}
+
+	/// <inheritdoc/>
+	public void Initialize(
+		string hostName,
+		int port,
+		string id,
+		string label,
+		string userName,
+		string password,
+		List<string> tags)
+	{
+		IsInitialized = false;
+		DisposeClient();
+
+		if (!CheckString("BasicQscController.Initialize", hostName, "hostName", false) ||
+		    !CheckString("BasicQscController.Initialize", label, "label", false) ||
+		    !CheckString("BasicQscController.Initialize", userName, "userName", true) ||
+		    !CheckString("BasicQscController.Initialize", password, "password", true) ||
+		    !CheckInt("BasicQscController.Initialize", port, 0, 23, "port"))
 		{
-			if (!this.CheckInit("RecallScene") || !this.CheckString("RecallScene", id, "id", false))
-			{
-				return;
-			}
-
-			if (!this.client.Connected)
-			{
-				Logger.Error("LutronLighting.BasicQseController {0} - RecallScene() - client not connected.", this.Id);
-				return;
-			}
-
-			if (this.scenes.TryGetValue(id, out LightingItem found))
-			{
-				Logger.Debug("LutronLighting.BasicQseController.RecallScene({0})", id);
-				this.Send(string.Format("#DEVICE,{0},{1},7,{2}\r\n", this.Id, this.componentNumber, found.Index));
-			}
+			Logger.Error("LutronLighting.BasicQseController.Initialize() - Initialization failed.");
+			return;
 		}
 
-		/// <inheritdoc/>
-		public void SetZoneLoad(string id, int loadLevel)
-		{
-			// TODO: BasicQseController.SetZoneLoad()
-			Logger.Warn("LutronLighting.BasicQseController.SetZoneLoad() - Device {0} - output load control not yet supported.", this.Id);
+		_reconnectAttempts = 0;
+		ParseComponentId(tags);
+		Id = id;
+		Label = label;
+		_userName = userName;
+		_client = new BasicTcpClient(hostName, port);
+		_client.ConnectionFailed += Client_ConnectionFailed;
+		_client.ClientConnected += Client_ClientConnected;
+		_client.RxReceived += Client_RxReceived;
+		_client.StatusChanged += Client_StatusChanged;
 
-			//if (!this.CheckInit("SetZoneLoad") ||
-			//    !this.CheckString("SetZoneLoad", id, "id", false) ||
-			//    this.CheckInt("SetZoneLoad", loadLevel, 0, 100, "loadLevel"))
-			//{
-			//    return;
-			//}
+		IsInitialized = true;
+	}
+
+	/// <inheritdoc/>
+	public void RecallScene(string id)
+	{
+		if (!CheckInit("RecallScene") || !CheckString("RecallScene", id, "id", false))
+		{
+			return;
 		}
 
-		/// <inheritdoc/>
-		public void Connect()
+		if (_client is not { Connected: true })
 		{
-			if (this.client == null || this.client.Connected)
+			Logger.Error("LutronLighting.BasicQseController {0} - RecallScene() - client not connected.", Id);
+			return;
+		}
+
+		if (_scenes.TryGetValue(id, out var found))
+		{
+			Logger.Debug("LutronLighting.BasicQseController.RecallScene({0})", id);
+			Send($"#DEVICE,{Id},{_componentNumber},7,{found.Index}\r\n");
+		}
+	}
+
+	/// <inheritdoc/>
+	public void SetZoneLoad(string id, int loadLevel)
+	{
+		// TODO: BasicQseController.SetZoneLoad()
+		Logger.Warn("LutronLighting.BasicQseController.SetZoneLoad() - Device {0} - output load control not yet supported.", Id);
+
+		//if (!CheckInit("SetZoneLoad") ||
+		//    !CheckString("SetZoneLoad", id, "id", false) ||
+		//    CheckInt("SetZoneLoad", loadLevel, 0, 100, "loadLevel"))
+		//{
+		//    return;
+		//}
+	}
+
+	/// <inheritdoc/>
+	public void Connect()
+	{
+		if (_client == null || _client.Connected)
+		{
+			return;
+		}
+
+		_client.EnableReconnect = true;
+		_client.Connect();
+	}
+
+	/// <inheritdoc/>
+	public void Disconnect()
+	{
+		DisposeRxTimer();
+		if (_client is not { Connected: true }) return;
+		_client.EnableReconnect = false;
+		_client.Disconnect();
+	}
+
+	public void Dispose()
+	{
+		Dispose(true);
+		GC.SuppressFinalize(this);
+	}
+
+	private void Dispose(bool disposing)
+	{
+		if (_disposed) return;
+		if (disposing)
+		{
+			DisposeClient();
+			DisposeRxTimer();
+		}
+
+		_disposed = true;
+	}
+
+	private void RxTimeoutHandler(object? obj)
+	{
+		Logger.Error("LutronLighting.BasicQseController - No response to a command");
+		_reconnectAttempts++;
+		if (_reconnectAttempts <= 5) return;
+		Disconnect();
+		Connect();
+	}
+
+	private void SendSceneQuery()
+	{
+		Send($"?DEVICE,{Id},{_componentNumber},7\r\n");
+	}
+
+	private void Send(string cmd)
+	{
+		if (_rxTimer is { Disposed: false })
+		{
+			_rxTimer.Dispose();
+			_rxTimer = null;
+		}
+
+		_rxTimer = new CTimer(RxTimeoutHandler, RxTimeoutLength);
+		Logger.Debug("LutronLighting.BasicQseController {0} - Sending command {1}", Id, cmd);
+		_client?.Send(cmd);
+	}
+
+	private void Client_ClientConnected(object? sender, EventArgs e)
+	{
+		_reconnectAttempts = 0;
+		IsOnline = _client?.Connected ?? false;
+		var temp = ConnectionChanged;
+		temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
+	}
+
+	private void Client_ConnectionFailed(object? sender, GenericSingleEventArgs<Crestron.SimplSharp.CrestronSockets.SocketStatus> e)
+	{
+		if (_reconnectAttempts > 10)
+		{
+			return;
+		}
+
+		Logger.Error("LutronLighting.BasicQseController {0} - Connection failed: {1}", Id, e.Arg);
+	}
+
+	private void Client_StatusChanged(object? sender, EventArgs e)
+	{
+		IsOnline = _client?.Connected ?? false;
+		var temp = ConnectionChanged;
+		temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
+
+		if (!IsOnline)
+		{
+			DisposeRxTimer();
+		}
+	}
+
+	private void Client_RxReceived(object? sender, GenericSingleEventArgs<string> e)
+	{
+		DisposeRxTimer();
+
+		Logger.Debug("LutronLighting.BasicQseController - Client RX received: {0}", e.Arg);
+
+		if (e.Arg.Contains(LoginRx))
+		{
+			_client?.Send($"{_userName}\r\n");
+			return;
+		}
+		
+		if (e.Arg.Contains(LoginSuccessRx))
+		{
+			Logger.Debug("LutronLighting.BasicQseController - Successful login received, Sending scene query.");
+			SendSceneQuery();
+			return;
+		}
+		
+		if (e.Arg.Contains(LoginFailRx))
+		{
+			Logger.Error("LutronLighting.BasicWseController {0} - Login attempt failed.", Id);
+			return;
+		}
+
+		var responses = e.Arg.Split('\n');
+		foreach (var rx in responses)
+		{
+			var cmdMatch = new Regex(CmdRegex).Match(rx);
+			if (cmdMatch.Success)
 			{
-				return;
-			}
-
-			this.client.EnableReconnect = true;
-			this.client.Connect();
-		}
-
-		/// <inheritdoc/>
-		public void Disconnect()
-		{
-			this.DisposeRxTimer();
-			this.client.EnableReconnect = false;
-			this.client.Disconnect();
-		}
-
-		public void Dispose()
-		{
-			this.Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		private void Dispose(bool disposing)
-		{
-			if (!this.disposed)
-			{
-				if (disposing)
+				Logger.Debug("Match Found");
+				switch (cmdMatch.Groups["command"].Value)
 				{
-					this.DisposeClient();
-					this.DisposeRxTimer();
-				}
-
-				this.disposed = true;
-			}
-		}
-
-		private void RxTimeoutHandler(object obj)
-		{
-			Logger.Error("LutronLighting.BasicQseController - No response to a command");
-			this.reconnectAttempts++;
-			if (this.reconnectAttempts > 5)
-			{
-				this.Disconnect();
-				this.Connect();
-			}
-		}
-
-		private void SendSceneQuery()
-		{
-			this.Send(string.Format("?DEVICE,{0},{1},7\r\n", this.Id, this.componentNumber));
-		}
-
-		private void Send(string cmd)
-		{
-			if (this.rxTimer != null && !rxTimer.Disposed)
-			{
-				this.rxTimer.Dispose();
-				this.rxTimer = null;
-			}
-
-			this.rxTimer = new CTimer(this.RxTimeoutHandler, RX_TIMEOUT_LENGTH);
-			Logger.Debug("LutronLighting.BasicQseController {0} - Sending command {1}", this.Id, cmd);
-			this.client.Send(cmd);
-		}
-
-		private void Client_ClientConnected(object sender, EventArgs e)
-		{
-			this.reconnectAttempts = 0;
-			this.IsOnline = this.client.Connected;
-			var temp = this.ConnectionChanged;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
-		}
-
-		private void Client_ConnectionFailed(object sender, GenericSingleEventArgs<Crestron.SimplSharp.CrestronSockets.SocketStatus> e)
-		{
-			if (this.reconnectAttempts > 10)
-			{
-				return;
-			}
-
-			Logger.Error("LutronLighting.BasicQseController {0} - Connection failed: {1}", this.Id, e.Arg);
-		}
-
-		private void Client_StatusChanged(object sender, EventArgs e)
-		{
-			this.IsOnline = client.Connected;
-			var temp = this.ConnectionChanged;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
-
-			if (!this.IsOnline)
-			{
-				this.DisposeRxTimer();
-			}
-		}
-
-		private void Client_RxRecieved(object sender, GenericSingleEventArgs<string> e)
-		{
-			this.DisposeRxTimer();
-
-			Logger.Debug("LutronLighting.BasicQseController - Client RX received: {0}", e.Arg);
-
-			if (e.Arg.Contains(LOGIN_RX))
-			{
-				client.Send(string.Format("{0}\r\n", this.userName));
-				return;
-			}
-			else if (e.Arg.Contains(LOGIN_SUCCESS_RX))
-			{
-				Logger.Debug("LutronLighting.BasicQseController - Successfull login received! Sending scene query.");
-				this.SendSceneQuery();
-				return;
-			}
-			else if (e.Arg.Contains(LOGIN_FAIL_RX))
-			{
-				Logger.Error("LutronLighting.BasicWseController {0} - Login attempt failed.", this.Id);
-				return;
-			}
-
-			string[] responses = e.Arg.Split('\n');
-			foreach (string rx in responses)
-			{
-				Match cmdMatch = new Regex(CMD_REGEX).Match(rx);
-				if (cmdMatch.Success)
-				{
-					Logger.Debug("Match Found");
-					switch (cmdMatch.Groups["command"].Value)
-					{
-						case "DEVICE":
-							this.HandleDeviceRx(cmdMatch.Groups);
-							break;
-						case "OUTPUT":
-							Logger.Debug("OUTPUT RX received.");
-							break;
-						case "Error":
-							Logger.Debug("Error RX Received");
-							break;
-					}
-				}
-			}
-		}
-
-		private void HandleDeviceRx(GroupCollection regexGroups)
-		{
-			Logger.Debug("DEVICE RX received.");
-			try
-			{
-				int component = int.Parse(regexGroups["component"].Value);
-				if (component == this.componentNumber)
-				{
-					Logger.Debug("Base component RX received.");
-					int actionId = int.Parse(regexGroups["action"].Value);
-					if (this.baseActionHandlers.TryGetValue(actionId, out Action<GroupCollection> handler))
-					{
-						handler.Invoke(regexGroups);
-					}
-				}
-				else
-				{
-					this.HandleZoneReponse(regexGroups);
-				}
-			}
-			catch (Exception e)
-			{
-				Logger.Error("LutronLighting.BasicQseController {0} - failed to parse DEVICE response: {1}", this.Id, e);
-			}
-		}
-
-		private void HandleSceneResponse(GroupCollection regexGroups)
-		{
-			try
-			{
-				int newScene = int.Parse(regexGroups["data"].Value);
-				foreach (var kvp in this.scenes)
-				{
-					if (kvp.Value.Index == newScene)
-					{
-						this.ActiveSceneId = kvp.Key;
-						var temp = this.ActiveSceneChanged;
-						temp?.Invoke(this, new GenericSingleEventArgs<string>(this.ActiveSceneId));
-
+					case "DEVICE":
+						HandleDeviceRx(cmdMatch.Groups);
 						break;
-					}
+					case "OUTPUT":
+						Logger.Debug("OUTPUT RX received.");
+						break;
+					case "Error":
+						Logger.Debug("Error RX Received");
+						break;
 				}
 			}
-			catch (Exception e)
-			{
-				Logger.Error("LutronLighting.BasicQseController {0} - failed to parse new scene ID: {1}", this.Id, e);
-			}
 		}
+	}
 
-		private void HandleZoneReponse(GroupCollection regexGroups)
+	private void HandleDeviceRx(GroupCollection regexGroups)
+	{
+		Logger.Debug("DEVICE RX received.");
+		try
 		{
-			try
+			var component = int.Parse(regexGroups["component"].Value);
+			if (component == _componentNumber)
 			{
-				int index = int.Parse(regexGroups["component"].Value);
-				int load = (int)float.Parse(regexGroups["data"].Value);
-				foreach (var kvp in this.zones)
+				Logger.Debug("Base component RX received.");
+				var actionId = int.Parse(regexGroups["action"].Value);
+				if (_baseActionHandlers.TryGetValue(actionId, out var handler))
 				{
-					if (kvp.Value.Index == index)
-					{
-						kvp.Value.Level = load;
-						var temp = this.ZoneLoadChanged;
-						temp?.Invoke(this, new GenericSingleEventArgs<string>(kvp.Value.Id));
-
-						return;
-					}
-				}
-			}
-			catch (Exception e)
-			{
-				Logger.Error("LutronLighting.BasicQseController {0} - Failed to parse lighting zone response: {1}", this.Id, e);
-			}
-		}
-
-		private void DisposeClient()
-		{
-			if (this.client != null)
-			{
-				this.client.ConnectionFailed -= this.Client_ConnectionFailed;
-				this.client.ClientConnected -= this.Client_ClientConnected;
-				this.Disconnect();
-				this.client.Dispose();
-			}
-		}
-
-		private void DisposeRxTimer()
-		{
-			if (this.rxTimer != null && !this.rxTimer.Disposed)
-			{
-				this.rxTimer.Dispose();
-				this.rxTimer = null;
-			}
-		}
-
-		private bool CheckInit(string methodName)
-		{
-			if (!this.IsInitialized)
-			{
-				Logger.Error("LutronLighting.BasicQseController.{0}() - Device not initialized.", methodName);
-			}
-
-			return this.IsInitialized;
-		}
-
-		private bool CheckString(string methodName, string argument, string argName, bool allowEmpty)
-		{
-			if ((!allowEmpty && string.IsNullOrEmpty(argument)) || argument == null)
-			{
-				Logger.Error("LutronLighting.BasicQseController.{0}() - argument {1} cannot be {2}}.", methodName, argName, allowEmpty ? "null" : "null or empty");
-				return false;
-			}
-
-			return true;
-		}
-
-		private bool CheckInt(string methodName, int argument, int min, int max, string argName)
-		{
-			if (argument < min || argument > max)
-			{
-				Logger.Error("LutronLighting.BasicQseController.{0}() - argument {1} cannot be less than {1} or greater than {2}.", methodName, argName, min, max);
-				return false;
-			}
-
-			return true;
-		}
-
-		private void ParseComponentId(List<string> tags)
-		{
-			var componentTag = tags.FirstOrDefault(x => x.Contains("component-"));
-			if (componentTag != null)
-			{
-				try
-				{
-					string[] values = componentTag.Split('-');
-					if (values.Length > 1)
-					{
-						this.componentNumber = int.Parse(values[1]);
-					}
-				}
-				catch (Exception e)
-				{
-					Logger.Error("LutronLighting.BasicQseController - failed to parse tags for component ID: {0}", e);
-					this.componentNumber = 141;
+					handler.Invoke(regexGroups);
 				}
 			}
 			else
 			{
-				Logger.Error("LutronLighting.BasicQseController - no 'compoent-[ID NUMBER] tag in collection. Unable to set component ID.");
+				HandleZoneResponse(regexGroups);
 			}
+		}
+		catch (Exception e)
+		{
+			Logger.Error("LutronLighting.BasicQseController {0} - failed to parse DEVICE response: {1}", Id, e);
+		}
+	}
+
+	private void HandleSceneResponse(GroupCollection regexGroups)
+	{
+		try
+		{
+			int newScene = int.Parse(regexGroups["data"].Value);
+			foreach (var kvp in _scenes)
+			{
+				if (kvp.Value.Index == newScene)
+				{
+					ActiveSceneId = kvp.Key;
+					var temp = ActiveSceneChanged;
+					temp?.Invoke(this, new GenericSingleEventArgs<string>(ActiveSceneId));
+
+					break;
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			Logger.Error("LutronLighting.BasicQseController {0} - failed to parse new scene ID: {1}", Id, e);
+		}
+	}
+
+	private void HandleZoneResponse(GroupCollection regexGroups)
+	{
+		try
+		{
+			int index = int.Parse(regexGroups["component"].Value);
+			int load = (int)float.Parse(regexGroups["data"].Value);
+			foreach (var kvp in _zones)
+			{
+				if (kvp.Value.Index == index)
+				{
+					kvp.Value.Level = load;
+					var temp = ZoneLoadChanged;
+					temp?.Invoke(this, new GenericSingleEventArgs<string>(kvp.Value.Id));
+
+					return;
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			Logger.Error("LutronLighting.BasicQseController {0} - Failed to parse lighting zone response: {1}", Id, e);
+		}
+	}
+
+	private void DisposeClient()
+	{
+		if (_client == null) return;
+		_client.ConnectionFailed -= Client_ConnectionFailed;
+		_client.ClientConnected -= Client_ClientConnected;
+		Disconnect();
+		_client.Dispose();
+	}
+
+	private void DisposeRxTimer()
+	{
+		_rxTimer?.Dispose();
+		_rxTimer = null;
+	}
+
+	private bool CheckInit(string methodName)
+	{
+		if (!IsInitialized)
+		{
+			Logger.Error("LutronLighting.BasicQseController.{0}() - Device not initialized.", methodName);
+		}
+
+		return IsInitialized;
+	}
+
+	private static bool CheckString(string methodName, string argument, string argName, bool allowEmpty)
+	{
+		if (allowEmpty || !string.IsNullOrEmpty(argument)) return true;
+		Logger.Error(
+			"LutronLighting.BasicQseController.{0}() - argument {1} cannot be {2}}.",
+			methodName,
+			argName,
+			allowEmpty ? "null" : "null or empty");
+		
+		return false;
+
+	}
+
+	private static bool CheckInt(string methodName, int argument, int min, int max, string argName)
+	{
+		if (argument >= min && argument <= max) return true;
+		Logger.Error("LutronLighting.BasicQseController.{0}() - argument {1} cannot be less than {1} or greater than {2}.", methodName, argName, min, max);
+		return false;
+
+	}
+
+	private void ParseComponentId(List<string> tags)
+	{
+		var componentTag = tags.FirstOrDefault(x => x.Contains("component-"));
+		if (componentTag != null)
+		{
+			try
+			{
+				var values = componentTag.Split('-');
+				if (values.Length > 1)
+				{
+					_componentNumber = int.Parse(values[1]);
+				}
+			}
+			catch (Exception e)
+			{
+				Logger.Error("LutronLighting.BasicQseController - failed to parse tags for component ID: {0}", e);
+				_componentNumber = 141;
+			}
+		}
+		else
+		{
+			Logger.Error("LutronLighting.BasicQseController - no 'component-[ID NUMBER] tag in collection. Unable to set component ID.");
 		}
 	}
 }

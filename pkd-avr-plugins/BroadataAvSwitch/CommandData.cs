@@ -2,7 +2,7 @@
 {
 	internal class CommandData
 	{
-		public string CommandString { get; set; }
-		public BroadataCommandTypes CommandType { get; set; }
+		public string CommandString { get; init; } = string.Empty;
+		public BroadataCommandTypes CommandType { get; init; }
 	}
 }

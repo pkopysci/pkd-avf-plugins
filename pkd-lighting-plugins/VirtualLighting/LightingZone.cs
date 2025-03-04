@@ -1,7 +1,6 @@
-﻿namespace VirtualLighting
+﻿namespace VirtualLighting;
+
+internal class LightingZone : LightingScene
 {
-	internal class LightingZone : LightingScene
-	{
-		public int Level { get; set; }
-	}
+	public int Level { get; set; }
 }

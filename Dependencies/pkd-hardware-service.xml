@@ -1,0 +1,1533 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>pkd-hardware-service</name>
+    </assembly>
+    <members>
+        <member name="T:pkd_hardware_service.AudioDevices.IAudioControl">
+            <summary>
+            Common properties and methods for basic audio level control.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.AudioDevices.IAudioControl.AudioInputLevelChanged">
+            <summary>
+            Triggered when a volume/level change is detected on any input audio channel.
+            args package: arg 1 = DSP ID, arg 2 = channel ID.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.AudioDevices.IAudioControl.AudioInputMuteChanged">
+            <summary>
+            Triggered when a mute state change is detected on any input audio channel.
+            args package: arg 1 = DSP ID, arg 2 = channel ID.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.AudioDevices.IAudioControl.AudioOutputLevelChanged">
+            <summary>
+            Triggered when a volume/level change is detected on any output audio channel.
+            args package: arg 1 = DSP ID, arg 2 = channel ID.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.AudioDevices.IAudioControl.AudioOutputMuteChanged">
+            <summary>
+            Triggered when a mute state change is detected on any output audio channel.
+            args package: arg 1 = DSP ID, arg 2 = channel ID.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.GetAudioPresetIds">
+            <summary>
+            Gets the Ids of all the presets that were added to this device when created.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.GetAudioInputIds">
+            <summary>
+            Gets the IDs of all the input channels added to this device when created.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.GetAudioOutputIds">
+            <summary>
+            Gets the IDs of all the output channels added to this device when created.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.SetAudioInputLevel(System.String,System.Int32)">
+            <summary>
+            Set the target input channel to the given audio level.
+            Range is 0-100 and scaled internally to match the device limits.
+            </summary>
+            <param name="id">The unique ID of the input channel to adjust</param>
+            <param name="level">the 0-100 level to set the channel volume to.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.GetAudioInputLevel(System.String)">
+            <summary>
+            Query the device for the current input audio level.
+            </summary>
+            <param name="id">The unique ID of the input channel to query.</param>
+            <returns>a 0-100 value representing the current audio level. Returns 0 if 'id' cannot be found.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.SetAudioInputMute(System.String,System.Boolean)">
+            <summary>
+            Send a mute command to the target input channel.
+            </summary>
+            <param name="id">The unique ID of the channel to change.</param>
+            <param name="mute">true = mute on, false = mute off.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.GetAudioInputMute(System.String)">
+            <summary>
+            Gets the current mute status of the target input channel.
+            </summary>
+            <param name="id">The unique ID of the input channel to query.</param>
+            <returns>true if mute is active, false is mute is off.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.SetAudioOutputLevel(System.String,System.Int32)">
+            <summary>
+            Set the target output channel to the given audio level.
+            Range is 0-100 and scaled internally to match the device limits.
+            </summary>
+            <param name="id">The unique ID of the output channel to adjust</param>
+            <param name="level">the 0-100 level to set the channel volume to.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.GetAudioOutputLevel(System.String)">
+            <summary>
+            Query the device for the current output audio level.
+            </summary>
+            <param name="id">The unique ID of the output channel to query.</param>
+            <returns>a 0-100 value representing the current audio level. Returns 0 if 'id' cannot be found.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.SetAudioOutputMute(System.String,System.Boolean)">
+            <summary>
+            Send a mute command to the target output channel.
+            </summary>
+            <param name="id">The unique ID of the channel to change.</param>
+            <param name="mute">true = mute on, false = mute off.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.GetAudioOutputMute(System.String)">
+            <summary>
+            Gets the current mute status of the target output channel.
+            </summary>
+            <param name="id">The unique ID of the output channel to query.</param>
+            <returns>true if mute is active, false is mute is off.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.RecallAudioPreset(System.String)">
+            <summary>
+            Attempts to recall the target preset on the device.
+            </summary>
+            <param name="id">The uniue ID of the preset to recall, as defined in the system configuration.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.AddInputChannel(System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Add an input or microphone channel to the DSP. The DSP implementation will then update its control
+            methods for that channel.
+            </summary>
+            <param name="id">The unique ID of the channel as defined in the configuration.</param>
+            <param name="levelTag">The instanace tag or named control associated with changing the gain.</param>
+            <param name="muteTag">The instance tag or named control associated with the mute state.</param>
+            <param name="bankIndex">The input number or position in a channel bank used for control.</param>
+            <param name="levelMax">The maximum value expected by the hardware for the audio channel. This is in the range defined by the device and not necessarily 0-100.</param>
+            <param name="levelMin">The minumum value expected by the hardware for the aduio channel. This is in the range defined by the device and not necessarily 0-100.</param>
+            <param name="routerIndex">The input index for this channel if routing is supported by the control. Can be 0 if unused.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.AddOutputChannel(System.String,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Add an output to the DSP. The DSP implementation will then update its control
+            methods for that channel.
+            </summary>
+            <param name="id">The unique ID of the channel as defined in the configuration.</param>
+            <param name="levelTag">The instanace tag or named control associated with changing the gain.</param>
+            <param name="muteTag">The instance tag or named control associated with the mute state.</param>
+            <param name="routerTag">The instance tag or named control associated with a router block.</param>
+            <param name="routerIndex">The output index of the router associated with this channel. Can be 0 if not routable.</param>
+            <param name="bankIndex">The output number or position in a channel bank used for control.</param>
+            <param name="levelMax">The maximum value expected by the hardware for the audio channel. This is in the range defined by the device and not necessarily 0-100.</param>
+            <param name="levelMin">The minumum value expected by the hardware for the aduio channel. This is in the range defined by the device and not necessarily 0-100.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioControl.AddPreset(System.String,System.Int32)">
+            <summary>
+            Add a preset recall to the DSP. The DSP implementation will update its control methods for that
+            preset or snapshot.
+            </summary>
+            <param name="id">The unique ID of the preset. This can either be a snaphot bank name or tag ID.</param>
+            <param name="index">The index or preset number to recall.</param>
+        </member>
+        <member name="T:pkd_hardware_service.AudioDevices.IAudioZoneEnabler">
+            <summary>
+            events, properties, and methods for controlling which audio output channels a given input channel should be sending signal
+            to.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.AudioDevices.IAudioZoneEnabler.AudioZoneEnableChanged">
+            <summary>
+            Triggered when the device control detects a change on the channel audio zone enable.
+            Args package: arg1 = channel ID, arg2 = zone toggle ID.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioZoneEnabler.AddAudioZoneEnable(System.String,System.String,System.String)">
+            <summary>
+            Add a audio zone toggle control to the internal collection of the control object.
+            NOTE: if a control object with matching channelId and zoneID is detected then the new one will be ignored.
+            </summary>
+            <param name="channelId">The unique ID of the input channel this control will be associated with.</param>
+            <param name="zoneId">The unique ID of the toggle control object. This is used internally for referencing.</param>
+            <param name="controlTag">The DSP design named control or Instance ID used for device control.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioZoneEnabler.RemoveAudioZoneEnable(System.String,System.String)">
+            <summary>
+            Remove an audio zone toggle control from the internal collection.
+            if no object is found with a matching channelId and zoneId then no action is taken.
+            </summary>
+            <param name="channelId">The unique ID of the input channel associated with the control being removed.</param>
+            <param name="zoneId">The unique ID of the zone enable control being removed.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioZoneEnabler.ToggleAudioZoneEnable(System.String,System.String)">
+            <summary>
+            Send a command to the hardware to toggle the current state of the zone enable control.
+            If no matching channelId and zoneId is found then no action is taken.
+            </summary>
+            <param name="channelId">The unique ID associated with the zone enable control.</param>
+            <param name="zoneId">The unique ID of the zone to send the change request to.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IAudioZoneEnabler.QueryAudioZoneEnable(System.String,System.String)">
+            <summary>
+            Queries the device for the current status of the target zone enable control.
+            </summary>
+            <param name="channelId">The unique ID associated with the zone enable control.</param>
+            <param name="zoneId">The unique ID of the zone control object being queried</param>
+            <returns>The current state of the zone enable control. Returns false if a channelId/zoneId is not found.</returns>
+        </member>
+        <member name="T:pkd_hardware_service.AudioDevices.IDsp">
+            <summary>
+            Common properties and methods for controlling typical DSP devices.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AudioDevices.IDsp.Initialize(System.String,System.Int32,System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Sets internal object configuration based on the supplied data.
+            </summary>
+            <param name="hostId">The unique ID of the DSP being controlled</param>
+            <param name="coreId">the device number used by the hardware when sending or receiving data. Can be set to 0 if unused.</param>
+            <param name="hostname">The hostname or IP address used to connect to the hardware.</param>
+            <param name="port">The TCP port number used to connect to the hardware.</param>
+            <param name="username">The authentication username used when connecting.</param>
+            <param name="password">The authentication password used when connecting.</param>
+        </member>
+        <member name="T:pkd_hardware_service.AvIpMatrix.IAvIpEndpoint">
+            <summary>
+            required methods and properties for implementing a transmitter or receiver AV-IP endpoint.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.AvIpMatrix.IAvIpEndpoint.IsOnline">
+            <summary>
+            Gets a value indicating whether the Av over IP endpoint is online or offline (true or false).
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.AvIpMatrix.IAvIpEndpoint.EndpointType">
+            <summary>
+            Gets what type of endpoint the device is (encoder or decoder).
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.AvIpMatrix.IAvIpMatrix">
+            <summary>
+            Required events, methods, and properties for implementing an AV over IP device control.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.AvIpMatrix.IAvIpMatrix.AvIpEndpointStatusChanged">
+            <summary>
+            Triggered when an encoder or decoder status changes, typically used for online/offline events.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AvIpMatrix.IAvIpMatrix.GetAvIpEndpoint(System.String)">
+            <summary>
+            Get the target AV over IP endpoint data object.
+            </summary>
+            <param name="deviceId">The unique ID of the endpoint to request.</param>
+            <returns>The target AvIp endpoint, or null if the endpoint cannot be found.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.AvIpMatrix.IAvIpMatrix.AddEndpoint(System.String,System.Collections.Generic.List{System.String},System.Int32,pkd_hardware_service.AvIpMatrix.AvIpEndpointTypes,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Add an AV over IP endpoint to the routing object.
+            </summary>
+            <param name="id">The unique ID of the endpoint. This is used internally for routing events.</param>
+            <param name="tags">The collection of device tags that were set in the configuration file.</param>
+            <param name="ioIndex">The input or output index on the hardware that is associated with this routing endpoint.</param>
+            <param name="endpointType">Define whether this will be added as an encoder or decoder endpoint.</param>
+            <param name="control">The root control system object that runs this program.</param>
+        </member>
+        <member name="T:pkd_hardware_service.AvSwitchDevices.AvSwitchCommands">
+            <summary>
+            Command types used by various AV switchers for device control.
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.AvSwitchDevices.AvSwitchFactory">
+            <summary>
+            Factory class used to build a hardware control interface for all AV switching devices.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.AvSwitchFactory.CreateAvSwitcher(System.Collections.Generic.List{pkd_domain_service.Data.RoutingData.Source},System.Collections.Generic.List{pkd_domain_service.Data.RoutingData.Destination},pkd_domain_service.Data.RoutingData.MatrixData,Crestron.SimplSharpPro.CrestronControlSystem,pkd_hardware_service.IInfrastructureService)">
+            <summary>
+            Attempts to create an Audio/video switcher hardware control based on the given configuration data.
+            If the Model defined in the configuration data is not supported then null is returned.
+            </summary>
+            <param name="sources">The domain data containing all routable sources in the system.</param>
+            <param name="destinations">The domain data containing all routable destinations in the system.</param>
+            <param name="switchData">the deserialized AV switch configuration data.</param>
+            <param name="processor">The host control system running this program.</param>
+            <param name="hwService">The hardware control service that will contain the final control object.</param>
+            <returns>The AV switch control if supported, null otherwise.</returns>
+        </member>
+        <member name="T:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch">
+            <summary>
+            Wrapper class for controlling a Crestron DM-MD-400 tx/rx pair.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.#ctor(pkd_domain_service.Data.RoutingData.MatrixData,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch"/> class.
+            </summary>
+            <param name="config">The configuration data used to control the device.</param>
+            <param name="parent">The root control system that is running the program.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.Finalize">
+            <summary>
+            Finalizes an instance of the <see cref="T:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch"/> class.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.VideoRouteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.AudioOutputMuteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.AudioOutputLevelChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.AudioInputMuteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.AudioInputLevelChanged">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.GetAudioPresetIds">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.GetAudioInputIds">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.GetAudioOutputIds">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.AddInputChannel(System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.AddOutputChannel(System.String,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.AddPreset(System.String,System.Int32)">
+            <summary>
+            Interface method not supported by this device.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.ClearVideoRoute(System.UInt32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.Connect">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.Disconnect">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.GetCurrentVideoSource(System.UInt32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.RouteVideo(System.UInt32,System.UInt32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.SetAudioOutputLevel(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.SetAudioOutputMute(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.SetAudioInputLevel(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.SetAudioInputMute(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.GetAudioInputLevel(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.GetAudioInputMute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.GetAudioOutputLevel(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.GetAudioOutputMute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.RecallAudioPreset(System.String)">
+            <summary>
+            Interface feature not supported by this device.
+            </summary>
+            <param name="id">Unique ID of preset to recall.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.Initialize(System.String,System.Int32,System.String,System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="T:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch">
+            <summary>
+            Wrapper class for controlling a Crestron DM-MD-8x1 AV Switch.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.#ctor(pkd_domain_service.Data.RoutingData.MatrixData,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch"/> class.
+            </summary>
+            <param name="config">The configuration data used to control the device.</param>
+            <param name="parent">The root control system that is running the program.</param>
+        </member>
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.VideoRouteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AudioOutputMuteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AudioOutputLevelChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AudioInputMuteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AudioInputLevelChanged">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioPresetIds">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioInputIds">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioOutputIds">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AddInputChannel(System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AddOutputChannel(System.String,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AddPreset(System.String,System.Int32)">
+            <summary>
+            Interface method not supported by this device.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioInputLevel(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.SetAudioInputLevel(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioOutputLevel(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.SetAudioOutputLevel(System.String,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.SetAudioInputMute(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioInputMute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.SetAudioOutputMute(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioOutputMute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.ClearVideoRoute(System.UInt32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.RecallAudioPreset(System.String)">
+            <summary>
+            Interface feature not supported by this device.
+            </summary>
+            <param name="id">The id of the preset to recall.</param>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.Connect">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.Disconnect">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetCurrentVideoSource(System.UInt32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.RouteVideo(System.UInt32,System.UInt32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.Initialize(System.String,System.Int32,System.String,System.String,System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_hardware_service.AvSwitchDevices.IAvSwitcher">
+            <summary>
+            Properties and methods common to all devices that are capable of audio and video routing.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.AvSwitchDevices.IAvSwitcher.Initialize(System.String,System.Int32,System.String,System.String,System.Int32,System.Int32)">
+            <summary>
+            Initialize the device with the given data (does not connect to device)
+            </summary>
+            <param name="hostName">The IP address or hostname used to connect.</param>
+            <param name="port">the port number used to connect.</param>
+            <param name="id">the unique ID of the device.</param>
+            <param name="label">The user-friendly name of the device.</param>
+            <param name="numInputs">Number of inputs supported.</param>
+            <param name="numOutputs">Number of outputs supported.</param>
+        </member>
+        <member name="T:pkd_hardware_service.BaseDevice.BaseDevice">
+            <summary>
+            Base class for representing hardware controls.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.BaseDevice.BaseDevice.ConnectionChanged">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.BaseDevice.Id">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.BaseDevice.Label">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.BaseDevice.IsOnline">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.BaseDevice.IsInitialized">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.BaseDevice.Connect">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.BaseDevice.Disconnect">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.BaseDevice.NotifyOnlineStatus">
+            <summary>
+            Method for notifying subscribers that the device online status has changed.
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.BaseDevice.DeviceContainer`1">
+            <summary>
+            Manager class for adding, removing, and finding a device of the given type.
+            </summary>
+            <typeparam name="T">The device type that will be managed by this container.</typeparam>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.DeviceContainer`1.Finalize">
+            <summary>
+            Finalizes an instance of the <see cref="T:pkd_hardware_service.BaseDevice.DeviceContainer`1"/> class.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.DeviceContainer`1.GetDevice(System.String)">
+            <summary>
+            Attempt to retrieve the device with the given ID.
+            Writes an error to the logging system if no device is found at the given ID.
+            </summary>
+            <param name="id">The unique ID of the device to get.</param>
+            <returns>The device object if found, otherwise the default object of that type.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.DeviceContainer`1.GetAllDevices">
+            <summary>
+            Gets a collection of all devices currently stored in this container.
+            </summary>
+            <returns>A collection of all currently stored devices.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.DeviceContainer`1.ContainsDevice(System.String)">
+            <summary>
+            Checks to see if a device exists with the given ID.
+            </summary>
+            <param name="id">The unique ID of the device to check.</param>
+            <returns>true if the device is found, false otherwise.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.DeviceContainer`1.AddDevice(System.String,`0)">
+            <summary>
+            Adds a new device to the container. If a device with the matching id already exists
+            then it will be replaced.
+            </summary>
+            <param name="id">The unique ID used to reference the device.</param>
+            <param name="device">The device that will be added to the container.</param>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.DeviceContainer`1.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.DeviceContainer`1.Dispose(System.Boolean)">
+            <summary>
+            Dispose stored objects.
+            </summary>
+            <param name="disposing">Flag indicating disposing state.</param>
+        </member>
+        <member name="T:pkd_hardware_service.BaseDevice.IBaseDevice">
+            <summary>
+            Interface for attributes common to all devices.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.BaseDevice.IBaseDevice.ConnectionChanged">
+            <summary>
+            Notification for when the device connection has changed.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.IBaseDevice.Id">
+            <summary>
+            Gets the unique ID of the device.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.IBaseDevice.Label">
+            <summary>
+            Gets the user friendly label of the device.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.IBaseDevice.IsOnline">
+            <summary>
+            Gets a value indicating whether the device is online or not.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.IBaseDevice.IsInitialized">
+            <summary>
+            Gets a value indicating whether or not the device has been initialized and ready to connect.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.IBaseDevice.Connect">
+            <summary>
+            Connect the communications protocol to the hardware.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.BaseDevice.IBaseDevice.Disconnect">
+            <summary>
+            Closes an active connection/communications protocol with the hardware.
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.DisplayDevices.CcdDisplayDevice">
+            <summary>
+            Display control object that uses a Crestron certified driver for control.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.#ctor(Crestron.RAD.Common.Interfaces.IBasicVideoDisplay,pkd_domain_service.Data.DisplayData.Display)">
+            <param name="driver">the Crestron Certified Driver object for controlling the device.</param>
+            <param name="config">The device config data that was created during boot.</param>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.Finalize">
+            <inheritdoc />
+        </member>
+        <member name="E:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.PowerChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.VideoBlankChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.VideoFreezeChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.HoursUsedChanged">
+            <inheritdoc/>
+        </member>
+        <member name="E:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.VideoRouteChanged">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.PowerState">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.BlankState">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.SupportsFreeze">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.FreezeState">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.HoursUsed">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.EnableReconnect">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.PowerOn">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.PowerOff">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.VideoBlankOn">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.VideoBlankOff">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.FreezeOn">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.FreezeOff">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.EnablePolling">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.DisablePolling">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.Initialize(System.String,System.Int32,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.Connect">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.Disconnect">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.GetCurrentVideoSource(System.UInt32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.RouteVideo(System.UInt32,System.UInt32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.CcdDisplayDevice.ClearVideoRoute(System.UInt32)">
+            <summary>
+            This is not supported by CCD devices.
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.DisplayDevices.DisplayDeviceFactory">
+            <summary>
+            Factory class for creating display control objects from configuration data.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.DisplayDeviceFactory.CreateDisplay(pkd_domain_service.Data.DisplayData.Display,Crestron.SimplSharpPro.CrestronControlSystem,pkd_hardware_service.IInfrastructureService)">
+            <param name="displayData">configuration data for the display to create.</param>
+            <param name="processor">the root Crestron control system object.</param>
+            <param name="hwService">the hardware service that will manage the device after creation.</param>
+            <returns>a control object for the display, or false if an error occurs.</returns>
+        </member>
+        <member name="T:pkd_hardware_service.DisplayDevices.IDisplayDevice">
+            <summary>
+            Common attributes and methods of all video display devices.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.DisplayDevices.IDisplayDevice.PowerChanged">
+            <summary>
+            Event triggered whenever the power status change is reported by the display.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.DisplayDevices.IDisplayDevice.HoursUsedChanged">
+            <summary>
+            Event triggered when a "lamp hours" update is reported by the display driver.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.IDisplayDevice.PowerState">
+            <summary>
+            Gets a value indicating whether the device is on or off.
+            true = power on, false = power off.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.IDisplayDevice.SupportsFreeze">
+            <summary>
+            Gets a value indicating whether the specific display supports video freeze.
+            true = is supported, false = not supported.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.IDisplayDevice.HoursUsed">
+            <summary>
+            Gets the number of hours used as of the last lamp hours response from the driver.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.IDisplayDevice.EnableReconnect">
+            <summary>
+            Gets or sets a value that indicates whether the object should
+            try to reconnect if disconnected from the hardware for any reason.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.IDisplayDevice.PowerOn">
+            <summary>
+            Send the "Power on" command to the display hardware.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.IDisplayDevice.PowerOff">
+            <summary>
+            Send the "Power off" command to the display hardware.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.IDisplayDevice.EnablePolling">
+            <summary>
+            Allow the display device to poll for current status based on a device-specific interval.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.IDisplayDevice.DisablePolling">
+            <summary>
+            Disable the polling functions if they are enabled.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.IDisplayDevice.Initialize(System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Configure the underlying connection of the display.
+            </summary>
+            <param name="ipAddress">The IP address or hostname to connect to.</param>
+            <param name="port">The port number used to connect to the device.</param>
+            <param name="label">The user-friendly name of the display.</param>
+            <param name="id">The unique ID of the display used when referencing it for control.</param>
+        </member>
+        <member name="T:pkd_hardware_service.DisplayDevices.IVideoControllable">
+            <summary>
+            Common properties and methods for a video output device.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.DisplayDevices.IVideoControllable.VideoBlankChanged">
+            <summary>
+            Event triggered whenever a video blank status is reported by the display.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.DisplayDevices.IVideoControllable.VideoFreezeChanged">
+            <summary>
+            Event triggered whenever a video freeze status is reported by the display (if supported).
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.IVideoControllable.FreezeState">
+            <summary>
+            Gets a value indicating whether the video freeze is on or off.
+            true = video frozen, false = in motion. Will be false if freeze is not supported.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.DisplayDevices.IVideoControllable.BlankState">
+            <summary>
+            Gets a value indicating whether the video blank is on or off.
+            true = video is blanked, false = video is active.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.IVideoControllable.VideoBlankOn">
+            <summary>
+            Enable video blank on the display hardware (no picture shown).
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.IVideoControllable.VideoBlankOff">
+            <summary>
+            Disable video blank on the display hardware (picture is visible).
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.IVideoControllable.FreezeOn">
+            <summary>
+            If supported, will send the "freeze video on" command to the display hardware.
+            Does nothing if video freeze is not supported.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.DisplayDevices.IVideoControllable.FreezeOff">
+            <summary>
+            If supported, will send the "freeze video off" command to the display hardware.
+            Does nothing if video freeze is not supported.
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice">
+            <summary>
+            Crestron C2N-IO relay controller via Cresnet.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.#ctor(pkd_domain_service.Data.EndpointData.Endpoint,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Creates an instance of <see cref="T:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice"/>.
+            </summary>
+            <param name="data">The configuration data for this endpoint device.</param>
+            <param name="controlSystem">The control system that's running the framework program.</param>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.Finalize">
+            <inheritdoc />
+        </member>
+        <member name="E:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.RelayChanged">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.IsRegistered">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.SupportsRelays">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.SupportsIr">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.SupportsRs232">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.Register">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.GetCurrentRelayState(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.PulseRelay(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.LatchRelayClosed(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.LatchRelayOpen(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice">
+            <summary>
+            Crestron CEN-IO-RY-401 relay controller via ethernet.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.#ctor(pkd_domain_service.Data.EndpointData.Endpoint,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <param name="data">configuration data for the relay device.</param>
+            <param name="controlSystem">root crestron control system.</param>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.Finalize">
+            <inheritdoc />
+        </member>
+        <member name="E:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.RelayChanged">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.IsRegistered">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.SupportsRelays">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.SupportsIr">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.SupportsRs232">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.Register">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.GetCurrentRelayState(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.PulseRelay(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.LatchRelayClosed(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.LatchRelayOpen(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:pkd_hardware_service.EndpointDevices.EndpointDeviceFactory">
+            <summary>
+            Factory class used to build a hardware control interface for all endpoint types (relay, ir, rs-232, ect.)
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.EndpointDeviceFactory.CreateEndpointDevice(pkd_domain_service.Data.EndpointData.Endpoint,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Create a new Endpoint control interface from the given configuration data.
+            </summary>
+            <param name="ep">The Endpoint configuration data used to create the object.</param>
+            <param name="processor">The host control system for interfacing with the endpoint.</param>
+            <returns>A new Endpoint control object registered with the processor. Returns null on a failure.</returns>
+            <exception cref="T:System.ArgumentNullException"> if any argument is null.</exception>
+        </member>
+        <member name="T:pkd_hardware_service.EndpointDevices.IEndpointDevice">
+            <summary>
+            Common properties and methods for all endpoint devices (such as DM-TX and RMC-100s).
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.IEndpointDevice.IsRegistered">
+            <summary>
+            Gets a value indicating whether the object has been registered.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.IEndpointDevice.SupportsRelays">
+            <summary>
+            Gets a value indicating whether the endpoint supports relay controls.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.IEndpointDevice.SupportsIr">
+            <summary>
+            Gets a value indicating whether the endpoint supports IR controls.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.IEndpointDevice.SupportsRs232">
+            <summary>
+            Gets a value indicating whether the endpoint supports RS-232 controls.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.IEndpointDevice.Register">
+            <summary>
+            Register any connections or control interfaces on the underlying hardware control.
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.EndpointDevices.IRelayDevice">
+            <summary>
+            Common properties and methods for basic relay device control.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.EndpointDevices.IRelayDevice.RelayChanged">
+            <summary>
+            Event triggered whenever the state of the relay changes (open -> close or close ->open).
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.IRelayDevice.GetCurrentRelayState(System.Int32)">
+            <summary>
+            Gets a value indicating whether the relay is closed or open.
+            </summary>
+            <param name="index">The 0-based index representing which relay on the device to query.</param>
+            <returns>True if the rleay is closed, false if the relay is open</returns>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.IRelayDevice.PulseRelay(System.Int32,System.Int32)">
+            <summary>
+            Close the relay for the specified amount of time.
+            </summary>
+            <param name="index">The 0-based index representing which relay on the device to control.</param>
+            <param name="timeMs">The amount of time in Milliseconds that the relay should remain closed.</param>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.IRelayDevice.LatchRelayClosed(System.Int32)">
+            <summary>
+            Sets the relay closed until LatchOpen() or PulseRelay() is called.
+            </summary>
+            <param name="index">The 0-based index representing which relay on the device to control.</param>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.IRelayDevice.LatchRelayOpen(System.Int32)">
+            <summary>
+            Sets the relay open until LatchClosed() or PulseRelay() is called.
+            </summary>
+            <param name="index">The 0-based index representing which relay on the device to control.</param>
+        </member>
+        <member name="T:pkd_hardware_service.EndpointDevices.ProcessorEndpoint">
+            <summary>
+            Endpoint control wrapper for accessing relay, RS-232, and IR controls on a crestron control
+            processor.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.#ctor(pkd_domain_service.Data.EndpointData.Endpoint,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_hardware_service.EndpointDevices.ProcessorEndpoint"/> class.
+            </summary>
+            <param name="data">The config object used to create the device.</param>
+            <param name="controlSystem">The Crestron control system that will be used control.</param>
+            <exception cref="T:System.ArgumentNullException"> if any argument is null.</exception>
+        </member>
+        <member name="E:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.RelayChanged">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.IsRegistered">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.SupportsRelays">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.SupportsIr">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.SupportsRs232">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.Register">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.GetCurrentRelayState(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.LatchRelayClosed(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.LatchRelayOpen(System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.EndpointDevices.ProcessorEndpoint.PulseRelay(System.Int32,System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_hardware_service.ICrestronDevice">
+            <summary>
+            Required methods for implementing a hardware plugin that requires direct hooks into the root control system object.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.ICrestronDevice.SetControlSystem(Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Assign a Crestron control system to the device control plugin.
+            </summary>
+            <param name="controlSystem">The root control system object.</param>
+        </member>
+        <member name="T:pkd_hardware_service.IInfrastructureService">
+            <summary>
+            Properties and methods for the Infrastructure service that provides hardware control.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.IInfrastructureService.Dsps">
+            <summary>
+            Gets a collection of DSP devices that are configured in the system.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.IInfrastructureService.AvSwitchers">
+            <summary>
+            Gets a collection of AV Switching devices that are configured in the system.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.IInfrastructureService.Displays">
+            <summary>
+            Gets a collection of display devices that are configured in the system.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.IInfrastructureService.Endpoints">
+            <summary>
+            Gets a collection of endpoint (RMC-100, CEN-IO, etc.) that are configured in the system.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.IInfrastructureService.CableBoxes">
+            <summary>
+            Gets a collection of IR Cable box devices that are in the system configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.IInfrastructureService.LightingDevices">
+            <summary>
+            Gets a collection of lighting controllers that are in the system configuration.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.IInfrastructureService.VideoWallDevices">
+            <summary>
+            Gets a collection of video wall controllers that are in the system configuration.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.IInfrastructureService.AddDsp(pkd_domain_service.Data.DspData.Dsp)">
+            <summary>
+            Add a DSP control object to the current collection. Any DSP in the collection with
+            a matching ID will be replaced.
+            </summary>
+            <param name="dsp">The DSP device to add or replace.</param>
+        </member>
+        <member name="M:pkd_hardware_service.IInfrastructureService.AddAudioChannel(pkd_domain_service.Data.DspData.Channel)">
+            <summary>
+            Add an audio input or output channel to a DSP in the current collection. This will look for a DSP
+            with a matching ID and then configure that device with the channel.
+            </summary>
+            <param name="channel">The channel data object used to configure the DSP control.</param>
+        </member>
+        <member name="M:pkd_hardware_service.IInfrastructureService.AddDisplay(pkd_domain_service.Data.DisplayData.Display)">
+            <summary>
+            Add a display control object to the current collection. Any display in the collection with
+            a matching ID will be replaced.
+            </summary>
+            <param name="display">The display device to add or replace.</param>
+        </member>
+        <member name="M:pkd_hardware_service.IInfrastructureService.AddAvSwitch(pkd_domain_service.Data.RoutingData.MatrixData,pkd_domain_service.Data.RoutingData.Routing)">
+            <summary>
+            Add an AV switcher control object to the current collection. Any AV switcher in the collection with
+            a matching ID will be replaced.
+            </summary>
+            <param name="avSwitch">The AV switcher to add or replace.</param>
+            <param name="routingData">The config data containing all inputs and outputs in the system.</param>
+        </member>
+        <member name="M:pkd_hardware_service.IInfrastructureService.AddEndpoint(pkd_domain_service.Data.EndpointData.Endpoint)">
+            <summary>
+            Add an endpoint control object to the current collection. Any endpoint in the collection with
+            a matching ID shall be replaced.
+            </summary>
+            <param name="endpointData">the endpoint data to add or replace.</param>
+        </member>
+        <member name="M:pkd_hardware_service.IInfrastructureService.AddCableBox(pkd_domain_service.Data.TransportDeviceData.CableBox)">
+            <summary>
+            Add a cable box or satellite TV transport control object to the current collection. Any connection in the collection
+            with a matching ID shall be replaced.
+            </summary>
+            <param name="cableBox">The cable box or Sat TV transport control config to add.</param>
+        </member>
+        <member name="M:pkd_hardware_service.IInfrastructureService.AddLightingDevice(pkd_domain_service.Data.LightingData.LightingInfo)">
+            <summary>
+            Add a lighting controller to the current collection. Any connection in the collection
+            with a matching ID shall be replaced.
+            </summary>
+            <param name="lightingDevice">The lighting controller to add.</param>
+        </member>
+        <member name="M:pkd_hardware_service.IInfrastructureService.AddVideoWall(pkd_domain_service.Data.VideoWallData.VideoWall)">
+            <summary>
+            Add a video wall controller to the current collection.
+            </summary>
+            <param name="videoWall">The config data for the video wall device to add.</param>
+        </member>
+        <member name="M:pkd_hardware_service.IInfrastructureService.ConnectAllDevices">
+            <summary>
+            Initialize all hardware connections and connect to the devices for control.
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.InfrastructureService">
+            <summary>
+            Hardware management service for controlling real-world hardware devices.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.#ctor(Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Initializes a new instance of the <see cref="T:pkd_hardware_service.InfrastructureService"/> class.
+            </summary>
+            <param name="controlSystem">A reference to the Crestron control processor running the system.</param>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.Finalize">
+            <summary>
+            Finalizes an instance of the <see cref="T:pkd_hardware_service.InfrastructureService"/> class.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.InfrastructureService.Dsps">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.InfrastructureService.AvSwitchers">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.InfrastructureService.Displays">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.InfrastructureService.Endpoints">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.InfrastructureService.CableBoxes">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.InfrastructureService.LightingDevices">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.InfrastructureService.VideoWallDevices">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.AddAvSwitch(pkd_domain_service.Data.RoutingData.MatrixData,pkd_domain_service.Data.RoutingData.Routing)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.AddDisplay(pkd_domain_service.Data.DisplayData.Display)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.AddDsp(pkd_domain_service.Data.DspData.Dsp)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.AddAudioChannel(pkd_domain_service.Data.DspData.Channel)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.AddEndpoint(pkd_domain_service.Data.EndpointData.Endpoint)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.AddCableBox(pkd_domain_service.Data.TransportDeviceData.CableBox)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.AddLightingDevice(pkd_domain_service.Data.LightingData.LightingInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.AddVideoWall(pkd_domain_service.Data.VideoWallData.VideoWall)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.ConnectAllDevices">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:pkd_hardware_service.InfrastructureServiceFactory">
+            <summary>
+            Helper class for creating the IInfrastructureService object that will control the actual hardware in the system.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureServiceFactory.CreateInfrastructureService(pkd_domain_service.IDomainService,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Create the Infrastructure service object that contains all device connections that were defined in the domain.
+            This method will not establish connections to the devices.
+            </summary>
+            <param name="domain">The data class with all device information that was included in the configuration.</param>
+            <param name="control">The host processor that this program is running on.</param>
+            <returns>The hardware control service that will be used to send commands to physical devices.</returns>
+            <exception cref="T:System.ArgumentNullException">If domain or control are null.</exception>
+        </member>
+        <member name="T:pkd_hardware_service.LightingDevices.ILightingDevice">
+            <summary>
+            Required events, methods, and properties required for creating a device control plugin.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.LightingDevices.ILightingDevice.ZoneLoadChanged">
+            <summary>
+            triggered whenever the device reports a change in a zone lighting load.
+            Event arg is the id of the load that changed.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.LightingDevices.ILightingDevice.ActiveSceneChanged">
+            <summary>
+            Triggered whenever the device reports a change in the active lighting scene.
+            Event arg is the id of the scene that was set to active.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.LightingDevices.ILightingDevice.Initialize(System.String,System.Int32,System.String,System.String,System.String,System.String,System.Collections.Generic.List{System.String})">
+            <summary>
+            Connect to the hardware and register any internal event handlers.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.LightingDevices.ILightingDevice.ZoneIds">
+            <summary>
+            Get the ids of all controllable zones for the device.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.LightingDevices.ILightingDevice.SceneIds">
+            <summary>
+            Get the ids of all selectable scenes for the device.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.LightingDevices.ILightingDevice.ActiveSceneId">
+            <summary>
+            Get the currently selected lighting scene.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.LightingDevices.ILightingDevice.AddZone(System.String,System.String,System.Int32)">
+            <summary>
+            Add a controllable zone reference to the device.
+            </summary>
+            <param name="id">The unique id of the zone, used for internal referencing.</param>
+            <param name="label">The human-friendly name of the zone.</param>
+            <param name="index">the 0-based index of the zone.</param>
+        </member>
+        <member name="M:pkd_hardware_service.LightingDevices.ILightingDevice.AddScene(System.String,System.String,System.Int32)">
+            <summary>
+            Add a selectable scene reference to the device.
+            </summary>
+            <param name="id">the unique id of the scene, used for internal referencing.</param>
+            <param name="label">the human-friendly name of the scene.</param>
+            <param name="index">The 0-based index of the scene.</param>
+        </member>
+        <member name="M:pkd_hardware_service.LightingDevices.ILightingDevice.RecallScene(System.String)">
+            <summary>
+            Send a request to the device to recall the target scene.
+            </summary>
+            <param name="id">The unique id of the scene to recall.</param>
+        </member>
+        <member name="M:pkd_hardware_service.LightingDevices.ILightingDevice.SetZoneLoad(System.String,System.Int32)">
+            <summary>
+            set the load level of the target zone.
+            </summary>
+            <param name="id">The unique id of the zone to change.</param>
+            <param name="loadLevel">a 0-100 value representing the new load.</param>
+        </member>
+        <member name="M:pkd_hardware_service.LightingDevices.ILightingDevice.GetZoneLoad(System.String)">
+            <param name="id">the unique id of the zone to query.</param>
+            <returns>a 0-100 value representing the current load level.</returns>
+        </member>
+        <member name="T:pkd_hardware_service.Routable.IAudioRoutable">
+            <summary>
+            Common methods and attributes for all devices that can route audio.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.Routable.IAudioRoutable.AudioRouteChanged">
+            <summary>
+            Triggered when there is a change in the audio source for the output ID in the
+            arguments package.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.Routable.IAudioRoutable.GetCurrentAudioSource(System.String)">
+            <summary>
+            Query the device for the audio input that is currently routed to the target output.
+            An error will be written to the logging system if a failure occurs.
+            </summary>
+            <param name="outputId">The output ID to query.</param>
+            <returns>the audio input ID that is currently routed, or 0 if the query fails.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.Routable.IAudioRoutable.RouteAudio(System.String,System.String)">
+            <summary>
+            Route the target audio input to the target video output.
+            </summary>
+            <param name="sourceId">The input ID that will be routed.</param>
+            <param name="outputId">The output ID to route to.</param>
+        </member>
+        <member name="M:pkd_hardware_service.Routable.IAudioRoutable.ClearAudioRoute(System.String)">
+            <summary>
+            Clear the output of all audio signals.
+            </summary>
+            <param name="outputId">The output to clear audio content on.</param>
+        </member>
+        <member name="T:pkd_hardware_service.Routable.IVideoRoutable">
+            <summary>
+            Common methods and attributes for all devices that can route video.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.Routable.IVideoRoutable.VideoRouteChanged">
+            <summary>
+            Triggered when there is a change in the video source for the output number in the
+            arguments package.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.Routable.IVideoRoutable.GetCurrentVideoSource(System.UInt32)">
+            <summary>
+            Query the device for the video input that is currently routed to the target output.
+            An error will be written to the logging system if a failure occurs.
+            </summary>
+            <param name="output">The output number to query.</param>
+            <returns>the video input number that is currently routed, or 0 if the query fails.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.Routable.IVideoRoutable.RouteVideo(System.UInt32,System.UInt32)">
+            <summary>
+            Route the target video input to the target video output.
+            </summary>
+            <param name="source">The input number that will be routed.</param>
+            <param name="output">The output number to route to.</param>
+        </member>
+        <member name="M:pkd_hardware_service.Routable.IVideoRoutable.ClearVideoRoute(System.UInt32)">
+            <summary>
+            Clear the output of all video signals.
+            </summary>
+            <param name="output">The output to clear video content on.</param>
+        </member>
+        <member name="T:pkd_hardware_service.TransportDevices.ITransportDevice">
+            <summary>
+            Interface to be implemented by any class that uses transport commands (Blu-ray, DVD player, etc.).
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.VideoWallDevices.IVideoWallDevice">
+            <summary>
+            required events, properties, and methods for the framework to support a video wall controller.
+            </summary>
+            <remarks>The implementing device must also implement IBaseDevice, as all device plugins are required to do.</remarks>
+        </member>
+        <member name="E:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.VideoWallLayoutChanged">
+            <summary>
+            Triggered whenever the device reports that the active layout has changed.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.VideoWallCellSourceChanged">
+            <summary>
+            Event args:<br/>
+            Arg1 - the id of the cell in the active layout that changed.<br/>
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.Layouts">
+            <summary>
+            A collection of all <see cref="T:pkd_hardware_service.VideoWallDevices.VideoWallLayout"/>s that are selectable by this controller.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.Sources">
+            <summary>
+            A collection of all <see cref="T:pkd_domain_service.Data.RoutingData.Source"/> objects that are routable. 
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.StartupLayoutId">
+            <summary>
+            The id of the layout that should be selected on system startup or boot.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.MaxHeight">
+            <summary>
+            The total height of physical video wall displays.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.MaxWidth">
+            <summary>
+            The total width of physical video wall displays.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.Initialize(System.String,System.Int32,System.String,System.String,System.String,System.String)">
+            <summary>
+            Register all internal components and define connection information.
+            </summary>
+            <param name="hostname">The IP address or hostname used to connect.</param>
+            <param name="port">the port number used to connect.</param>
+            <param name="id">the unique ID of the device.</param>
+            <param name="label">The user-friendly name of the device.</param>
+            <param name="username">the authentication username used to connect to the device.</param>
+            <param name="password">The authentication password used to connect to the evice</param>
+        </member>
+        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.SetActiveLayout(System.String)">
+            <summary>
+            Send a layout change command to the video wall controller.
+            </summary>
+            <param name="id">The unique id of the layout to select.</param>
+        </member>
+        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.GetActiveLayoutId">
+            <summary>
+            Get the id of the currently selected layout.
+            </summary>
+            <returns>the id of the currently selected layout.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.SetCellSource(System.String,System.String)">
+            <summary>
+            Route a video source to a cell in the currently selected layout.
+            </summary>
+            <param name="cellId">The unique id of the cell to route to.</param>
+            <param name="sourceId">The unique id of the source being routed.</param>
+        </member>
+        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.GetCellSourceId(System.String)">
+            <summary>
+            Query the controller for the currently routed source.
+            </summary>
+            <param name="cellId">the unique id of the cell in the currently active layout being queried</param>
+            <returns>the unique id of the source routed to the queried cell.</returns>
+        </member>
+        <member name="T:pkd_hardware_service.VideoWallDevices.VideoWallCell">
+            <summary>
+            Data object representing a single window/output cell in a video wall layout.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.Id">
+            <summary>
+            The unique id of this cell used for internal referencing.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.SourceId">
+            <summary>
+            The unique id of the currently routed video source.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.DefaultSourceId">
+            <summary>
+            The id of the routable video wall source that should be sent to this cell/window when the parent layout
+            is selected.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.XPosition">
+            <summary>
+            The horizontal location of this cell/window
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.YPosition">
+            <summary>
+            The vertical location of this cell/window.
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.VideoWallDevices.VideoWallFactory">
+            <summary>
+            Factory class used to build a hardware control interface for video wall controllers.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.VideoWallDevices.VideoWallFactory.CreateVideoWallDevice(pkd_domain_service.Data.VideoWallData.VideoWall,Crestron.SimplSharpPro.CrestronControlSystem,pkd_hardware_service.IInfrastructureService)">
+            <param name="data">The configuration data for the video wall device.</param>
+            <param name="processor">The root Crestron control system object.</param>
+            <param name="hwService">the hardware service that will manage the device after instantiation.</param>
+            <returns></returns>
+        </member>
+        <member name="T:pkd_hardware_service.VideoWallDevices.VideoWallLayout">
+            <summary>
+            Data object representing a single video wall layout.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallLayout.Id">
+            <summary>
+            The unique id of this layout used for internal referencing.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallLayout.Label">
+            <summary>
+            The human-friendly name of this layout.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallLayout.Width">
+            <summary>
+            The number of cells in the layout on the x-axis.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallLayout.Height">
+            <summary>
+            The number of cells in the layout on the y-axis.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallLayout.Cells">
+            <summary>
+            A collection of all video cells and their positions within this layout.
+            </summary>
+        </member>
+    </members>
+</doc>

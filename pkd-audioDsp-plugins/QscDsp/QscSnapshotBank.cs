@@ -1,4 +1,6 @@
-﻿namespace QscDsp
+﻿using QscQsys.NamedComponents;
+
+namespace QscDsp
 {
 	using Crestron.SimplSharp;
 	using pkd_common_utils.Logging;
@@ -11,9 +13,9 @@
 	/// </summary>
 	internal class QscSnapshotBank
 	{
-		private readonly string coreId;
-		private readonly QsysSnapshot snapshot;
-		private readonly Dictionary<string, int> presets;
+		private readonly string _coreId;
+		private readonly QsysSnapshot _snapshot;
+		private readonly Dictionary<string, int> _presets;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QscSnapshotBank"/> class.
@@ -22,27 +24,28 @@
 		/// <param name="bankName">The named snapshot bank that is set in the core design.</param>
 		public QscSnapshotBank(string coreId, string bankName)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(coreId, "QscSnapshotBank.Ctor", "coreId");
-			ParameterValidator.ThrowIfNullOrEmpty(bankName, "QscSnapshotBank.Ctor", "bankName");
-			this.Name = bankName;
-			this.coreId = coreId;
-			this.presets = new Dictionary<string, int>();
-			this.snapshot = new QsysSnapshot();
+			ParameterValidator.ThrowIfNullOrEmpty(coreId, "QscSnapshotBank.Ctor", nameof(coreId));
+			ParameterValidator.ThrowIfNullOrEmpty(bankName, "QscSnapshotBank.Ctor", nameof(bankName));
+			Name = bankName;
+			_coreId = coreId;
+			_presets = new Dictionary<string, int>();
+			_snapshot = new QsysSnapshot();
 		}
 
+		/// <summary>
+		/// Gets the user-friendly name of this snapshot bank.
+		/// </summary>
 		public string Name { get; private set; }
+		
+		/// <summary>
+		/// Gets a value indicating whether the snapshot bank has been registered with the control object.
+		/// </summary>
 		public bool IsRegistered { get; private set; }
 
 		/// <summary>
 		/// Gets the Ids of all presets stored in the snapshot.
 		/// </summary>
-		public IEnumerable<string> PresetIds
-		{
-			get
-			{
-				return this.presets.Keys;
-			}
-		}
+		public IEnumerable<string> PresetIds => _presets.Keys;
 
 		/// <summary>
 		/// Check the collection of added presets for the target ID.
@@ -51,38 +54,35 @@
 		/// <returns>True if the preset was found, false otherwise.</returns>
 		public bool HasPreset(string presetId)
 		{
-			return this.presets.ContainsKey(presetId);
+			return _presets.ContainsKey(presetId);
 		}
 
 		/// <summary>
 		/// Add a preset to the collection. If a preset currently exists with the
 		/// same ID it will be replaced.
 		/// </summary>
-		/// <param name="data">The configuration data containing the preset index to control.</param>
+		/// <param name="presetId">The unique id of the preset being added.</param>
+		/// <param name="presetIndex">The bank index of the preset being added.</param>
 		public void AddPreset(string presetId, int presetIndex)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(presetId, "QscSnapshotbank.AddPreset", "presetId");
-			if (this.presets.ContainsKey(presetId))
+			ParameterValidator.ThrowIfNullOrEmpty(presetId, "QscSnapshotBank.AddPreset", nameof(presetId));
+			if (!_presets.TryAdd(presetId, presetIndex))
 			{
-				this.presets[presetId] = presetIndex;
+				_presets[presetId] = presetIndex;
 			}
-			else
-			{
-				this.presets.Add(presetId, presetIndex);
-			}
-		}
+        }
 
-		/// <summary>
-		/// Attempts to load a bank at the given index.
-		/// Writes a warning to the system logger if the bank cannot be found.
-		/// </summary>
-		/// <param name="presetId">The unique ID of the snapshot bank to recall.</param>
-		/// <returns>True if the recall was successful, false otherwise.</returns>
-		public bool RecallPreset(string presetId)
+        /// <summary>
+        /// Attempts to load a bank at the given index.
+        /// Writes a warning to the system logger if the bank cannot be found.
+        /// </summary>
+        /// <param name="presetId">The unique ID of the snapshot bank to recall.</param>
+        /// <returns>True if the recall was successful, false otherwise.</returns>
+        public bool RecallPreset(string presetId)
 		{
-			if (this.presets.TryGetValue(presetId, out int found))
+			if (_presets.TryGetValue(presetId, out int found))
 			{
-				this.snapshot.LoadSnapshot((ushort)found);
+				_snapshot.LoadSnapshot((ushort)found);
 				return true;
 			}
 			else
@@ -92,20 +92,20 @@
 		}
 
 		/// <summary>
-		/// Initializes the internal comunication objects and registers them with the core.
+		/// Initializes the internal communication objects and registers them with the core.
 		/// </summary>
 		public void Register()
 		{
-			Logger.Debug("Registering Snapshot bank {0} with core {1}", this.Name, this.coreId);
-			this.snapshot.onRecalledSnapshot = this.SnapshotRecalled;
-			this.snapshot.Initialize(this.coreId, this.Name);
-			this.IsRegistered = true;
+			Logger.Debug("Registering Snapshot bank {0} with core {1}", Name, _coreId);
+			_snapshot.onRecalledSnapshot = SnapshotRecalled;
+			_snapshot.Initialize(_coreId, Name, 8);
+			IsRegistered = true;
 		}
 
 
 		private void SnapshotRecalled(SimplSharpString name, ushort index)
 		{
-			Logger.Debug("QscSnapshotBank {0} - SnapshotRecalled({1})", this.Name, index);
+			Logger.Debug("QscSnapshotBank {0} - SnapshotRecalled({1})", Name, index);
 		}
 	}
 }

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>pkd-config-service</name>
+    </assembly>
+    <members>
+        <member name="T:pkd_config_service.ConfigurationService">
+            <summary>
+            Class for loading configuration data from a JSON file.
+            </summary>
+            <remarks>
+            Initializes a new instance of the <see cref="T:pkd_config_service.ConfigurationService"/> class.
+            </remarks>
+            <param name="programSlot">The program slot number to search for when loading configuration.</param>
+            <param name="parent">The root control system entry point object.</param>
+        </member>
+        <member name="M:pkd_config_service.ConfigurationService.#ctor(System.UInt32,Crestron.SimplSharpPro.CrestronControlSystem)">
+            <summary>
+            Class for loading configuration data from a JSON file.
+            </summary>
+            <remarks>
+            Initializes a new instance of the <see cref="T:pkd_config_service.ConfigurationService"/> class.
+            </remarks>
+            <param name="programSlot">The program slot number to search for when loading configuration.</param>
+            <param name="parent">The root control system entry point object.</param>
+        </member>
+        <member name="M:pkd_config_service.ConfigurationService.Finalize">
+            <inheritdoc />
+        </member>
+        <member name="E:pkd_config_service.ConfigurationService.ConfigLoadComplete">
+            <summary>
+            Triggered when all dependencies have been downloaded and loaded into the program.
+            </summary>
+        </member>
+        <member name="E:pkd_config_service.ConfigurationService.ConfigLoadFailed">
+            <summary>
+            Triggered if there was a failure downloading dependencies or creating the Domain service.
+            </summary>
+        </member>
+        <member name="P:pkd_config_service.ConfigurationService.Domain">
+            <summary>
+            Gets the Domain hardware management service that was created from the configuration file.
+            </summary>
+        </member>
+        <member name="M:pkd_config_service.ConfigurationService.LoadConfig">
+            <summary>
+            Load all dependency information and create the Domain service. This will also attempt to download any
+            missing dependencies from the ServerInfo data of the configuration file.
+            </summary>
+        </member>
+        <member name="M:pkd_config_service.ConfigurationService.Dispose">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

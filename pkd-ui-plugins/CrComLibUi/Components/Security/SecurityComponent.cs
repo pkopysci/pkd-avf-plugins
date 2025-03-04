@@ -1,143 +1,155 @@
-﻿namespace CrComLibUi.Components.Security
+﻿namespace CrComLibUi.Components.Security;
+
+using Crestron.SimplSharpPro.DeviceSupport;
+using pkd_application_service.UserInterface;
+using pkd_common_utils.Logging;
+using pkd_ui_service.Interfaces;
+using Api;
+using System;
+using System.Linq;
+
+internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 {
-	using Crestron.SimplSharpPro.DeviceSupport;
-	using pkd_application_service.UserInterface;
-	using pkd_common_utils.Logging;
-	using pkd_ui_service.Interfaces;
-	using CrComLibUi.Api;
-	using System;
-	using System.Linq;
+	private const string CheckPassword = "CODE";
+	private const string TechLock = "TECHLOCK";
+	private const string SetSecure = "SETSECURE";
+	private string _passcode = string.Empty;
 
-	internal class SecurityComponent : BaseComponent, ISecurityUserInterface
+	public SecurityComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
+		: base(ui, uiData)
 	{
-		private static readonly string CHECK_PASSWORD = "CODE";
-		private static readonly string TECH_LOCK = "TECHLOCK";
+		PostHandlers.Add(CheckPassword, HandleUnlockRequest);
+	}
 
-		private string passcode = string.Empty;
+	/// <inheritdoc />
+	public void EnableSecurityPasscodeLock()
+	{
+		var cmd = MessageFactory.CreateGetResponseObject();
+		cmd.Command = SetSecure;
+		cmd.Data["State"] = true;
+		Send(cmd, ApiHooks.Security);
+	}
 
-		public SecurityComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-			: base(ui, uiData)
+	/// <inheritdoc />
+	public void DisableTechOnlyLock()
+	{
+		var cmd = MessageFactory.CreateGetResponseObject();
+		cmd.Command = TechLock;
+		cmd.Data["Code"] = string.Empty;
+		cmd.Data["Result"] = false;
+		Send(cmd, ApiHooks.Security);
+	}
+
+	/// <inheritdoc />
+	public void EnableTechOnlyLock()
+	{
+		var cmd = MessageFactory.CreateGetResponseObject();
+		cmd.Command = TechLock;
+		cmd.Data["Code"] = string.Empty;
+		cmd.Data["Result"] = true;
+		Send(cmd, ApiHooks.Security);
+	}
+
+	/// <inheritdoc />
+	public override void HandleSerialResponse(string response)
+	{
+		try
 		{
-			PostHandlers.Add(CHECK_PASSWORD, HandleUnlockRequest);
-		}
-
-		/// <inheritdoc />
-		public void EnableSecurityPasscodeLock()
-		{
-			ResponseBase cmd = MessageFactory.CreateGetResponseObject();
-			cmd.Command = CHECK_PASSWORD;
-			cmd.Data = new SecurityData() { Code = string.Empty, Result = true };
-			Send(cmd, ApiHooks.Security);
-		}
-
-		/// <inheritdoc />
-		public void DisableTechOnlyLock()
-		{
-			ResponseBase cmd = MessageFactory.CreateGetResponseObject();
-			cmd.Command = TECH_LOCK;
-			cmd.Data = new SecurityData() { Code = string.Empty, Result = false };
-			Send(cmd, ApiHooks.Security);
-		}
-
-		/// <inheritdoc />
-		public void EnableTechOnlyLock()
-		{
-			ResponseBase cmd = MessageFactory.CreateGetResponseObject();
-			cmd.Command = TECH_LOCK;
-			cmd.Data = new SecurityData() { Code = string.Empty, Result = true };
-			Send(cmd, ApiHooks.Security);
-		}
-
-		/// <inheritdoc />
-		public override void HandleSerialResponse(string response)
-		{
-			try
+			var message = MessageFactory.DeserializeMessage(response);
+			if (string.IsNullOrEmpty(message.Method))
 			{
-				ResponseBase message = MessageFactory.DeserializeMessage(response);
-				if (message == null)
-				{
-					ResponseBase errorMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
-					Send(errorMessage, ApiHooks.Security);
-					return;
-				}
+				var errorMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
+				Send(errorMessage, ApiHooks.Security);
+				return;
+			}
 
-				if (message.Method.Equals("GET"))
+			switch (message.Method)
+			{
+				case "GET":
+					// handle get request at some point?
+					break;
+				case "POST":
+					HandlePostRequest(message);
+					break;
+				default:
 				{
-					// TODO: Handle GET requests?
-				}
-				else if (message.Method.Equals("POST"))
-				{
-					HandlPostRequest(message);
-				}
-				else
-				{
-					ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Unsupported method: {message.Method}.");
+					var errMessage = MessageFactory.CreateErrorResponse($"Unsupported method: {message.Method}.");
 					Send(errMessage, ApiHooks.RoomConfig);
+					break;
 				}
 			}
-			catch (Exception ex)
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("CrComLibUi.SecurityComponent.HandleSerialResponse() - {0}", ex);
+			var errMessage = MessageFactory.CreateErrorResponse("500 - Internal Server Error.");
+			Send(errMessage, ApiHooks.Security);
+		}
+	}
+
+	/// <inheritdoc />
+	public override void Initialize()
+	{
+		ParsePasscode();
+		Initialized = true;
+	}
+
+	private void HandleUnlockRequest(ResponseBase response)
+	{
+		try
+		{
+			var userCode = response.Data.Value<string>("Code");
+			if (string.IsNullOrEmpty(userCode))
 			{
-				Logger.Error("CrComLibUi.SecurityComponent.HandleSerialResponse() - {0}", ex);
-				ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
-				Send(errMessage, ApiHooks.Security);
+				SendError("Invalid POST unlock request - missing 'Code'.", ApiHooks.Security);
+				return;
+			}
+
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CheckPassword;
+			message.Data["Code"] = userCode;
+			message.Data["Result"] = _passcode.Equals(userCode);
+			
+			Logger.Debug($"SecurityComponent.HandleUnlockRequest() - responding with {message.Data["Result"]}");
+			
+			Send(message, ApiHooks.Security);
+		}
+		catch (Exception e)
+		{
+			Logger.Error("CrComLibUi.SecurityComponent.HandleUnlockRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.Security);
+		}
+	}
+
+	private void HandlePostRequest(ResponseBase response)
+	{
+		if (PostHandlers.TryGetValue(response.Command, out var handler))
+		{
+			handler(response);
+		}
+		else
+		{
+			var errRx = MessageFactory.CreateErrorResponse($"Unsupported POST command: {response.Command}");
+			Send(errRx, ApiHooks.Security);
+			Send(string.Empty, ApiHooks.Security);
+		}
+	}
+
+	private void ParsePasscode()
+	{
+		if (UiData.Tags.Count == 0) return;
+
+		try
+		{
+			var passcodeTag = UiData.Tags.FirstOrDefault(x => x.Contains("secure"));
+			if (passcodeTag is { Length: > 0 })
+			{
+				_passcode = passcodeTag.Split('-')[1];
 			}
 		}
-
-		/// <inheritdoc />
-		public override void Initialize()
+		catch (Exception ex)
 		{
-			Initialized = false;
-			ParsePasscode();
-			Initialized = true;
-		}
-
-		private void HandleUnlockRequest(ResponseBase response)
-		{
-			try
-			{
-				bool result = passcode.Equals(response.Data.Code);
-				ResponseBase returnData = MessageFactory.CreatePostResponseObject();
-				returnData.Command = CHECK_PASSWORD;
-				returnData.Data = new SecurityData() { Code = response.Data.Code, Result = result };
-				Send(returnData, ApiHooks.Security);
-				FlushJoinData(ApiHooks.Security);
-			}
-			catch (Exception ex)
-			{
-				Logger.Error(ex, "SecurityComponent.HandleUnlockRequest()");
-				Send(MessageFactory.CreateErrorResponse($"Invalid passcode: {ex.Message}"), ApiHooks.Security);
-			}
-		}
-
-		private void HandlPostRequest(ResponseBase response)
-		{
-			if (PostHandlers.TryGetValue(response.Command, out Action<ResponseBase> handler))
-			{
-				handler(response);
-			}
-			else
-			{
-				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Unsupported POST command: {response.Command}");
-				Send(errRx, ApiHooks.Security);
-			}
-		}
-
-		private void ParsePasscode()
-		{
-			if (uiData.Tags == null || uiData.Tags.Count == 0) return;
-
-			try
-			{
-				string passcodeTag = uiData.Tags.FirstOrDefault(x => x.Contains("secure"));
-				if (passcodeTag != null && passcodeTag.Length > 0)
-				{
-					passcode = passcodeTag.Split('-')[1];
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Error(ex, "SecurityComponent.parsePasscode()");
-			}
+			Logger.Error(ex, "SecurityComponent.parsePasscode()");
 		}
 	}
 }

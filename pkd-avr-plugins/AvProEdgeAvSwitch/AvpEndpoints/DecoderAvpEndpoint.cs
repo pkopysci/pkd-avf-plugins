@@ -1,102 +1,84 @@
-﻿namespace AvProEdgeAvSwitch.AvpEndpoints
+﻿namespace AvProEdgeAvSwitch.AvpEndpoints;
+
+using AVProEdgeMXNetLib.Components;
+using pkd_common_utils.GenericEventArgs;
+using pkd_common_utils.Logging;
+using System;
+
+// TODO: Add audio routing support.
+internal class DecoderAvpEndpoint(string macAddress, ushort processorId, ushort index)
+	: AvpEndpoint(macAddress, processorId, index)
 {
-	using AVProEdgeMXNetLib.Components;
-	using pkd_common_utils.GenericEventArgs;
-	using pkd_common_utils.Logging;
-	using System;
+	private readonly DecoderComponent _decoder = new();
+	private readonly DestinationRouterComponent _router = new();
+	private bool _decoderOnline;
+	private bool _routerInitialized;
 
-	internal class DecoderAvpEndpoint : AvpEndpoint
+	public event EventHandler<GenericDualEventArgs<string, uint>>? VideoRouteChanged;
+
+	public override bool IsOnline => _decoderOnline;
+
+	public override bool IsInitialized => _routerInitialized;
+
+	public uint CurrentVideoSource { get; private set; }
+
+	public void RouteSource(uint input)
 	{
-		private readonly DecoderComponent decoder;
-		private readonly DestinationRouterComponent router;
-		private bool decoderOnline;
-		private bool routerInitialized;
-
-		public DecoderAvpEndpoint(string macAddress, ushort processorId, ushort index)
-			: base(macAddress, processorId, index)
+		if (!IsOnline || !IsInitialized)
 		{
-			this.decoder = new DecoderComponent();
-			this.router = new DestinationRouterComponent();
+			Logger.Error(
+				"AvProEdge decoder {0} - RouteSource() - Invalid state. online =  {1}, init = {2}",
+				MacAddress,
+				IsOnline,
+				IsInitialized);
+
+			return;
 		}
 
-		public event EventHandler<GenericDualEventArgs<string, uint>> VideoRouteChanged;
+		_router.SetRoute((ushort)input);
+		_router.TakeRoute();
+	}
 
-		public event EventHandler<GenericDualEventArgs<string, uint>> AudioRouteChanged;
+	public override void Initialize()
+	{
+		Logger.Debug("Initializing DecoderAvpEndpoint {0} with device {1}", MacAddress, ProcessorId);
 
-		public override bool IsOnline { get { return this.decoderOnline; } }
+		_decoder.OnOnline += Decoder_OnOnline;
+		_decoder.OnInitialize += Decoder_OnInitialize;
 
-		public override bool IsInitialized { get { return this.routerInitialized; } }
+		_router.OnInitialize += Router_OnInitialize;
+		_router.OnSourceVideo += Router_OnSourceVideo;
+		_router.SetEnableVideo(1);
 
-		public uint CurrentVideoSource { get; private set; }
+		_decoder.Configure(ProcessorId, MacAddress, Index);
+		_router.Configure(ProcessorId, Index, string.Empty);
+	}
 
-		public uint CurrentAudioSource { get; private set; }
+	private void Decoder_OnInitialize(object sender, AVProEdgeMXNetLib.EventArguments.DigEventArgs args)
+	{
+		NotifyInitializeChanged();
+	}
 
-		public void RouteSource(uint input)
-		{
-			if (!this.IsOnline || !this.IsInitialized)
-			{
-				Logger.Error(
-					"AvProEdge decoder {0} - RouteSource() - Invalid state. online =  {1}, init = {2}",
-					this.MacAddress,
-					this.IsOnline,
-					this.IsInitialized);
+	private void Decoder_OnOnline(object sender, AVProEdgeMXNetLib.EventArguments.DigEventArgs args)
+	{
+		_decoderOnline = args.Payload > 0;
+		NotifyOnlineChanged();
+	}
 
-				return;
-			}
+	private void Router_OnSourceVideo(object sender, AVProEdgeMXNetLib.EventArguments.AnaEventArgs args)
+	{
+		CurrentVideoSource = args.Payload;
+		Notify(VideoRouteChanged, Index);
+	}
 
-			this.router.SetRoute((ushort)input);
-			this.router.TakeRoute();
-		}
+	private void Router_OnInitialize(object sender, AVProEdgeMXNetLib.EventArguments.DigEventArgs args)
+	{
+		_routerInitialized = args.Payload > 0;
+		NotifyInitializeChanged();
+	}
 
-		public override void Initialize()
-		{
-			Logger.Debug("Initializing DecoderAvpEndpoint {0} with device {1}", this.MacAddress, this.ProcessorId);
-
-			this.decoder.OnOnline += new AVProEdgeMXNetLib.EventArguments.DigEventHandler(Decoder_OnOnline);
-			this.decoder.OnInitialize += new AVProEdgeMXNetLib.EventArguments.DigEventHandler(Decoder_OnInitialize);
-
-			this.router.OnInitialize += new AVProEdgeMXNetLib.EventArguments.DigEventHandler(Router_OnInitialize);
-			this.router.OnSourceAudio += new AVProEdgeMXNetLib.EventArguments.AnaEventHandler(Router_OnSourceAudio);
-			this.router.OnSourceVideo += new AVProEdgeMXNetLib.EventArguments.AnaEventHandler(Router_OnSourceVideo);
-			this.router.SetEnableVideo(1);
-
-			this.decoder.Configure(this.ProcessorId, this.MacAddress, this.Index);
-			this.router.Configure(this.ProcessorId, this.Index, string.Empty);
-		}
-
-		private void Decoder_OnInitialize(object sender, AVProEdgeMXNetLib.EventArguments.DigEventArgs args)
-		{
-			this.NotifyInitializeChanged();
-		}
-
-		private void Decoder_OnOnline(object sender, AVProEdgeMXNetLib.EventArguments.DigEventArgs args)
-		{
-			this.decoderOnline = args.Payload > 0;
-			this.NotifyOnlineChanged();
-		}
-
-		private void Router_OnSourceVideo(object sender, AVProEdgeMXNetLib.EventArguments.AnaEventArgs args)
-		{
-			this.CurrentVideoSource = (uint)args.Payload;
-			this.Notify(this.VideoRouteChanged, this.Index);
-		}
-
-		private void Router_OnSourceAudio(object sender, AVProEdgeMXNetLib.EventArguments.AnaEventArgs args)
-		{
-			this.CurrentAudioSource = (uint)args.Payload;
-			this.Notify(this.AudioRouteChanged, this.Index);
-		}
-
-		private void Router_OnInitialize(object sender, AVProEdgeMXNetLib.EventArguments.DigEventArgs args)
-		{
-			this.routerInitialized = args.Payload > 0;
-			this.NotifyInitializeChanged();
-		}
-
-		private void Notify(EventHandler<GenericDualEventArgs<string, uint>> handler, uint arg)
-		{
-			var temp = handler;
-			temp?.Invoke(this, new GenericDualEventArgs<string, uint>(this.MacAddress, arg));
-		}
+	private void Notify(EventHandler<GenericDualEventArgs<string, uint>>? handler, uint arg)
+	{
+		handler?.Invoke(this, new GenericDualEventArgs<string, uint>(MacAddress, arg));
 	}
 }

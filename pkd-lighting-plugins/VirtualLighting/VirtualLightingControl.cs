@@ -1,163 +1,151 @@
-﻿namespace VirtualLighting
+﻿namespace VirtualLighting;
+
+using pkd_common_utils.GenericEventArgs;
+using pkd_common_utils.Logging;
+using pkd_hardware_service.LightingDevices;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
+public class VirtualLightingControl : ILightingDevice
 {
-	using pkd_common_utils.GenericEventArgs;
-	using pkd_common_utils.Logging;
-	using pkd_hardware_service.LightingDevices;
-	using System;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
+	private readonly Dictionary<string, LightingScene> _scenes = new();
+	private readonly Dictionary<string, LightingZone> _zones = new();
 
-	public class VirtualLightingControl : ILightingDevice
+	/// <inheritdoc/>
+	public event EventHandler<GenericSingleEventArgs<string>>? ActiveSceneChanged;
+
+	/// <inheritdoc/>
+	public event EventHandler<GenericSingleEventArgs<string>>? ZoneLoadChanged;
+
+	/// <inheritdoc/>
+	public event EventHandler<GenericSingleEventArgs<string>>? ConnectionChanged;
+
+	/// <inheritdoc/>
+	public string ActiveSceneId
 	{
-		private readonly Dictionary<string, LightingScene> scenes;
-		private readonly Dictionary<string, LightingZone> zones;
+		get;
+		private set;
+	} = string.Empty;
 
-		public VirtualLightingControl()
+	/// <inheritdoc/>
+	public string Id { get; private set; } = string.Empty;
+
+	/// <inheritdoc/>
+	public bool IsInitialized { get; private set; }
+
+	/// <inheritdoc/>
+	public bool IsOnline { get; private set; }
+
+	/// <inheritdoc/>
+	public string Label { get; private set; } = string.Empty;
+
+	/// <inheritdoc/>
+	public ReadOnlyCollection<string> SceneIds
+	{
+		get
 		{
-			this.scenes = new Dictionary<string, LightingScene>();
-			this.zones = new Dictionary<string, LightingZone>();
-			this.ActiveSceneId = string.Empty;
+			var keys = new string[_scenes.Keys.Count];
+			_scenes.Keys.CopyTo(keys, 0);
+			return new ReadOnlyCollection<string>(keys);
 		}
+	}
 
-		/// <inheritdoc/>
-		public event EventHandler<GenericSingleEventArgs<string>> ActiveSceneChanged;
-
-		/// <inheritdoc/>
-		public event EventHandler<GenericSingleEventArgs<string>> ZoneLoadChanged;
-
-		/// <inheritdoc/>
-		public event EventHandler<GenericSingleEventArgs<string>> ConnectionChanged;
-
-		/// <inheritdoc/>
-		public string ActiveSceneId
+	/// <inheritdoc/>
+	public ReadOnlyCollection<string> ZoneIds
+	{
+		get
 		{
-			get;
-			private set;
+			var keys = new string[_zones.Keys.Count];
+			_zones.Keys.CopyTo(keys, 0);
+			return new ReadOnlyCollection<string>(keys);
 		}
+	}
 
-		/// <inheritdoc/>
-		public string Id { get; private set; }
-
-		/// <inheritdoc/>
-		public bool IsInitialized { get; private set; }
-
-		/// <inheritdoc/>
-		public bool IsOnline { get; private set; }
-
-		/// <inheritdoc/>
-		public string Label { get; private set; }
-
-		/// <inheritdoc/>
-		public ReadOnlyCollection<string> SceneIds
+	/// <inheritdoc/>
+	public void AddScene(string id, string label, int index)
+	{
+		_scenes.Add(id, new LightingScene()
 		{
-			get
-			{
-				string[] keys = new string[this.scenes.Keys.Count];
-				this.scenes.Keys.CopyTo(keys, 0);
-				return new ReadOnlyCollection<string>(keys);
-			}
-		}
+			Id = id,
+			Index = index,
+			Label = label
+		});
+	}
 
-		/// <inheritdoc/>
-		public ReadOnlyCollection<string> ZoneIds
+	/// <inheritdoc/>
+	public void AddZone(string id, string label, int index)
+	{
+		_zones.Add(id, new LightingZone()
 		{
-			get
-			{
-				string[] keys = new string[this.zones.Keys.Count];
-				this.zones.Keys.CopyTo(keys, 0);
-				return new ReadOnlyCollection<string>(keys);
-			}
-		}
+			Id = id,
+			Index = index,
+			Label = label,
+			Level = 0
+		});
+	}
 
-		/// <inheritdoc/>
-		public void AddScene(string id, string label, int index)
+	/// <inheritdoc/>
+	public int GetZoneLoad(string id)
+	{
+		if (_zones.TryGetValue(id, out var found))
 		{
-			this.scenes.Add(id, new LightingScene()
-			{
-				Id = id,
-				Index = index,
-				Label = label
-			});
+			return found.Level;
 		}
+		else
+		{
+			Logger.Error("VirtualLightingControl {0} - no zone found with ID {1}", Id, id);
+			return 0;
+		}
+	}
 
-		/// <inheritdoc/>
-		public void AddZone(string id, string label, int index)
-		{
-			this.zones.Add(id, new LightingZone()
-			{
-				Id = id,
-				Index = index,
-				Label = label,
-				Level = 0
-			});
-		}
+	/// <inheritdoc/>
+	public void Initialize(
+		string hostName,
+		int port,
+		string id,
+		string label,
+		string userName,
+		string password,
+		List<string> tags)
+	{
+		IsInitialized = false;
+		Id = id;
+		Label = label;
+		IsInitialized = true;
+	}
 
-		/// <inheritdoc/>
-		public int GetZoneLoad(string id)
-		{
-			if (this.zones.TryGetValue(id, out LightingZone found))
-			{
-				return found.Level;
-			}
-			else
-			{
-				Logger.Error("VirtualLightingControl {0} - no zone found with ID {1}", this.Id, id);
-				return 0;
-			}
-		}
+	/// <inheritdoc/>
+	public void RecallScene(string id)
+	{
+		if (!_scenes.ContainsKey(id)) return;
+		ActiveSceneId = id;
+		var temp = ActiveSceneChanged;
+		temp?.Invoke(this, new GenericSingleEventArgs<string>(ActiveSceneId));
+	}
 
-		/// <inheritdoc/>
-		public void Initialize(
-			string hostName,
-			int port,
-			string id,
-			string label,
-			string userName,
-			string password,
-			List<string> tags)
-		{
-			this.IsInitialized = false;
-			this.Id = id;
-			this.Label = label;
-			this.IsInitialized = true;
-		}
+	/// <inheritdoc/>
+	public void SetZoneLoad(string id, int loadLevel)
+	{
+		if (!_zones.TryGetValue(id, out var found)) return;
+		found.Level = loadLevel;
+		var temp = ZoneLoadChanged;
+		temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
+	}
 
-		/// <inheritdoc/>
-		public void RecallScene(string id)
-		{
-			if (this.scenes.TryGetValue(id, out LightingScene found))
-			{
-				this.ActiveSceneId = id;
-				var temp = this.ActiveSceneChanged;
-				temp?.Invoke(this, new GenericSingleEventArgs<string>(this.ActiveSceneId));
-			}
-		}
+	/// <inheritdoc/>
+	public void Connect()
+	{
+		IsOnline = true;
+		var temp = ConnectionChanged;
+		temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
+	}
 
-		/// <inheritdoc/>
-		public void SetZoneLoad(string id, int loadLevel)
-		{
-			if (this.zones.TryGetValue(id, out LightingZone found))
-			{
-				found.Level = loadLevel;
-				var temp = this.ZoneLoadChanged;
-				temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
-			}
-		}
-
-		/// <inheritdoc/>
-		public void Connect()
-		{
-			this.IsOnline = true;
-			var temp = this.ConnectionChanged;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
-		}
-
-		/// <inheritdoc/>
-		public void Disconnect()
-		{
-			this.IsOnline = false;
-			var temp = this.ConnectionChanged;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
-		}
+	/// <inheritdoc/>
+	public void Disconnect()
+	{
+		IsOnline = false;
+		var temp = ConnectionChanged;
+		temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
 	}
 }

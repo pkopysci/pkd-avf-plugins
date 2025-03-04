@@ -1,10 +1,9 @@
-﻿namespace CrComLibUi
-{
-	using pkd_application_service.UserInterface;
-	using pkd_ui_service.Interfaces;
+﻿namespace CrComLibUi;
 
-	internal interface ICrComLibComponent : IUiComponent
-	{
-		UserInterfaceDataContainer UiData { get; set; }
-	}
+using pkd_application_service.UserInterface;
+using pkd_ui_service.Interfaces;
+
+internal interface ICrComLibComponent : IUiComponent
+{
+	UserInterfaceDataContainer UiData { get; set; }
 }

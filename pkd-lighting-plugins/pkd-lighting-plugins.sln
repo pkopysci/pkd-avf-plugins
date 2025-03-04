@@ -1,11 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.11.35327.3
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LutronLighting", "LutronLighting\LutronLighting.csproj", "{E5F6B03C-5D62-475C-9A23-65A924074CAC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualLighting", "VirtualLighting\VirtualLighting.csproj", "{8F4B459F-DD31-4A83-A950-0631D50B662B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualLighting", "VirtualLighting\VirtualLighting.csproj", "{1489F5DF-F153-4DAA-9BFE-6F3A6571A4D7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LutronLighting", "LutronLighting\LutronLighting.csproj", "{E0783AC9-1282-468D-A3A0-7D4FB3263C93}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,19 +10,13 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E5F6B03C-5D62-475C-9A23-65A924074CAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E5F6B03C-5D62-475C-9A23-65A924074CAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E5F6B03C-5D62-475C-9A23-65A924074CAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E5F6B03C-5D62-475C-9A23-65A924074CAC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1489F5DF-F153-4DAA-9BFE-6F3A6571A4D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1489F5DF-F153-4DAA-9BFE-6F3A6571A4D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1489F5DF-F153-4DAA-9BFE-6F3A6571A4D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1489F5DF-F153-4DAA-9BFE-6F3A6571A4D7}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {260B6484-AAB1-4CDE-9CF7-1E9C17403C8C}
+		{8F4B459F-DD31-4A83-A950-0631D50B662B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F4B459F-DD31-4A83-A950-0631D50B662B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F4B459F-DD31-4A83-A950-0631D50B662B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F4B459F-DD31-4A83-A950-0631D50B662B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0783AC9-1282-468D-A3A0-7D4FB3263C93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0783AC9-1282-468D-A3A0-7D4FB3263C93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0783AC9-1282-468D-A3A0-7D4FB3263C93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0783AC9-1282-468D-A3A0-7D4FB3263C93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,172 +1,164 @@
-﻿namespace DisplayEmulator
+﻿namespace DisplayEmulator;
+
+using pkd_common_utils.GenericEventArgs;
+using pkd_hardware_service.DisplayDevices;
+using pkd_hardware_service.Routable;
+using System;
+
+public class DisplayEmulatorTcp : IDisplayDevice, IVideoRoutable
 {
-	using pkd_common_utils.GenericEventArgs;
-	using pkd_hardware_service.DisplayDevices;
-	using pkd_hardware_service.Routable;
-	using System;
+	private uint _vidSource;
 
-	public class DisplayEmulatorTcp : IDisplayDevice, IVideoRoutable
+	public event EventHandler<GenericSingleEventArgs<string>>? VideoBlankChanged;
+	public event EventHandler<GenericSingleEventArgs<string>>? HoursUsedChanged;
+	public event EventHandler<GenericSingleEventArgs<string>>? PowerChanged;
+	public event EventHandler<GenericSingleEventArgs<string>>? ConnectionChanged;
+	public event EventHandler<GenericSingleEventArgs<string>>? VideoFreezeChanged;
+	public event EventHandler<GenericDualEventArgs<string, uint>>? VideoRouteChanged;
+
+	public bool PowerState { get; private set; }
+
+	public bool EnableReconnect { get; set; }
+
+	public uint HoursUsed { get; private set; }
+
+	public bool SupportsFreeze { get; private set; }
+
+	public bool IsOnline { get; private set; }
+
+	public string Label { get; private set; } = string.Empty;
+
+	public string Id { get; private set; } = string.Empty;
+
+	public bool FreezeState { get; private set; }
+
+	public bool BlankState { get; private set; }
+
+	public bool IsInitialized { get; private set; }
+
+	public void DisablePolling() { }
+
+	public void EnablePolling() { }
+
+	public void Initialize(string ipAddress, int port, string label, string id)
 	{
-		private uint vidSource = 0;
+		Id = id;
+		Label = label;
+		SupportsFreeze = true;
+		HoursUsed = 42;
+		IsInitialized = true;
+	}
 
-		public event EventHandler<GenericSingleEventArgs<string>> VideoBlankChanged;
-		public event EventHandler<GenericSingleEventArgs<string>> HoursUsedChanged;
-		public event EventHandler<GenericSingleEventArgs<string>> PowerChanged;
-		public event EventHandler<GenericSingleEventArgs<string>> ConnectionChanged;
-		public event EventHandler<GenericSingleEventArgs<string>> VideoFreezeChanged;
-		public event EventHandler<GenericDualEventArgs<string, uint>> VideoRouteChanged;
+	public void PowerOff()
+	{
+		if (!IsOnline) return;
+		PowerState = false;
+		Notify(PowerChanged);
+	}
 
-		public bool PowerState { get; private set; }
+	public void PowerOn()
+	{
+		if (!IsOnline) return;
+		PowerState = true;
+		Notify(PowerChanged);
+	}
 
-		public bool EnableReconnect { get; set; }
-
-		public uint HoursUsed { get; private set; }
-
-		public bool SupportsFreeze { get; private set; }
-
-		public bool IsOnline { get; private set; }
-
-		public string Label { get; private set; }
-
-		public string Id { get; private set; }
-
-		public bool FreezeState { get; private set; }
-
-		public bool BlankState { get; private set; }
-
-		public bool IsInitialized { get; private set; }
-
-		public void DisablePolling() { }
-
-		public void EnablePolling() { }
-
-		public void Initialize(string ipAddress, int port, string label, string id)
+	public void Connect()
+	{
+		if (IsOnline)
 		{
-			this.Id = id;
-			this.Label = label;
-			this.SupportsFreeze = true;
-			this.HoursUsed = 42;
-			this.IsInitialized = true;
+			return;
 		}
 
-		public void PowerOff()
+		IsOnline = true;
+		Notify(ConnectionChanged);
+	}
+
+	public void Disconnect()
+	{
+		if (!IsOnline)
 		{
-			if (this.IsOnline)
-			{
-				this.PowerState = false;
-				this.Notify(this.PowerChanged);
-			}
+			return;
 		}
 
-		public void PowerOn()
+		IsOnline = false;
+		Notify(ConnectionChanged);
+	}
+
+	public void FreezeOff()
+	{
+		if (!FreezeState)
 		{
-			if (this.IsOnline)
-			{
-				this.PowerState = true;
-				this.Notify(this.PowerChanged);
-			}
+			return;
 		}
 
-		public void Connect()
-		{
-			if (this.IsOnline)
-			{
-				return;
-			}
+		FreezeState = false;
+		Notify(VideoFreezeChanged);
+	}
 
-			this.IsOnline = true;
-			this.Notify(this.ConnectionChanged);
+	public void FreezeOn()
+	{
+		if (FreezeState)
+		{
+			return;
 		}
 
-		public void Disconnect()
-		{
-			if (!this.IsOnline)
-			{
-				return;
-			}
+		FreezeState = true;
+		Notify(VideoFreezeChanged);
+	}
 
-			this.IsOnline = false;
-			this.Notify(this.ConnectionChanged);
+	public void VideoBlankOff()
+	{
+		if (!BlankState)
+		{
+			return;
 		}
 
-		public void FreezeOff()
-		{
-			if (!this.FreezeState)
-			{
-				return;
-			}
+		BlankState = false;
+		Notify(VideoBlankChanged);
+	}
 
-			this.FreezeState = false;
-			this.Notify(this.VideoFreezeChanged);
+	public void VideoBlankOn()
+	{
+		if (BlankState)
+		{
+			return;
 		}
 
-		public void FreezeOn()
-		{
-			if (this.FreezeState)
-			{
-				return;
-			}
+		BlankState = true;
+		Notify(VideoBlankChanged);
+	}
 
-			this.FreezeState = true;
-			this.Notify(this.VideoFreezeChanged);
+	public void ClearVideoRoute(uint output)
+	{
+		_vidSource = 0;
+		Notify(VideoRouteChanged);
+
+	}
+
+	public uint GetCurrentVideoSource(uint output)
+	{
+		return _vidSource;
+	}
+
+	public void RouteVideo(uint source, uint output)
+	{
+		if (!IsOnline || !PowerState)
+		{
+			return;
 		}
 
-		public void VideoBlankOff()
-		{
-			if (!this.BlankState)
-			{
-				return;
-			}
+		_vidSource = source;
+		Notify(VideoRouteChanged);
+	}
 
-			this.BlankState = false;
-			this.Notify(this.VideoBlankChanged);
-		}
+	private void Notify(EventHandler<GenericSingleEventArgs<string>>? handler)
+	{
+		handler?.Invoke(this, new GenericSingleEventArgs<string>(Id));
+	}
 
-		public void VideoBlankOn()
-		{
-			if (this.BlankState)
-			{
-				return;
-			}
-
-			this.BlankState = true;
-			this.Notify(this.VideoBlankChanged);
-		}
-
-		public void ClearVideoRoute(uint output)
-		{
-			this.vidSource = 0;
-			this.Notify(this.VideoRouteChanged);
-
-		}
-
-		public uint GetCurrentVideoSource(uint output)
-		{
-			return this.vidSource;
-		}
-
-		public void RouteVideo(uint source, uint output)
-		{
-			if (!this.IsOnline || !this.PowerState)
-			{
-				return;
-			}
-
-			this.vidSource = source;
-			this.Notify(this.VideoRouteChanged);
-		}
-
-		private void Notify(EventHandler<GenericSingleEventArgs<string>> handler)
-		{
-			var temp = handler;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
-		}
-
-		private void Notify(EventHandler<GenericDualEventArgs<string, uint>> handler)
-		{
-			var temp = handler;
-			temp?.Invoke(this, new GenericDualEventArgs<string, uint>(this.Id, 1));
-		}
-
+	private void Notify(EventHandler<GenericDualEventArgs<string, uint>>? handler)
+	{
+		handler?.Invoke(this, new GenericDualEventArgs<string, uint>(Id, 1));
 	}
 }

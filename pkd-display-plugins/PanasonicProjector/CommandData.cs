@@ -1,8 +1,7 @@
-﻿namespace PanasonicProjector
+﻿namespace PanasonicProjector;
+
+internal class CommandData
 {
-	internal class CommandData
-	{
-		public string CommandString { get; set; }
-		public CommandTypes CommandType { get; set; }
-	}
+	public string CommandString { get; init; } = string.Empty;
+	public CommandTypes CommandType { get; init; }
 }

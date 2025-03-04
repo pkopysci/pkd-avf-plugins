@@ -1,427 +1,417 @@
-﻿namespace PlanarSimplicityDisplay
+﻿namespace PlanarSimplicityDisplay;
+
+using Crestron.SimplSharp;
+using Crestron.SimplSharp.CrestronSockets;
+using pkd_common_utils.GenericEventArgs;
+using pkd_common_utils.Logging;
+using pkd_common_utils.NetComs;
+using pkd_common_utils.Validation;
+using pkd_hardware_service.DisplayDevices;
+using System;
+using System.Collections.Generic;
+
+public class PlanarSimplicityDisplayTcp : IDisplayDevice, IDisposable
 {
-	using Crestron.SimplSharp;
-	using Crestron.SimplSharp.CrestronSockets;
-	using pkd_common_utils.GenericEventArgs;
-	using pkd_common_utils.Logging;
-	using pkd_common_utils.NetComs;
-	using pkd_common_utils.Validation;
-	using pkd_hardware_service.DisplayDevices;
-	using System;
-	using System.Collections.Generic;
+	private const int PollTime = 30000;
+	private const int OfflineTimeout = 60000;
+	private const byte TxHeader = 0xA6;
+	private const byte AckRx = 0x00;
+	private const byte PowerRx = 0x19;
+	private static readonly byte[] PowerQueryCmd = [0x01, 0x00, 0x00, 0x00, 0x03, 0x01, 0x19];
+	private static readonly byte[] PowerOnCmd = [0x01, 0x00, 0x00, 0x00, 0x04, 0x01, 0x18, 0x02];
+	private static readonly byte[] PowerOffCmd = [0x01, 0x00, 0x00, 0x00, 0x04, 0x01, 0x18, 0x01];
 
-	public class PlanarSimplicityDisplayTcp : IDisplayDevice, IDisposable
+	private bool _disposed;
+	private bool _pollingEnabled;
+	private bool _offlineTimerActive;
+	private bool _reconnectEnabled;
+	private BasicTcpClient? _client;
+	private CTimer? _pollTimer;
+	private CTimer? _offlineTimer;
+
+	~PlanarSimplicityDisplayTcp()
 	{
-		private static readonly int POLL_TIME = 30000;
-		private static readonly int OFFLINE_TIMEOUT = 60000;
+		Dispose(false);
+	}
 
-		private static readonly byte TX_HEADER = 0xA6;
-		private static readonly byte ACK_RX = 0x00;
-		private static readonly byte POWER_RX = 0x19;
-		private static readonly byte[] POWER_QUERY_CMD = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x03, 0x01, 0x19 };
-		private static readonly byte[] POWER_ON_CMD = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x04, 0x01, 0x18, 0x02 };
-		private static readonly byte[] POWER_OFF_CMD = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x04, 0x01, 0x18, 0x01 };
+	public void Dispose()
+	{
+		Dispose(true);
+		GC.SuppressFinalize(this);
+	}
 
-		private bool disposed;
-		private bool pollingEnabled;
-		private bool offlineTimerActive;
-		private bool reconnectEnabled;
-		private BasicTcpClient client;
-		private CTimer pollTimer;
-		private CTimer offlineTimer;
+	public event EventHandler<GenericSingleEventArgs<string>>? HoursUsedChanged;
 
-		public PlanarSimplicityDisplayTcp() { }
+	public event EventHandler<GenericSingleEventArgs<string>>? PowerChanged;
 
-		~PlanarSimplicityDisplayTcp()
+	public event EventHandler<GenericSingleEventArgs<string>>? VideoBlankChanged;
+
+	public event EventHandler<GenericSingleEventArgs<string>>? VideoFreezeChanged;
+
+	public event EventHandler<GenericSingleEventArgs<string>>? ConnectionChanged;
+
+	public bool EnableReconnect
+	{
+		get
 		{
-			this.Dispose(false);
-		}
-
-		public void Dispose()
-		{
-			this.Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		public event EventHandler<GenericSingleEventArgs<string>> HoursUsedChanged;
-
-		public event EventHandler<GenericSingleEventArgs<string>> PowerChanged;
-
-		public event EventHandler<GenericSingleEventArgs<string>> VideoBlankChanged;
-
-		public event EventHandler<GenericSingleEventArgs<string>> VideoFreezeChanged;
-
-		public event EventHandler<GenericSingleEventArgs<string>> ConnectionChanged;
-
-		public bool EnableReconnect
-		{
-			get
+			if (_client == null)
 			{
-				if (this.client == null)
-				{
-					return false;
-				}
-
-				Logger.Debug("PlanarSimplicityDisplayTcp {0} - get ReconnectEnabled", this.Id);
-				return this.reconnectEnabled;
-			}
-			set
-			{
-				if (this.client == null)
-				{
-					return;
-				}
-
-				Logger.Debug("PlanarSimplicityDisplayTcp {0} - set ReconnectEnabled - {1}", this.Id, value);
-				this.client.EnableReconnect = value;
-				this.reconnectEnabled = value;
-			}
-		}
-
-		public uint HoursUsed { get { return 0; } }
-
-		public bool PowerState { get; private set; }
-
-		public bool BlankState { get { return false; } }
-
-		public bool SupportsFreeze { get { return false; } }
-
-		public bool FreezeState { get { return false; } }
-
-		public string Id { get; private set; }
-
-		public bool IsInitialized { get; private set; }
-
-		public bool IsOnline { get; private set; }
-
-		public string Label { get; private set; }
-
-		public void Initialize(string ipAddress, int port, string label, string id)
-		{
-			ParameterValidator.ThrowIfNullOrEmpty(ipAddress, "PlanarSimplicityDisplayTcp.Initialize", "ipAddress");
-			ParameterValidator.ThrowIfNullOrEmpty(label, "PlanarSimplicityDisplayTcp.Initialize", "label");
-			ParameterValidator.ThrowIfNullOrEmpty(id, "PlanarSimplicityDisplayTcp.Initialize", "id");
-			if (port < 1)
-			{
-				throw new ArgumentException("PlanarSimplicityDisplayTcp.Initialize() - argument 'port' must be greater than zero.");
+				return false;
 			}
 
-			this.IsInitialized = false;
-
-			this.Id = id;
-			this.Label = label;
-
-			if (this.client != null)
-			{
-				this.client.ClientConnected -= this.Client_ClientConnected;
-				this.client.ConnectionFailed -= this.Client_ConnectionFailed;
-				this.client.StatusChanged -= this.Client_StatusChanged;
-				this.client.RxBytesRecieved -= this.Client_RxBytesRecieved;
-				this.client.Dispose();
-			}
-
-			this.client = new BasicTcpClient(ipAddress, port, 1024);
-			this.client.ClientConnected += this.Client_ClientConnected;
-			this.client.ConnectionFailed += this.Client_ConnectionFailed;
-			this.client.StatusChanged += this.Client_StatusChanged;
-			this.client.RxBytesRecieved += this.Client_RxBytesRecieved;
-			this.client.ReconnectTime = 4500;
-
-			this.IsInitialized = true;
+			Logger.Debug("PlanarSimplicityDisplayTcp {0} - get ReconnectEnabled", Id);
+			return _reconnectEnabled;
 		}
-
-		public void DisablePolling()
+		set
 		{
-			this.pollingEnabled = false;
-			if (this.pollTimer != null)
+			if (_client == null)
 			{
-				this.pollTimer.Dispose();
-				this.pollTimer = null;
-			}
-		}
-
-		public void EnablePolling()
-		{
-			if (!this.IsOnline)
-			{
-				Logger.Debug("PlanarSimplicityDisplayTcp {0} - EnablePolling() - Not connected to the device.", this.Id);
 				return;
 			}
 
-			this.pollingEnabled = true;
-			if (this.pollTimer == null)
+			Logger.Debug("PlanarSimplicityDisplayTcp {0} - set ReconnectEnabled - {1}", Id, value);
+			_client.EnableReconnect = value;
+			_reconnectEnabled = value;
+		}
+	}
+
+	public uint HoursUsed => 0;
+
+	public bool PowerState { get; private set; }
+
+	public bool BlankState => false;
+
+	public bool SupportsFreeze => false;
+
+	public bool FreezeState => false;
+
+	public string Id { get; private set; } = string.Empty;
+
+	public bool IsInitialized { get; private set; }
+
+	public bool IsOnline { get; private set; }
+
+	public string Label { get; private set; } = string.Empty;
+
+	public void Initialize(string ipAddress, int port, string label, string id)
+	{
+		ParameterValidator.ThrowIfNullOrEmpty(ipAddress, "PlanarSimplicityDisplayTcp.Initialize", "ipAddress");
+		ParameterValidator.ThrowIfNullOrEmpty(label, "PlanarSimplicityDisplayTcp.Initialize", "label");
+		ParameterValidator.ThrowIfNullOrEmpty(id, "PlanarSimplicityDisplayTcp.Initialize", "id");
+		if (port < 1)
+		{
+			throw new ArgumentException("PlanarSimplicityDisplayTcp.Initialize() - argument 'port' must be greater than zero.");
+		}
+
+		IsInitialized = false;
+
+		Id = id;
+		Label = label;
+
+		if (_client != null)
+		{
+			_client.ClientConnected -= Client_ClientConnected;
+			_client.ConnectionFailed -= Client_ConnectionFailed;
+			_client.StatusChanged -= Client_StatusChanged;
+			_client.RxBytesReceived -= Client_RxBytesReceived;
+			_client.Dispose();
+		}
+
+		_client = new BasicTcpClient(ipAddress, port, 1024);
+		_client.ClientConnected += Client_ClientConnected;
+		_client.ConnectionFailed += Client_ConnectionFailed;
+		_client.StatusChanged += Client_StatusChanged;
+		_client.RxBytesReceived += Client_RxBytesReceived;
+		_client.ReconnectTime = 4500;
+
+		IsInitialized = true;
+	}
+
+	public void DisablePolling()
+	{
+		_pollingEnabled = false;
+		if (_pollTimer == null) return;
+		_pollTimer.Dispose();
+		_pollTimer = null;
+	}
+
+	public void EnablePolling()
+	{
+		if (!CheckIfInitialized("EnablePolling")) return;
+		if (!IsOnline)
+		{
+			Logger.Debug("PlanarSimplicityDisplayTcp {0} - EnablePolling() - Not connected to the device.", Id);
+			return;
+		}
+
+		_pollingEnabled = true;
+		_pollTimer ??= new CTimer(SendPollCommand, PollTime);
+	}
+
+	public void PowerOff()
+	{
+		if (!CheckIfInitialized("PowerOff")) return;
+		if (!IsOnline)
+		{
+			Logger.Debug("PlanarSimplicityDisplayTcp {0} - PowerOff() - Not connected to the device.", Id);
+			return;
+		}
+		
+		Send(TxHeader, PowerOffCmd);
+		PowerState = false;
+		Notify(PowerChanged);
+	}
+
+	public void PowerOn()
+	{
+		if (!CheckIfInitialized("PowerOn")) return;
+		if (!IsOnline)
+		{
+			Logger.Debug("PlanarSimplicityDisplayTcp {0} - PowerOn() - Not connected to the device.", Id);
+			return;
+		}
+		
+		Send(TxHeader, PowerOnCmd);
+		PowerState = true;
+		Notify(PowerChanged);
+	}
+
+	public void Connect()
+	{
+		if(!CheckIfInitialized("Connect") || IsOnline) return;
+		_client?.Connect();
+	}
+
+	public void Disconnect()
+	{
+		if(!CheckIfInitialized("Disconnect") || !IsOnline) return;
+		_client?.Disconnect();
+	}
+
+	public void FreezeOff()
+	{
+		Logger.Warn("PlanarSimplicityDisplayTcp {0} - Freeze commands not supported.", Id);
+	}
+
+	public void FreezeOn()
+	{
+		Logger.Warn("PlanarSimplicityDisplayTcp {0} - Freeze commands not supported.", Id);
+	}
+
+	public void VideoBlankOff()
+	{
+		Logger.Warn("PlanarSimplicityDisplayTcp {0} - blank commands not supported.", Id);
+	}
+
+	public void VideoBlankOn()
+	{
+		Logger.Warn("PlanarSimplicityDisplayTcp {0} - blank commands not supported.", Id);
+	}
+
+	private void Dispose(bool disposing)
+	{
+		if (_disposed) return;
+		if (disposing)
+		{
+			if (_pollTimer != null)
 			{
-				this.pollTimer = new CTimer(this.SendPollCommand, POLL_TIME);
+				DisablePolling();
+			}
+
+			if (_offlineTimer != null)
+			{
+				_offlineTimer.Dispose();
+				_offlineTimer = null;
+			}
+
+			EnableReconnect = false;
+			if (_client != null)
+			{
+				_client.Disconnect();
+				_client.Dispose();
+				_client = null;
 			}
 		}
 
-		public void PowerOff()
+		_disposed = true;
+	}
+
+	private void Client_RxBytesReceived(object? sender, GenericSingleEventArgs<byte[]> e)
+	{
+		if (e.Arg.Length < 7)
 		{
-			Logger.Debug("PlanarSimplicityDisplayTcp {0} - PowerOff()", this.Id);
-			if (client.Connected)
-			{
-				this.Send(TX_HEADER, POWER_OFF_CMD);
-				this.PowerState = false;
-				this.Notify(this.PowerChanged);
-			}
+			Logger.Warn("PlanarSimplicityDisplayTcp {0} - incomplete RX received. Length = {1}", Id, e.Arg.Length);
+			return;
 		}
 
-		public void PowerOn()
+		switch (e.Arg[6])
 		{
-			Logger.Debug("PlanarSimplicityDisplayTcp {0} - PowerOn()", this.Id);
-			if (client.Connected)
-			{
-				this.Send(TX_HEADER, POWER_ON_CMD);
-				this.PowerState = true;
-				this.Notify(this.PowerChanged);
-			}
-		}
-
-		public void Connect()
-		{
-			if (this.client == null || !this.IsInitialized)
-			{
-				Logger.Error("PlanarSimplicityDisplayTcp.Connect() - Object not initialized.");
-				return;
-			}
-
-			if (!this.client.Connected)
-			{
-				this.client.Connect();
-			}
-		}
-
-		public void Disconnect()
-		{
-			if (this.client == null || !this.IsInitialized)
-			{
-				Logger.Error("PlanarSimplicityDisplayTcp.Disconnect() - Object not initialized.");
-				return;
-			}
-
-			if (this.client.Connected)
-			{
-				this.client.Disconnect();
-			}
-		}
-
-		public void FreezeOff()
-		{
-			Logger.Warn("PlanarSimplicityDisplayTcp {0} - Freeze commands not supported.", this.Id);
-		}
-
-		public void FreezeOn()
-		{
-			Logger.Warn("PlanarSimplicityDisplayTcp {0} - Freeze commands not supported.", this.Id);
-		}
-
-		public void VideoBlankOff()
-		{
-			Logger.Warn("PlanarSimplicityDisplayTcp {0} - blank commands not supported.", this.Id);
-		}
-
-		public void VideoBlankOn()
-		{
-			Logger.Warn("PlanarSimplicityDisplayTcp {0} - blank commands not supported.", this.Id);
-		}
-
-		private void Dispose(bool disposing)
-		{
-			if (!this.disposed)
-			{
-				if (disposing)
-				{
-					if (this.pollTimer != null)
-					{
-						this.DisablePolling();
-					}
-
-					if (this.offlineTimer != null)
-					{
-						this.offlineTimer.Dispose();
-						this.offlineTimer = null;
-					}
-
-					this.EnableReconnect = false;
-					if (this.client != null)
-					{
-						this.client.Disconnect();
-						this.client.Dispose();
-						this.client = null;
-					}
-				}
-
-				this.disposed = true;
-			}
-		}
-
-		private void Client_RxBytesRecieved(object sender, GenericSingleEventArgs<byte[]> e)
-		{
-			if (e.Arg.Length < 7)
-			{
-				Logger.Warn("PlanarSimplicityDisplayTcp {0} - Incompleted RX received. Length = {1}", this.Id, e.Arg.Length);
-				return;
-			}
-
-			if (e.Arg[6] == ACK_RX)
-			{
+			case AckRx:
 				// ACK received
-				this.HandleAckNakRx(e.Arg);
-			}
-			else if (e.Arg[6] == POWER_RX)
-			{
+				HandleAckNakRx(e.Arg);
+				break;
+			case PowerRx:
 				// power status rx received
-				this.HandlePowerRx(e.Arg);
-			}
-			else
+				HandlePowerRx(e.Arg);
+				break;
+			default:
 			{
-				string rx = "";
+				var rx = "";
 				foreach (var b in e.Arg)
 				{
-					rx += string.Format("{0:X2} ", b);
+					rx += $"{b:X2} ";
 				}
 
-				Logger.Debug("PlanarSimplicityDisplayTcp {0} Unknown response received: {1}", this.Id, rx);
+				Logger.Debug("PlanarSimplicityDisplayTcp {0} Unknown response received: {1}", Id, rx);
+				break;
 			}
 		}
+	}
 
-		private void Client_StatusChanged(object sender, EventArgs e)
+	private void Client_StatusChanged(object? sender, EventArgs e)
+	{
+		if (_client == null) return;
+		if (_client.Connected)
 		{
-			Logger.Debug("PlanarSimplicityDisplayTcp {0} - client status changed: {1}", this.Id, this.client.ClientStatusMessage);
-			if (client.Connected)
+			StopOfflineTimer();
+			IsOnline = true;
+			Notify(ConnectionChanged);
+		}
+		else
+		{
+			BeginOfflineTimer();
+		}
+	}
+
+	private void HandleAckNakRx(byte[] rx)
+	{
+		Logger.Debug("PlanarSimplicityDisplayTcp {0} acknaknav response received: {1}", Id, rx[7]);
+		switch (rx[7])
+		{
+			case 0x00:
+				// ACK
+				Logger.Debug("PlanarSimplicityDisplayTcp {0} - ACK received.", Id);
+				break;
+			case 0x01:
+				//NAK
+				Logger.Error("PlanarSimplicityDisplayTcp {0} - NAK response received", Id);
+				break;
+			case 0x04:
+				// Not Available
+				Logger.Error("PlanarSimplicityDisplayTcp {0} - Command not available response received", Id);
+				break;
+		}
+	}
+
+	private void HandlePowerRx(byte[] rx)
+	{
+		PowerState = rx[7] == 0x02;
+		Logger.Debug("PlanarSimplicityDisplayTcp {0} - power arg = {1:X2}.", Id, rx[7]);
+		Notify(PowerChanged);
+	}
+
+	private void Client_ConnectionFailed(object? sender, GenericSingleEventArgs<SocketStatus> e)
+	{
+		Logger.Debug(
+			"PlanarSimplicityDisplayTcp {0} - Connection Failed: {1}",
+			Id,
+			e.Arg);
+
+		IsOnline = false;
+		BeginOfflineTimer();
+		Notify(ConnectionChanged);
+	}
+
+	private void Client_ClientConnected(object? sender, EventArgs e)
+	{
+		Logger.Debug("PlanarSimplicityDisplayTcp {0} - client connected.", Id);
+		IsOnline = true;
+		StopOfflineTimer();
+		Notify(ConnectionChanged);
+		SendPollCommand(null);
+	}
+
+	private void BeginOfflineTimer()
+	{
+		if (_offlineTimerActive)
+		{
+			return;
+		}
+
+		_offlineTimerActive = true;
+		if (_offlineTimer != null)
+		{
+			_offlineTimer.Reset(OfflineTimeout);
+		}
+		else
+		{
+			_offlineTimer = new CTimer(_ =>
 			{
-				this.StopOfflineTimer();
-				this.IsOnline = true;
-				this.Notify(this.ConnectionChanged);
-			}
-			else
-			{
-				this.BeginOfflineTimer();
-			}
+				Logger.Debug("PlanarSimplicityDisplayTcp {0} - Offline timer callback triggered.", Id);
+				Notify(ConnectionChanged);
+			}, OfflineTimeout);
 		}
+	}
 
-		private void HandleAckNakRx(byte[] rx)
+	private void StopOfflineTimer()
+	{
+		_offlineTimer?.Stop();
+
+		_offlineTimerActive = false;
+	}
+
+	private void Send(byte header, byte[] command)
+	{
+		Logger.Debug("PlanarSimplicityDisplayTcp.Send() for device {0}", Id);
+
+		List<byte> cmd = [];
+		foreach (var b in command)
 		{
-			Logger.Debug("PlanarSimplicityDisplayTcp {0} acknaknav response received: {1}", this.Id, rx[7]);
-			switch (rx[7])
-			{
-				case 0x00:
-					// ACK
-					Logger.Debug("PlanarSimplicityDisplayTcp {0} - ACK received.", this.Id);
-					break;
-				case 0x01:
-					//NAK
-					Logger.Error("PlanarSimplicityDisplayTcp {0} - NAK response recieved", this.Id);
-					break;
-				case 0x04:
-					// Not Available
-					Logger.Error("PlanarSimplicityDisplayTcp {0} - Command not available response recieved", this.Id);
-					break;
-			}
+			cmd.Add(b);
 		}
 
-		private void HandlePowerRx(byte[] rx)
+		var convertedCmd = CalculateChecksumAndConvert(cmd);
+		_client?.Send(convertedCmd);
+	}
+
+	private void SendPollCommand(object? callbackObject)
+	{
+		Logger.Debug($"PlanarSimplicityDisplayTcp.SendPollCommand() for device {Id}");
+		if (!IsOnline)
 		{
-			this.PowerState = rx[7] == 0x02;
-			Logger.Debug("PlanarSimplicityDisplayTcp {0} - power arg = {1:X2}.", this.Id, rx[7]);
-			this.Notify(this.PowerChanged);
+			return;
 		}
 
-		private void Client_ConnectionFailed(object sender, GenericSingleEventArgs<SocketStatus> e)
+		Send(TxHeader, PowerQueryCmd);
+		if (_pollingEnabled && _pollTimer != null)
 		{
-			Logger.Debug(
-				"PlanarSimplicityDisplayTcp {0} - Connnection Failed: {1}",
-				this.Id,
-				e.Arg);
-
-			this.IsOnline = false;
-			this.BeginOfflineTimer();
-			this.Notify(this.ConnectionChanged);
+			_pollTimer.Reset(PollTime);
 		}
+	}
 
-		private void Client_ClientConnected(object sender, EventArgs e)
+	private static byte[] CalculateChecksumAndConvert(List<byte> command)
+	{
+		byte checksum = 0x00;
+		foreach (var b in command)
 		{
-			Logger.Debug("PlanarSimplicityDisplayTcp {0} - client connected.", this.Id);
-			this.IsOnline = true;
-			this.StopOfflineTimer();
-			this.Notify(this.ConnectionChanged);
-			this.SendPollCommand(null);
+			checksum = (byte)(checksum ^ b);
 		}
 
-		private void BeginOfflineTimer()
+		command.Add(checksum);
+		return command.ToArray();
+	}
+
+	private void Notify(EventHandler<GenericSingleEventArgs<string>>? handler)
+	{
+		handler?.Invoke(this, new GenericSingleEventArgs<string>(Id));
+	}
+
+	private bool CheckIfInitialized(string methodName)
+	{
+		if (!IsInitialized)
 		{
-			if (this.offlineTimerActive)
-			{
-				return;
-			}
-
-			this.offlineTimerActive = true;
-			if (this.offlineTimer != null)
-			{
-				this.offlineTimer.Reset(OFFLINE_TIMEOUT);
-			}
-			else
-			{
-				this.offlineTimer = new CTimer((o) =>
-				{
-					Logger.Debug("PlanarSimplicityDisplayTcp {0} - Offline timer callback triggered.", this.Id);
-					this.Notify(this.ConnectionChanged);
-				}, OFFLINE_TIMEOUT);
-			}
+			Logger.Error($"PlanarSimplicityDisplayTcp.{methodName}() - object not initialized.");
 		}
-
-		private void StopOfflineTimer()
-		{
-			this.offlineTimer?.Stop();
-
-			this.offlineTimerActive = false;
-		}
-
-		private void Send(byte header, byte[] command)
-		{
-			Logger.Debug("PlanarSimplicityDisplayTcp.Send() for device {0}", this.Id);
-
-			List<byte> cmd = new List<byte>() { header };
-			foreach (var b in command)
-			{
-				cmd.Add(b);
-			}
-
-			byte[] convertedCmd = this.CalculateChecksumAndConvert(cmd);
-			this.client.Send(convertedCmd);
-		}
-
-		private void SendPollCommand(object callbackObject)
-		{
-			Logger.Debug(string.Format("PlanarSimplicityDisplayTcp.SendPollCommand() for device {0}", this.Id));
-			if (!this.IsOnline)
-			{
-				return;
-			}
-
-			this.Send(TX_HEADER, POWER_QUERY_CMD);
-			if (this.pollingEnabled && this.pollTimer != null)
-			{
-				this.pollTimer.Reset(POLL_TIME);
-			}
-		}
-
-		private byte[] CalculateChecksumAndConvert(List<byte> command)
-		{
-			byte checksum = 0x00;
-			foreach (byte b in command)
-			{
-				checksum = (byte)(checksum ^ b);
-			}
-
-			command.Add(checksum);
-			return command.ToArray();
-		}
-
-		private void Notify(EventHandler<GenericSingleEventArgs<string>> handler)
-		{
-			var temp = handler;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
-		}
+		return IsInitialized;
 	}
 }

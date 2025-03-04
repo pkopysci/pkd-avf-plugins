@@ -1,39 +1,37 @@
-﻿namespace AvProEdgeAvSwitch.AvpEndpoints
+﻿namespace AvProEdgeAvSwitch.AvpEndpoints;
+
+using AVProEdgeMXNetLib.Components;
+using pkd_common_utils.Logging;
+
+internal class EncoderAvpEndpoint : AvpEndpoint
 {
-	using AVProEdgeMXNetLib.Components;
-	using pkd_common_utils.Logging;
+	private readonly EncoderComponent _encoder;
 
-	internal class EncoderAvpEndpoint : AvpEndpoint
+	public EncoderAvpEndpoint(InputEncoder configObject, ushort processorId, ushort index)
+		: base(configObject.MacAddressAuto, processorId, index)
 	{
-		private readonly EncoderComponent encoder;
+		_encoder = new EncoderComponent();
+		EndpointType = pkd_hardware_service.AvIpMatrix.AvIpEndpointTypes.Encoder;
+	}
 
-		public EncoderAvpEndpoint(InputEncoder configObject, ushort processorId, ushort index)
-			: base(configObject.MACADDRESSSAUTO, processorId, index)
-		{
-			this.encoder = new EncoderComponent();
-			this.Label = string.Format("{0} - {1}", configObject.CUSTOMNAME, configObject.DESCRIPTION);
-			this.EndpointType = pkd_hardware_service.AvIpMatrix.AvIpEndpointTypes.Encoder;
-		}
+	public override void Initialize()
+	{
+		Logger.Debug("Initializing EncoderAvpEndpoint {0} with device {1}", MacAddress, ProcessorId);
 
-		public override void Initialize()
-		{
-			Logger.Debug("Initializing EncoderAvpEndpoint {0} with device {1}", this.MacAddress, this.ProcessorId);
+		_encoder.OnOnline += Encoder_OnOnline;
+		_encoder.OnInitialize += Encoder_OnInitialize;
+		_encoder.Configure(ProcessorId, MacAddress, Index);
+	}
 
-			this.encoder.OnOnline += new AVProEdgeMXNetLib.EventArguments.DigEventHandler(Encoder_OnOnline);
-			this.encoder.OnInitialize += new AVProEdgeMXNetLib.EventArguments.DigEventHandler(Encoder_OnInitialize);
-			this.encoder.Configure(this.ProcessorId, this.MacAddress, this.Index);
-		}
+	private void Encoder_OnOnline(object sender, AVProEdgeMXNetLib.EventArguments.DigEventArgs args)
+	{
+		IsOnline = args.Payload > 0;
+		NotifyOnlineChanged();
+	}
 
-		private void Encoder_OnOnline(object sender, AVProEdgeMXNetLib.EventArguments.DigEventArgs args)
-		{
-			this.IsOnline = args.Payload > 0;
-			this.NotifyOnlineChanged();
-		}
-
-		private void Encoder_OnInitialize(object sender, AVProEdgeMXNetLib.EventArguments.DigEventArgs args)
-		{
-			this.IsInitialized = args.Payload > 0;
-			this.NotifyInitializeChanged();
-		}
+	private void Encoder_OnInitialize(object sender, AVProEdgeMXNetLib.EventArguments.DigEventArgs args)
+	{
+		IsInitialized = args.Payload > 0;
+		NotifyInitializeChanged();
 	}
 }

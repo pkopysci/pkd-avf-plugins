@@ -1,237 +1,236 @@
-﻿namespace CrComLibUi.Components.TransportControl
+﻿namespace CrComLibUi.Components.TransportControl;
+
+using Crestron.SimplSharpPro.DeviceSupport;
+using pkd_application_service.Base;
+using pkd_application_service.UserInterface;
+using pkd_common_utils.GenericEventArgs;
+using pkd_common_utils.Logging;
+using pkd_ui_service.Interfaces;
+using pkd_ui_service.Utility;
+using Api;
+using System;
+using System.Collections.ObjectModel;
+using Newtonsoft.Json.Linq;
+
+internal class TransportComponent : BaseComponent, ITransportControlUserInterface
 {
-	using Crestron.SimplSharpPro.DeviceSupport;
-	using pkd_application_service.Base;
-	using pkd_application_service.UserInterface;
-	using pkd_common_utils.GenericEventArgs;
-	using pkd_common_utils.Logging;
-	using pkd_ui_service.Interfaces;
-	using pkd_ui_service.Utility;
-	using CrComLibUi.Api;
-	using System;
-	using System.Collections.ObjectModel;
-    using Newtonsoft.Json.Linq;
+	private const string CommandConfig = "CONFIG";
+	private const string CommandTransport = "TRANSPORT";
+	private const string CommandFavorite = "FAVORITE";
+	private const string CommandChannel = "CHANNEL";
+	private ReadOnlyCollection<TransportInfoContainer> _devices;
 
-    internal class TransportComponent : BaseComponent, ITransportControlUserInterface
+	public TransportComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
+		: base(ui, uiData)
 	{
-		private static readonly string COMMAND_CONFIG = "CONFIG";
-		private static readonly string COMMAND_TRANSPORT = "TRANSPORT";
-		private static readonly string COMMAND_FAVORITE = "FAVORITE";
-		private static readonly string COMMAND_CHANNEL = "CHANNEL";
+		GetHandlers.Add(CommandConfig, HandleGetConfigRequest);
+		PostHandlers.Add(CommandFavorite, HandlePostFavoriteRequest);
+		PostHandlers.Add(CommandTransport, HandlePostTransportRequest);
+		PostHandlers.Add(CommandChannel, HandlePostChannelRequest);
+		_devices = new ReadOnlyCollection<TransportInfoContainer>([]);
+	}
 
-		private ReadOnlyCollection<TransportInfoContainer> devices;
-
-		public TransportComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-			: base(ui, uiData)
-		{
-			GetHandlers.Add(COMMAND_CONFIG, HandleGetConfigRequest);
-			PostHandlers.Add(COMMAND_FAVORITE, HandlePostFavoriteRequest);
-			PostHandlers.Add(COMMAND_TRANSPORT, HandlePostTransportRequest);
-			PostHandlers.Add(COMMAND_CHANNEL, HandlePostChannelRequest);
-		}
-
-		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, TransportTypes>> TransportControlRequest;
+	/// <inheritdoc/>
+	public event EventHandler<GenericDualEventArgs<string, TransportTypes>>? TransportControlRequest;
 		
-		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> TransportDialRequest;
+	/// <inheritdoc/>
+	public event EventHandler<GenericDualEventArgs<string, string>>? TransportDialRequest;
 		
-		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> TransportDialFavoriteRequest;
+	/// <inheritdoc/>
+	public event EventHandler<GenericDualEventArgs<string, string>>? TransportDialFavoriteRequest;
 
-		/// <inheritdoc/>
-		public override void HandleSerialResponse(string response)
+	/// <inheritdoc/>
+	public override void HandleSerialResponse(string response)
+	{
+		try
 		{
-			try
+			var message = MessageFactory.DeserializeMessage(response);
+			if (string.IsNullOrEmpty(message.Method))
 			{
-				ResponseBase message = MessageFactory.DeserializeMessage(response);
-				if (message == null)
-				{
-					ResponseBase errMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
-					Send(errMessage, ApiHooks.DeviceControl);
-					return;
-				}
+				var errMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
+				Send(errMessage, ApiHooks.DeviceControl);
+				return;
+			}
 
-				if (message.Method.Equals("GET"))
-				{
+			switch (message.Method)
+			{
+				case "GET":
 					HandleGetRequest(message);
-				}
-				else if (message.Method.Equals("POST"))
-				{
+					break;
+				case "POST":
 					HandlePostRequest(message);
-				}
-				else
+					break;
+				default:
 				{
-					ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Unsupported method: {message.Method}.");
+					var errMessage = MessageFactory.CreateErrorResponse($"Unsupported method: {message.Method}.");
 					Send(errMessage, ApiHooks.DeviceControl);
 					return;
 				}
 			}
-			catch (Exception ex)
-			{
-				Logger.Error("CrComLibUi.TransportComponent.HandleSerialResponse() - {0}", ex);
-				ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
-				Send(errMessage, ApiHooks.DeviceControl);
-			}
 		}
-
-		/// <inheritdoc/>
-		public override void Initialize()
+		catch (Exception ex)
 		{
-			Initialized = false;
-			if(this.devices == null)
+			Logger.Error("CrComLibUi.TransportComponent.HandleSerialResponse() - {0}", ex);
+			var errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
+			Send(errMessage, ApiHooks.DeviceControl);
+		}
+	}
+
+	/// <inheritdoc/>
+	public override void Initialize()
+	{
+		if(_devices.Count == 0)
+			Logger.Debug("CrComLibUi.TransportComponent.Initialize() - no device data set.");
+		Initialized = true;
+	}
+
+	/// <inheritdoc/>
+	public void SetCableBoxData(ReadOnlyCollection<TransportInfoContainer> data)
+	{
+		_devices = data;
+		if (!Initialized) return;
+		var rx = MessageFactory.CreateGetResponseObject();
+		rx.Command = CommandConfig;
+		rx.Data["Devices"] = JToken.FromObject(_devices);
+		Send(rx, ApiHooks.DeviceControl);
+	}
+
+	private void HandleGetRequest(ResponseBase message)
+	{
+		if (GetHandlers.TryGetValue(message.Command, out var handler))
+		{
+			handler.Invoke(message);
+		}
+		else
+		{
+			var errRx = MessageFactory.CreateErrorResponse($"Unsupported GET command: {message.Command}");
+			Send(errRx, ApiHooks.DeviceControl);
+		}
+	}
+
+	private void HandlePostRequest(ResponseBase message)
+	{
+		if (PostHandlers.TryGetValue(message.Command, out var handler))
+		{
+			handler.Invoke(message);
+		}
+		else
+		{
+			var errRx = MessageFactory.CreateErrorResponse($"Unsupported POST command: {message.Command}");
+			Send(errRx, ApiHooks.DeviceControl);
+		}
+	}
+
+	private void HandleGetConfigRequest(ResponseBase message)
+	{
+		var rx = MessageFactory.CreateGetResponseObject();
+		rx.Command = CommandConfig;
+		rx.Data["Devices"] = JToken.FromObject(_devices);
+		Send(rx, ApiHooks.DeviceControl);
+	}
+
+	private void HandlePostFavoriteRequest(ResponseBase message)
+	{
+		Logger.Debug("TransportComponent.HandlePostFavoriteRequest()");
+		
+		try
+		{
+			var deviceId = message.Data.Value<string>("Id");
+			var favoriteId = message.Data.Value<string>("FavId");
+			if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(favoriteId))
 			{
-				Logger.Error("CrComLibUi.TransportComponent.Initialize() - Call SetCableBoxData() first.");
+				SendError("Invalid POST favorite request - missing Id or FavId.", ApiHooks.DeviceControl);
+				return;
+			}
+			
+			var device = _devices.FirstOrDefault(x => x.Id == deviceId);
+			if (device == null)
+			{
+				SendError($"Invalid POST favorite request - No device with id {deviceId}", ApiHooks.DeviceControl);
 				return;
 			}
 
-			Initialized = true;
-		}
-
-		/// <inheritdoc/>
-		public void SetCableBoxData(ReadOnlyCollection<TransportInfoContainer> data)
-		{
-			if (data == null)
+			if (device.Favorites.All(x => x.Id != favoriteId))
 			{
-				Logger.Error("CrComLibUi.TransportComponent.SetCableBoxData() - argument 'data' cannot be null.");
+				SendError(
+					$"Invalid POST favorite reques - device {deviceId} does not have favorite with id {favoriteId}",
+					ApiHooks.DeviceControl);
 				return;
 			}
 
-			devices = data;
-			if (Initialized)
-			{
-				ResponseBase rx = MessageFactory.CreateGetResponseObject();
-				rx.Command = COMMAND_CONFIG;
-				rx.Data = devices;
-				Send(rx, ApiHooks.DeviceControl);
-			}
+			var temp = TransportDialFavoriteRequest;
+			temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, favoriteId));
 		}
-
-		private void HandleGetRequest(ResponseBase message)
+		catch (Exception e)
 		{
-			if (GetHandlers.TryGetValue(message.Command, out var handler))
-			{
-				handler.Invoke(message);
-			}
-			else
-			{
-				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Unsupported GET command: {message.Command}");
-				Send(errRx, ApiHooks.DeviceControl);
-			}
+			Logger.Error("CrComLibUi.TransportComponent.HandlePostFavoriteRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.DeviceControl);
 		}
+	}
 
-		private void HandlePostRequest(ResponseBase message)
+	private void HandlePostTransportRequest(ResponseBase message)
+	{
+		Logger.Debug("TransportComponent.handlePostTransportRequest()");
+		try
 		{
-			if (PostHandlers.TryGetValue(message.Command, out var handler))
+			var deviceId = message.Data.Value<string>("Id");
+			var tag = message.Data.Value<string>("Tag");
+			if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(tag))
 			{
-				handler.Invoke(message);
+				SendError("Invalid POST transport request - missing Id or Tag.", ApiHooks.DeviceControl);
+				return;
 			}
-			else
+			
+			var device = _devices.FirstOrDefault(x => x.Id == deviceId);
+			if (device == null)
 			{
-				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Unsupported POST command: {message.Command}");
-				Send(errRx, ApiHooks.DeviceControl);
+				SendError($"Invalid POST transport request - no device with id {deviceId}", ApiHooks.DeviceControl);
+				return;
 			}
+			
+			var transport = TransportUtilities.FindTransport(tag);
+			if (transport == TransportTypes.Unknown)
+			{
+				SendError($"Invalid POST transport request - no command with tag {tag}", ApiHooks.DeviceControl);
+				return;
+			}
+
+			var temp = TransportControlRequest;
+			temp?.Invoke(this, new GenericDualEventArgs<string, TransportTypes>(deviceId, transport));
 		}
-
-		private void HandleGetConfigRequest(ResponseBase message)
+		catch (Exception e)
 		{
-			ResponseBase rx = MessageFactory.CreateGetResponseObject();
-			rx.Command = COMMAND_CONFIG;
-			rx.Data = devices;
-			Send(rx, ApiHooks.DeviceControl);
+			Logger.Error("CrComLibUi.TransportComponent.HandlePostTransportRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.DeviceControl);
 		}
+	}
 
-		private void HandlePostFavoriteRequest(ResponseBase message)
+	private void HandlePostChannelRequest(ResponseBase message)
+	{
+		Logger.Debug("CrComLibUi.HandlePostChannelRequest()");
+		try
 		{
-			Logger.Debug("TransportComponent.HandlePostFavoriteRequest()");
-
-			try
+			var deviceId = message.Data.Value<string>("Id");
+			var channel = message.Data.Value<string>("Chan");
+			if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(channel))
 			{
-				JObject data = message.Data as JObject;
-				string deviceId = data?.Value<string>("Id") ?? string.Empty;
-				string favId = data?.Value<string>("FavId") ?? string.Empty;
-
-				if (deviceId == string.Empty || favId == string.Empty)
-				{
-					SendError($"CrComLibUi.TransportComponent.HandlePostFavoriteRequest() - Invalid data package received.");
-					return;
-				}
-
-				var temp = this.TransportDialFavoriteRequest;
-				temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, favId));
+				SendError("Invalid POST channel request - missing Id or Channel.", ApiHooks.DeviceControl);
+				return;
 			}
-			catch (Exception ex)
+
+			if (_devices.All(x => x.Id != deviceId))
 			{
-				Logger.Error("CrComLibUi.TransportComponent.HandlePostFavoriteRequest() - {0}", ex);
-				SendError($"Invalid message format: {ex.Message}");
+				SendError($"Invalid POST channel request - no device with id {deviceId}", ApiHooks.DeviceControl);
+				return;
 			}
+
+			var temp = TransportDialRequest;
+			temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, channel));
 		}
-
-		private void HandlePostTransportRequest(ResponseBase message)
+		catch (Exception e)
 		{
-			Logger.Debug("TransportComponent.handlePostTransportRequest()");
-
-			try
-			{
-                JObject data = message.Data as JObject;
-                string deviceId = data?.Value<string>("Id") ?? string.Empty;
-                string tag = data?.Value<string>("Tag") ?? string.Empty;
-
-                if (deviceId == string.Empty || tag == string.Empty)
-                {
-                    SendError($"Invalid data package received.");
-                    return;
-                }
-
-                TransportTypes transport = TransportUtilities.FindTransport(tag);
-				if (transport == TransportTypes.Unknown)
-				{
-					SendError($"CrComLibUi.TransportComponent.HandlePostTransportRequest() - Unsupported transport command: {tag}");
-				}
-				else
-				{
-					var temp = TransportControlRequest;
-					temp?.Invoke(this, new GenericDualEventArgs<string, TransportTypes>(deviceId, transport));
-				}
-
-			}
-			catch (Exception ex)
-			{
-				Logger.Error("CrComLibUi.TransportComponent.HandlePostTransportRequest() - {0}", ex);
-				ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Invalid message format: {ex.Message}");
-				Send(errMessage, ApiHooks.DeviceControl);
-			}
-		}
-
-		private void HandlePostChannelRequest(ResponseBase message)
-		{
-			Logger.Debug("CrComLibUi.HandlePostChannelRequest()");
-
-			try
-			{
-                JObject data = message.Data as JObject;
-                string deviceId = data?.Value<string>("Id") ?? string.Empty;
-                string channel = data?.Value<string>("Chan") ?? string.Empty;
-                if (deviceId == string.Empty || channel == string.Empty)
-                {
-                    SendError($"CrComLibUi.TransportComponent..HandlePostChannelRequest() - Invalid data package received.");
-                    return;
-                }
-
-                var temp = TransportDialRequest;
-				temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, channel));
-			}
-			catch (Exception ex)
-			{
-				Logger.Error("CrComLibUi.TransportComponent.HandlePostChannelRequest() - {0}", ex);
-				SendError($"Invalid message format: {ex.Message}");
-			}
-		}
-
-		private void SendError(string message)
-		{
-			ResponseBase errMsg = MessageFactory.CreateErrorResponse(message);
-			Send(errMsg, ApiHooks.DeviceControl);
+			Logger.Error("CrComLibUi.TransportComponent.HandlePostChannelRequest() - {0}", e.Message);
+			SendServerError(ApiHooks.DeviceControl);
 		}
 	}
 }

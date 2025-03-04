@@ -1,100 +1,94 @@
-﻿namespace CrComLibUi.Components.ErrorReporting
+﻿using Newtonsoft.Json.Linq;
+
+namespace CrComLibUi.Components.ErrorReporting;
+
+using Crestron.SimplSharpPro.DeviceSupport;
+using pkd_application_service.UserInterface;
+using pkd_common_utils.Logging;
+using pkd_ui_service.Interfaces;
+using Api;
+using System;
+using System.Collections.Generic;
+
+internal class ErrorComponent : BaseComponent, IErrorInterface
 {
-	using Crestron.SimplSharpPro.DeviceSupport;
-	using pkd_application_service.UserInterface;
-	using pkd_common_utils.Logging;
-	using pkd_ui_service.Interfaces;
-	using CrComLibUi.Api;
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
+	private const string Command = "ERRLIST";
+	private readonly Dictionary<string, ErrorData> _errors;
 
-	internal class ErrorComponent : BaseComponent, IErrorInterface
+	public ErrorComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
+		: base(ui, uiData)
 	{
-		private static readonly string COMMAND = "ERRLIST";
-		private Dictionary<string, ErrorData> errors;
+		_errors = new Dictionary<string, ErrorData>();
+		GetHandlers.Add(Command, HandleGetErrors);
+	}
 
-		public ErrorComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-			: base(ui, uiData)
+	/// <inheritdoc/>
+	public void AddDeviceError(string id, string label)
+	{
+		if (_errors.ContainsKey(id))
 		{
-			errors = new Dictionary<string, ErrorData>();
-			GetHandlers.Add(COMMAND, HandleGetErrors);
+			return;
 		}
 
-		/// <inheritdoc/>
-		public void AddDeviceError(string id, string label)
+		var data = new ErrorData()
 		{
-			if (errors.ContainsKey(id))
+			Id = id,
+			Message = label
+		};
+
+		_errors.Add(id, data);
+		SendErrors();
+	}
+
+	/// <inheritdoc/>
+	public void ClearDeviceError(string id)
+	{
+		_errors.Remove(id);
+		SendErrors();
+	}
+
+	/// <inheritdoc/>
+	public override void HandleSerialResponse(string response)
+	{
+		try
+		{
+			var message = MessageFactory.DeserializeMessage(response);
+			if (string.IsNullOrEmpty(message.Method))
 			{
+				var errRx = MessageFactory.CreateErrorResponse("Invalid message format.");
+				Send(errRx, ApiHooks.Errors);
 				return;
 			}
 
-			ErrorData data = new ErrorData()
+			if (message.Method == "GET")
 			{
-				Id = id,
-				Message = label
-			};
-
-			errors.Add(id, data);
-			SendErrors();
-		}
-
-		/// <inheritdoc/>
-		public void ClearDeviceError(string id)
-		{
-			if (errors.TryGetValue(id, out ErrorData data))
+				GetHandlers[message.Command].Invoke(message);
+			}
+			else
 			{
-				errors.Remove(id);
-				SendErrors();
+				SendError($"Unsupported method: {message.Method}.", ApiHooks.Errors);
 			}
 		}
-
-		/// <inheritdoc/>
-		public override void HandleSerialResponse(string response)
+		catch (Exception ex)
 		{
-			try
-			{
-				ResponseBase message = MessageFactory.DeserializeMessage(response);
-				if (message == null)
-				{
-					ResponseBase errRx = MessageFactory.CreateErrorResponse("Invalid message format.");
-					Send(errRx, ApiHooks.Errors);
-					return;
-				}
-
-				if (message.Method == "GET")
-				{
-					GetHandlers[message.Command].Invoke(message);
-				}
-                else
-                {
-					ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Unsupported method: {message.Method}.");
-					Send(errMessage, ApiHooks.Errors);
-					return;
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Error("CrComLibUi.ErrorComponent.HandleSerialResponse() - {0}", ex);
-				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Failed to parse message: {ex.Message}");
-				Send(errRx, ApiHooks.Errors);
-			}
+			Logger.Error("CrComLibUi.ErrorComponent.HandleSerialResponse() - {0}", ex);
+			SendServerError(ApiHooks.Errors);
 		}
+	}
 
-		/// <inheritdoc/>
-		public override void Initialize() { Initialized = true; }
+	/// <inheritdoc/>
+	public override void Initialize() { Initialized = true; }
 
-		private void HandleGetErrors(ResponseBase response)
-		{
-			SendErrors();
-		}
+	private void HandleGetErrors(ResponseBase response)
+	{
+		SendErrors();
+	}
 
-		private void SendErrors()
-		{
-			ResponseBase response = MessageFactory.CreateGetResponseObject();
-			response.Command = COMMAND;
-			response.Data = errors.Values.ToArray();
-			Send(response, ApiHooks.Errors);
-		}
+	private void SendErrors()
+	{
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = Command;
+		message.Data = JObject.FromObject(_errors);
+		Send(message, ApiHooks.Errors);
 	}
 }

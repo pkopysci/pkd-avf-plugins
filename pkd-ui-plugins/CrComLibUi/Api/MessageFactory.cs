@@ -1,93 +1,93 @@
-﻿namespace CrComLibUi.Api
+﻿using System.Dynamic;
+using Newtonsoft.Json.Linq;
+
+namespace CrComLibUi.Api;
+
+using Newtonsoft.Json;
+using pkd_common_utils.Logging;
+using System;
+
+internal static class MessageFactory
 {
-    using Crestron.SimplSharp;
-    using Newtonsoft.Json;
-	using pkd_common_utils.Logging;
-	using System;
-	using System.Dynamic;
-
-	internal static class MessageFactory
+	/// <summary>
+	/// Attempts to deserialize an API response into a ResponseBase data object. If the deserialization.
+	/// </summary>
+	/// <param name="message">the API JSON message to deserialize.</param>
+	/// <returns>the data object containing deserialized message information or NULL if message is null or empty or if the deserialization failed.
+	/// </returns>
+	public static ResponseBase DeserializeMessage(string message)
 	{
-		/// <summary>
-		/// Attempts to deserialize an API response into a ResponseBase data object. If the deserialization.
-		/// </summary>
-		/// <param name="message">the API JSON message to deserialize.</param>
-		/// <returns>the data object containing deserialized message information or NULL if message is null or empty or if the deserialization failed.
-		/// </returns>
-		public static ResponseBase DeserializeMessage(string message)
+		if (string.IsNullOrEmpty(message))
 		{
-			if (string.IsNullOrEmpty(message))
-			{
-				Logger.Error("CrComLibUi.Api.MessageFactory.DeserializeMessage() - argument 'message' cannot be null or empty.");
-				return null;
-			}
-
-			try
-			{
-				int eofIdx = message.IndexOf("EOF");
-				if (eofIdx != -1)
-				{
-					message = message.Substring(0, eofIdx);
-				}
-
-				return JsonConvert.DeserializeObject<ResponseBase>(message);
-			}
-			catch (Exception ex)
-			{
-				Logger.Error(
-					"CrComLibUi.Api.MessageFactory.DeserializeMessage() - Failed to deserialize the message. Reason: {0}",
-					ex.Message);
-
-				return null;
-			}
+			Logger.Error("CrComLibUi.Api.MessageFactory.DeserializeMessage() - argument 'message' cannot be null or empty.");
+			return new ResponseBase();
 		}
 
-		/// <summary>
-		/// Attempts to serialize and API data object and prepare it for sending. This method will also append the EOF delimiter
-		/// to the final string.
-		/// </summary>
-		/// <param name="messageData">The object to serialize.</param>
-		/// <returns>The serialized and formatted response string. The empty string will be returned if messageData is null or if the serialization failed.</returns>
-		public static string SerializeMessage(ResponseBase messageData)
+		try
 		{
-			if (messageData == null)
+			var eofIdx = message.IndexOf("EOF", StringComparison.Ordinal);
+			if (eofIdx != -1)
 			{
-				Logger.Error("CrComLibUi.Api.MessageFactory.SerializeMessage() - argument 'messageData' cannot be null.");
-				return string.Empty;
+				message = message[..eofIdx];
 			}
 
-			try
-			{
-				return JsonConvert.SerializeObject(messageData) + "EOF";
-			}
-			catch (Exception ex)
-			{
-				Logger.Error(
-					"CrComLibUi.Api.MessageFactory.SerializeMessage() - Failed to serialize the message object.. Reason: {0}",
-					ex.Message);
-
-				return string.Empty;
-			}
+			var rx = JsonConvert.DeserializeObject<ResponseBase>(message);
+			if (rx != null) return rx;
+			
+			Logger.Error($"CrComLibUi.Api.MessageFactory.DeserializeMessage() - Could not deserialize {message}. Returning empty response.");
+			return new ResponseBase();
 		}
-
-		public static ResponseBase CreateGetResponseObject()
+		catch (Exception ex)
 		{
-			return new ResponseBase() { Method = "GET" };
-		}
+			Logger.Error(
+				"CrComLibUi.Api.MessageFactory.DeserializeMessage() - Failed to deserialize the message {0}.\n\rReturning empty response.\n\rReason: {1}",
+				message,
+				ex.Message);
 
-		public static ResponseBase CreatePostResponseObject()
-		{
-			return new ResponseBase() { Method = "POST" };
+			return new ResponseBase();
 		}
+	}
 
-		public static ResponseBase CreateErrorResponse(string errorMessage = "")
+	/// <summary>
+	/// Attempts to serialize and API data object and prepare it for sending. This method will also append the EOF delimiter
+	/// to the final string.
+	/// </summary>
+	/// <param name="messageData">The object to serialize.</param>
+	/// <returns>The serialized and formatted response string. The empty string will be returned if messageData is null or if the serialization failed.</returns>
+	public static string SerializeMessage(ResponseBase messageData)
+	{
+		try
 		{
-			return new ResponseBase()
-			{
-				Method = "GET",
-				Command = "ERROR",
-				Data = errorMessage,
-			};
+			return JsonConvert.SerializeObject(messageData) + "EOF";
 		}
+		catch (Exception ex)
+		{
+			Logger.Error(
+				"CrComLibUi.Api.MessageFactory.SerializeMessage() - Failed to serialize the message object.. Reason: {0}",
+				ex.Message);
+
+			return string.Empty;
+		}
+	}
+
+	public static ResponseBase CreateGetResponseObject()
+	{
+		return new ResponseBase() { Method = "GET" };
+	}
+
+	public static ResponseBase CreatePostResponseObject()
+	{
+		return new ResponseBase() { Method = "POST" };
+	}
+
+	public static ResponseBase CreateErrorResponse(string errorMessage = "")
+	{
+		var response = new ResponseBase()
+		{
+			Method = "GET",
+			Command = "ERROR",
+		};
+		response.Data.Add(new JProperty("Message", errorMessage));
+		return response;
 	}
 }

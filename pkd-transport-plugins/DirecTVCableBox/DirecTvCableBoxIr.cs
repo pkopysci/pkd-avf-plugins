@@ -1,7 +1,8 @@
-﻿namespace DirecTvCableBox
+﻿using System.Reflection;
+
+namespace DirecTvCableBox
 {
 	using Crestron.SimplSharp.CrestronIO;
-	using Crestron.SimplSharp.Reflection;
 	using Crestron.SimplSharpPro;
 	using pkd_common_utils.GenericEventArgs;
 	using pkd_common_utils.Logging;
@@ -14,24 +15,24 @@
 	/// </summary>
 	public class DirecTvCableBoxIr : ITransportDevice
 	{
-		private IROutputPort port;
-		private const string DRIVER_NAME = "CableBox_DirecTV_H25-100.ir";
-		private const int PULSE_TIME = 150;
+		private const string DriverName = "CableBox_DirecTV_H25-100.ir";
+		private const int PulseTime = 150;
+		private IROutputPort? _port;
 
 		/// <summary>
 		/// Instantiates a new instance of <see cref="DirecTvCableBoxIr"/>.
 		/// </summary>
 		public DirecTvCableBoxIr()
 		{
-			this.SupportsColorButtons = true;
-			this.SupportsDiscretePower = true;
+			SupportsColorButtons = true;
+			SupportsDiscretePower = true;
 		}
 
 		/// <inheritdoc />
-		public event EventHandler<GenericSingleEventArgs<string>> ConnectionChanged;
+		public event EventHandler<GenericSingleEventArgs<string>>? ConnectionChanged;
 
 		/// <inheritdoc />
-		public string Id { get; private set; }
+		public string Id { get; private set; } = string.Empty;
 
 		/// <inheritdoc />
 		public bool IsInitialized { get; private set; }
@@ -40,29 +41,29 @@
 		public bool IsOnline { get; private set; }
 
 		/// <inheritdoc />
-		public string Label { get; private set; }
+		public string Label { get; private set; } = string.Empty;
 
 		/// <inheritdoc />
-		public bool SupportsColorButtons { get; private set; }
+		public bool SupportsColorButtons { get; }
 
 		/// <inheritdoc />
-		public bool SupportsDiscretePower { get; private set; }
+		public bool SupportsDiscretePower { get; }
 
 		/// <inheritdoc />
 		public void Initialize(IROutputPort port, string id, string label)
 		{
-			ParameterValidator.ThrowIfNull(port, "DirecTvCableBoxIr.Ctor", "port");
-			ParameterValidator.ThrowIfNullOrEmpty(id, "DirecTvCableBoxIr.Ctor", "id");
-			ParameterValidator.ThrowIfNullOrEmpty(label, "DirecTvCableBoxir.Ctor", "label");
+			ParameterValidator.ThrowIfNull(port, "DirecTvCableBoxIr.Ctor", nameof(port));
+			ParameterValidator.ThrowIfNullOrEmpty(id, "DirecTvCableBoxIr.Ctor", nameof(id));
+			ParameterValidator.ThrowIfNullOrEmpty(label, "DirecTvCableBoxIr.Ctor", nameof(label));
 
-			this.Id = id;
-			this.Label = label;
-			this.port = port;
-			this.LoadIrFile();
-			this.IsInitialized = true;
-			this.IsOnline = true;
-			var temp = this.ConnectionChanged;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(this.Id));
+			Id = id;
+			Label = label;
+			_port = port;
+			LoadIrFile();
+			IsInitialized = true;
+			IsOnline = true;
+			var temp = ConnectionChanged;
+			temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
 		}
 
 		/// <inheritdoc />
@@ -74,292 +75,292 @@
 		/// <inheritdoc />
 		public void Back()
 		{
-			if (this.CheckInit("Back"))
+			if (CheckInit("Back"))
 			{
-				this.port.PressAndRelease("BACK", PULSE_TIME);
+				_port?.PressAndRelease("BACK", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Blue()
 		{
-			if (this.CheckInit("Blue"))
+			if (CheckInit("Blue"))
 			{
-				this.port.PressAndRelease("BLUE", PULSE_TIME);
+				_port?.PressAndRelease("BLUE", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void ChannelDown()
 		{
-			if (this.CheckInit("ChannelDown"))
+			if (CheckInit("ChannelDown"))
 			{
-				this.port.PressAndRelease("CH-", PULSE_TIME);
+				_port?.PressAndRelease("CH-", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void ChannelUp()
 		{
-			if (this.CheckInit("ChannelUp"))
+			if (CheckInit("ChannelUp"))
 			{
-				this.port.PressAndRelease("CH+", PULSE_TIME);
+				_port?.PressAndRelease("CH+", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Dash()
 		{
-			if (this.CheckInit("Dash"))
+			if (CheckInit("Dash"))
 			{
-				this.port.PressAndRelease("DIGIT_-", PULSE_TIME);
+				_port?.PressAndRelease("DIGIT_-", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Digit(ushort digit)
 		{
-			if (!this.CheckInit("Digit"))
+			if (!CheckInit("Digit"))
 			{
 				return;
 			}
 
-			this.port.PressAndRelease(digit.ToString(), PULSE_TIME);
+			_port?.PressAndRelease(digit.ToString(), PulseTime);
 		}
 
 		/// <inheritdoc />
 		public void Exit()
 		{
-			if (this.CheckInit("Exit"))
+			if (CheckInit("Exit"))
 			{
-				this.port.PressAndRelease("EXIT", PULSE_TIME);
+				_port?.PressAndRelease("EXIT", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Green()
 		{
-			if (this.CheckInit("Green"))
+			if (CheckInit("Green"))
 			{
-				this.port.PressAndRelease("GREEN", PULSE_TIME);
+				_port?.PressAndRelease("GREEN", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Guide()
 		{
-			if (this.CheckInit("Guide"))
+			if (CheckInit("Guide"))
 			{
-				this.port.PressAndRelease("GUIDE", PULSE_TIME);
+				_port?.PressAndRelease("GUIDE", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Info()
 		{
-			if (this.CheckInit("Info"))
+			if (CheckInit("Info"))
 			{
-				this.port.PressAndRelease("INFO", PULSE_TIME);
+				_port?.PressAndRelease("INFO", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Menu()
 		{
-			if (this.CheckInit("Menu"))
+			if (CheckInit("Menu"))
 			{
-				this.port.PressAndRelease("MENU", PULSE_TIME);
+				_port?.PressAndRelease("MENU", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void NavDown()
 		{
-			if (this.CheckInit("NavDown"))
+			if (CheckInit("NavDown"))
 			{
-				this.port.PressAndRelease("DN_ARROW", PULSE_TIME);
+				_port?.PressAndRelease("DN_ARROW", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void NavLeft()
 		{
-			if (this.CheckInit("NavLeft"))
+			if (CheckInit("NavLeft"))
 			{
-				this.port.PressAndRelease("LEFT_ARROW", PULSE_TIME);
+				_port?.PressAndRelease("LEFT_ARROW", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void NavRight()
 		{
-			if (this.CheckInit("NavRight"))
+			if (CheckInit("NavRight"))
 			{
-				this.port.PressAndRelease("RIGHT_ARROW", PULSE_TIME);
+				_port?.PressAndRelease("RIGHT_ARROW", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void NavUp()
 		{
-			if (this.CheckInit("NavUp"))
+			if (CheckInit("NavUp"))
 			{
-				this.port.PressAndRelease("UP_ARROW", PULSE_TIME);
+				_port?.PressAndRelease("UP_ARROW", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void PageDown()
 		{
-			if (this.CheckInit("PageDown"))
+			if (CheckInit("PageDown"))
 			{
-				this.port.PressAndRelease("PAGE_DOWN", PULSE_TIME);
+				_port?.PressAndRelease("PAGE_DOWN", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void PageUp()
 		{
-			if (this.CheckInit("PageUp"))
+			if (CheckInit("PageUp"))
 			{
-				this.port.PressAndRelease("PAGE_UP", PULSE_TIME);
+				_port?.PressAndRelease("PAGE_UP", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Pause()
 		{
-			if (this.CheckInit("Pause"))
+			if (CheckInit("Pause"))
 			{
-				this.port.PressAndRelease("PAUSE", PULSE_TIME);
+				_port?.PressAndRelease("PAUSE", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Play()
 		{
-			if (this.CheckInit("Play"))
+			if (CheckInit("Play"))
 			{
-				this.port.PressAndRelease("PLAY", PULSE_TIME);
+				_port?.PressAndRelease("PLAY", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void PowerOff()
 		{
-			if (this.CheckInit("PowerOff"))
+			if (CheckInit("PowerOff"))
 			{
-				this.port.PressAndRelease("POWER_OFF", PULSE_TIME);
+				_port?.PressAndRelease("POWER_OFF", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void PowerOn()
 		{
-			if (this.CheckInit("PowerOn"))
+			if (CheckInit("PowerOn"))
 			{
-				this.port.PressAndRelease("POWER_ON", PULSE_TIME);
+				_port?.PressAndRelease("POWER_ON", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void PowerToggle()
 		{
-			if (this.CheckInit("PowerTOggle"))
+			if (CheckInit("PowerTOggle"))
 			{
-				Logger.Warn("DirecTvCableBoxIr {0} - PowerToggle() is not supported by this device.", this.Id);
+				Logger.Warn("DirecTvCableBoxIr {0} - PowerToggle() is not supported by this device.", Id);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Record()
 		{
-			if (this.CheckInit("Record"))
+			if (CheckInit("Record"))
 			{
-				this.port.PressAndRelease("RECORD", PULSE_TIME);
+				_port?.PressAndRelease("RECORD", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Red()
 		{
-			if (this.CheckInit("Red"))
+			if (CheckInit("Red"))
 			{
-				this.port.PressAndRelease("RED", PULSE_TIME);
+				_port?.PressAndRelease("RED", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void ScanForward()
 		{
-			if (this.CheckInit("ScanForward()"))
+			if (CheckInit("ScanForward()"))
 			{
-				this.port.PressAndRelease("FSCAN", PULSE_TIME);
+				_port?.PressAndRelease("FSCAN", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void ScanReverse()
 		{
-			if (this.CheckInit("ScanReverse"))
+			if (CheckInit("ScanReverse"))
 			{
-				this.port.PressAndRelease("RSCAN", PULSE_TIME);
+				_port?.PressAndRelease("RSCAN", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void SkipForward()
 		{
-			if (this.CheckInit("SkipForward"))
+			if (CheckInit("SkipForward"))
 			{
-				Logger.Warn("DirecTvCableBoxIr {0} - SkipForward() is not supported by this device.", this.Id);
+				Logger.Warn("DirecTvCableBoxIr {0} - SkipForward() is not supported by this device.", Id);
 			}
 		}
 
 		/// <inheritdoc />
 		public void SkipReverse()
 		{
-			if (this.CheckInit("SkipForward"))
+			if (CheckInit("SkipForward"))
 			{
-				Logger.Warn("DirecTvCableBoxIr {0} - SkipReverse() is not supported by this device.", this.Id);
+				Logger.Warn("DirecTvCableBoxIr {0} - SkipReverse() is not supported by this device.", Id);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Stop()
 		{
-			if (this.CheckInit("Stop"))
+			if (CheckInit("Stop"))
 			{
-				this.port.PressAndRelease("STOP", PULSE_TIME);
+				_port?.PressAndRelease("STOP", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Yellow()
 		{
-			if (this.CheckInit("Yellow"))
+			if (CheckInit("Yellow"))
 			{
-				this.port.PressAndRelease("YELLOW", PULSE_TIME);
+				_port?.PressAndRelease("YELLOW", PulseTime);
 			}
 		}
 
 		/// <inheritdoc />
 		public void Select()
 		{
-			if (this.CheckInit("Select"))
+			if (CheckInit("Select"))
 			{
-				this.port.PressAndRelease("SELECT", PULSE_TIME);
+				_port?.PressAndRelease("SELECT", PulseTime);
 			}
 		}
 
 		private void LoadIrFile()
 		{
-			if (!this.TryCreateDriverFromResource())
+			if (!TryCreateDriverFromResource())
 			{
 				return;
 			}
 
-			string driver = Path.Combine(Directory.GetApplicationDirectory(), DRIVER_NAME);
+			string driver = Path.Combine(Directory.GetApplicationDirectory(), DriverName);
 			Logger.Debug("Loading file {0}...", driver);
 			if (string.IsNullOrEmpty(driver))
 			{
@@ -367,12 +368,12 @@
 				return;
 			}
 
-			this.port.LoadIRDriver(driver);
+			_port?.LoadIRDriver(driver);
 		}
 
 		private bool CheckInit(string methodName)
 		{
-			if (!this.IsInitialized)
+			if (!IsInitialized)
 			{
 				Logger.Error("DirecTvCableBoxIr.{0}() - Device not initialized.", methodName);
 				return false;
@@ -386,30 +387,28 @@
 			try
 			{
 				// Get the assembly containing the embedded resource
-				Assembly assembly = Assembly.GetExecutingAssembly();
+				var assembly = Assembly.GetExecutingAssembly();
 
 				// Read the embedded resource stream
-				string resourceName = string.Format("DirecTVCableBox.{0}", DRIVER_NAME);
-				using (Stream resourceStream = assembly.GetManifestResourceStream(resourceName))
+				const string resourceName = $"DirecTVCableBox.{DriverName}";
+				using var resourceStream = assembly.GetManifestResourceStream(resourceName);
+				if (resourceStream == null)
 				{
-					if (resourceStream == null)
-					{
-						throw new Exception("Embedded resource not found.");
-					}
+					throw new Exception("Embedded resource not found.");
+				}
 
-					// Create the output file in the executing directory
-					string outputFile = Path.Combine(Directory.GetApplicationDirectory(), Path.Combine(Directory.GetApplicationDirectory(), DRIVER_NAME));
+				// Create the output file in the executing directory
+				string outputFile = Path.Combine(
+					Directory.GetApplicationDirectory(),
+					Path.Combine(Directory.GetApplicationDirectory(),DriverName));
 
-					using (FileStream fileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write))
-					{
-						// Copy the contents from the resource stream to the file stream
-						byte[] buffer = new byte[1024];
-						int bytesRead;
-						while ((bytesRead = resourceStream.Read(buffer, 0, buffer.Length)) > 0)
-						{
-							fileStream.Write(buffer, 0, bytesRead);
-						}
-					}
+				using var fileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write);
+				// Copy the contents from the resource stream to the file stream
+				var buffer = new byte[1024];
+				int bytesRead;
+				while ((bytesRead = resourceStream.Read(buffer, 0, buffer.Length)) > 0)
+				{
+					fileStream.Write(buffer, 0, bytesRead);
 				}
 
 				return true;

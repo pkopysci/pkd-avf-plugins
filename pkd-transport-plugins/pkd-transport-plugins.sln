@@ -1,9 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.11.35327.3
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirecTVCableBox", "DirecTVCableBox\DirecTVCableBox.csproj", "{74A0364D-FCEB-403D-AEBA-24EF04B840CE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirecTVCableBox", "DirecTVCableBox\DirecTVCableBox.csproj", "{44555E3C-FDB6-422F-8C2D-1139D7B49E3F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +8,9 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{74A0364D-FCEB-403D-AEBA-24EF04B840CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{74A0364D-FCEB-403D-AEBA-24EF04B840CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{74A0364D-FCEB-403D-AEBA-24EF04B840CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{74A0364D-FCEB-403D-AEBA-24EF04B840CE}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {CB9CC093-B2F5-4E53-8801-14862160509C}
+		{44555E3C-FDB6-422F-8C2D-1139D7B49E3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44555E3C-FDB6-422F-8C2D-1139D7B49E3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44555E3C-FDB6-422F-8C2D-1139D7B49E3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44555E3C-FDB6-422F-8C2D-1139D7B49E3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

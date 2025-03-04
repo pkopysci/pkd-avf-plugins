@@ -15,62 +15,58 @@
 	using System.Text.RegularExpressions;
 
 	/// <summary>
-	/// GCU C# framework plugin for controlling a Biam Nexia. Call Initialize() to begin control.
+	/// GCU C# framework plugin for controlling a Biamp Nexia. Call Initialize() to begin control.
 	/// </summary>
-	public class NexiaDspTcp : BaseDevice, IDsp, IDisposable
+	public class NexiaDspTcp : BaseDevice, IDsp
 	{
-		private static readonly string RxPattern = @"#(?<command>.*) (?<dspId>\d+) (?<control>\w*) (?<tag>\d*) (?<index1>\d+) (?<index2>\d*) *(?<value>-*\d+)* *(?<result>\+OK|-ERR)*";
-		private readonly List<NexiaAudioChannel> inputs;
-		private readonly List<NexiaAudioChannel> outputs;
-		private readonly List<NexiaPreset> presets;
-		private readonly StringBuilder rxBuilder;
-		private BasicTcpClient client;
-		private CTimer sendTimer;
-		private CTimer queryTimer;
-		private bool isDisposed;
-		private string hostname;
-		private int port;
-		private int errCount;
-		private int coreId;
+		private const string RxPattern = @"#(?<command>.*) (?<dspId>\d+) (?<control>\w*) (?<tag>\d*) (?<index1>\d+) (?<index2>\d*) *(?<value>-*\d+)* *(?<result>\+OK|-ERR)*";
+		private readonly List<NexiaAudioChannel> _inputs = [];
+		private readonly List<NexiaAudioChannel> _outputs = [];
+		private readonly List<NexiaPreset> _presets = [];
+		private readonly StringBuilder _rxBuilder;
+		private BasicTcpClient? _client;
+		private CTimer? _sendTimer;
+		private CTimer? _queryTimer;
+		private bool _isDisposed;
+		private int _coreId;
+		private int _errCount;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="NexiaDsp"/> class.
+		/// Initializes a new instance of the <see cref="NexiaDspTcp"/> class.
 		/// </summary>
 		public NexiaDspTcp()
 		{
-			this.IsInitialized = false;
-			this.Id = "NexiaDspDefaultID";
-			this.Label = "Nexia DSP";
-			this.inputs = new List<NexiaAudioChannel>();
-			this.outputs = new List<NexiaAudioChannel>();
-			this.presets = new List<NexiaPreset>();
-			this.rxBuilder = new StringBuilder();
+			Id = "NexiaDspDefaultID";
+			Label = "Nexia DSP";
+			_rxBuilder = new StringBuilder();
 		}
 
 		~NexiaDspTcp()
 		{
-			this.Dispose(false);
+			Dispose(false);
 		}
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioInputLevelChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputLevelChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioInputMuteChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputMuteChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioOutputLevelChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioOutputLevelChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioOutputMuteChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioOutputMuteChanged;
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Gets a collection of ids for all presets that have been added using the AddPreset() method.
+		/// </summary>
 		public IEnumerable<string> GetPresetIds
 		{
 			get
 			{
-				List<string> ids = new List<string>();
-				foreach (var preset in this.presets)
+				List<string> ids = [];
+				foreach (var preset in _presets)
 				{
 					ids.Add(preset.Id);
 				}
@@ -79,13 +75,15 @@
 			}
 		}
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Gets a collection of ids for all inputs added to this object.
+		/// </summary>
 		public IEnumerable<string> GetInputIds
 		{
 			get
 			{
-				List<string> ids = new List<string>();
-				foreach (var input in this.inputs)
+				List<string> ids = [];
+				foreach (var input in _inputs)
 				{
 					ids.Add(input.Id);
 				}
@@ -94,13 +92,15 @@
 			}
 		}
 
-		/// <inheritdoc/>
+		/// <summary>
+		/// Gets a collection of ids for all outputs added to this object.
+		/// </summary>
 		public IEnumerable<string> GetOutputIds
 		{
 			get
 			{
-				List<string> ids = new List<string>();
-				foreach (var output in this.outputs)
+				List<string> ids = [];
+				foreach (var output in _outputs)
 				{
 					ids.Add(output.Id);
 				}
@@ -120,50 +120,50 @@
 			ParameterValidator.ThrowIfNull(username, "Initialize", "username");
 			ParameterValidator.ThrowIfNull(password, "Initialize", "password");
 
-			this.IsInitialized = false;
+			IsInitialized = false;
 
-			this.Id = hostId;
-			this.coreId = coreId;
-			this.hostname = hostname;
-			this.port = port;
-
-			//this.client = new TcpClientManager(this.hostname, this.port, @".*?\r\n");
-			this.client = new BasicTcpClient(this.hostname, this.port, 1024)
+			Id = hostId;
+			_coreId = coreId;
+			_client = new BasicTcpClient(hostname, port, 1024)
 			{
 				EnableReconnect = true
 			};
-			this.SubscribeClient();
-			this.IsOnline = false;
+			
+			SubscribeClient();
+			IsOnline = false;
 
-			this.IsInitialized = true;
+			IsInitialized = true;
 		}
 
 		/// <inheritdoc/>
 		public override void Connect()
 		{
-			if (!this.IsInitialized)
+			if (!IsInitialized)
 			{
-				Logger.Error("NexiaDspTcp {0} - Connect() : Run Initialize() first.", this.Id);
+				Logger.Error("NexiaDspTcp {0} - Connect() : Run Initialize() first.", Id);
 				return;
 			}
 
-			this.client.Connect();
+			_client?.Connect();
 		}
 
 		/// <inheritdoc/>
 		public override void Disconnect()
 		{
-			if (this.client != null)
+			if (!IsInitialized)
 			{
-				this.client.Disconnect();
-				this.errCount = 0;
+				Logger.Error($"NexiaDspTcp {Id} - Disconnect() - device not initialized.");
+				return;
 			}
+			
+			_client?.Disconnect();
+			_errCount = 0;
 		}
 
 		/// <inheritdoc/>
 		public void Dispose()
 		{
-			this.Dispose(true);
+			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
 
@@ -173,29 +173,29 @@
 			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "AddInputChannel", "muteTag");
 			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "AddInputChannel", "levelTag");
 
-			var current = this.inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var current = _inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (current != null)
 			{
-				current.AudioVolumeChanged -= this.InputControlLevelChange;
-				current.AudioMuteChanged -= this.InputControlMuteChange;
-				current.QueueCommand -= this.TrySend;
-				this.inputs.Remove(current);
+				current.AudioVolumeChanged -= InputControlLevelChange;
+				current.AudioMuteChanged -= InputControlMuteChange;
+				current.QueueCommand -= TrySend;
+				_inputs.Remove(current);
 			}
 
-			NexiaAudioChannel channel = new NexiaAudioChannel(
-				this.coreId,
+			var channel = new NexiaAudioChannel(
+				_coreId,
 				id,
 				muteTag,
 				levelTag,
-				new string[] { },
+				[],
 				index,
 				levelMax,
 				levelMin);
 
-			channel.AudioMuteChanged += this.InputControlMuteChange;
-			channel.AudioVolumeChanged += this.InputControlLevelChange;
-			channel.QueueCommand += this.TrySend;
-			this.inputs.Add(channel);
+			channel.AudioMuteChanged += InputControlMuteChange;
+			channel.AudioVolumeChanged += InputControlLevelChange;
+			channel.QueueCommand += TrySend;
+			_inputs.Add(channel);
 		}
 
 		/// <inheritdoc/>
@@ -204,168 +204,168 @@
 			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "AddInputChannel", "muteTag");
 			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "AddInputChannel", "levelTag");
 
-			var current = this.outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var current = _outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (current != null)
 			{
-				current.AudioVolumeChanged -= this.OutputControlMuteChange;
-				current.AudioMuteChanged -= this.OutputControlLevelChange;
-				current.QueueCommand -= this.TrySend;
-				this.outputs.Remove(current);
+				current.AudioVolumeChanged -= OutputControlMuteChange;
+				current.AudioMuteChanged -= OutputControlLevelChange;
+				current.QueueCommand -= TrySend;
+				_outputs.Remove(current);
 			}
 
 			var channel = new NexiaAudioChannel(
-				this.coreId,
+				_coreId,
 				id,
 				muteTag,
 				levelTag,
-				new String[] { },
+				[],
 				index,
 				levelMax,
 				levelMin);
 
-			channel.AudioMuteChanged += this.OutputControlMuteChange;
-			channel.AudioVolumeChanged += this.OutputControlLevelChange;
-			channel.QueueCommand += this.TrySend;
-			this.outputs.Add(channel);
+			channel.AudioMuteChanged += OutputControlMuteChange;
+			channel.AudioVolumeChanged += OutputControlLevelChange;
+			channel.QueueCommand += TrySend;
+			_outputs.Add(channel);
 		}
 
 		/// <inheritdoc/>
 		public void AddPreset(string id, int index)
 		{
-			var current = this.presets.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var current = _presets.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (current != null)
 			{
-				current.QueueCommand -= this.TrySend;
-				this.presets.Remove(current);
+				current.QueueCommand -= TrySend;
+				_presets.Remove(current);
 			}
 
-			var newPreset = new NexiaPreset(this.coreId, id, index);
-			newPreset.QueueCommand += this.TrySend;
-			this.presets.Add(newPreset);
+			var newPreset = new NexiaPreset(_coreId, id, index);
+			newPreset.QueueCommand += TrySend;
+			_presets.Add(newPreset);
 		}
 
 		/// <inheritdoc/>
 		public int GetAudioInputLevel(string id)
 		{
-			NexiaAudioChannel found = this.inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var found = _inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (found != null)
 			{
 				return found.AudioLevel;
 			}
 
-			Logger.Warn("NexiaDspTcp {0} - GetInputLevel() : Unable to find input channel with ID {1}", this.Id, id);
+			Logger.Warn("NexiaDspTcp {0} - GetInputLevel() : Unable to find input channel with ID {1}", Id, id);
 			return 0;
 		}
 
 		/// <inheritdoc/>
 		public bool GetAudioInputMute(string id)
 		{
-			NexiaAudioChannel found = this.inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var found = _inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (found != null)
 			{
 				return found.AudioMute;
 			}
 
-			Logger.Warn("NexiaDspTcp {0} - GetInputMute() : Unable to find input channel with ID {1}", this.Id, id);
+			Logger.Warn("NexiaDspTcp {0} - GetInputMute() : Unable to find input channel with ID {1}", Id, id);
 			return false;
 		}
 
 		/// <inheritdoc/>
 		public int GetAudioOutputLevel(string id)
 		{
-			NexiaAudioChannel found = this.outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var found = _outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (found != null)
 			{
 				return found.AudioLevel;
 			}
 
-			Logger.Warn("NexiaDspTcp {0} - GetOutputLevel() : Unable to find output channel with ID {1}", this.Id, id);
+			Logger.Warn("NexiaDspTcp {0} - GetOutputLevel() : Unable to find output channel with ID {1}", Id, id);
 			return 0;
 		}
 
 		/// <inheritdoc/>
 		public bool GetAudioOutputMute(string id)
 		{
-			NexiaAudioChannel found = this.outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var found = _outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (found != null)
 			{
 				return found.AudioMute;
 			}
 
-			Logger.Warn("NexiaDspTcp {0} - GetOutputMute() : Unable to find output channel with ID {1}", this.Id, id);
+			Logger.Warn("NexiaDspTcp {0} - GetOutputMute() : Unable to find output channel with ID {1}", Id, id);
 			return false;
 		}
 
 		/// <inheritdoc/>
 		public void RecallAudioPreset(string id)
 		{
-			var found = this.presets.FirstOrDefault(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var found = _presets.FirstOrDefault(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			found?.RecallPreset();
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioInputLevel(string id, int level)
 		{
-			Logger.Debug("NexiaDspTcp {0} - SetAudioInputLevel({1}, {2})", this.Id, id, level);
+			Logger.Debug("NexiaDspTcp {0} - SetAudioInputLevel({1}, {2})", Id, id, level);
 
-			NexiaAudioChannel found = this.inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var found = _inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (found != null)
 			{
 				found.SetAudioLevel(level);
 			}
 			else
 			{
-				Logger.Warn("NexiaDspTcp {0} - SetInputLevel() : Unable to find input channel with ID {1}", this.Id, id);
+				Logger.Warn("NexiaDspTcp {0} - SetInputLevel() : Unable to find input channel with ID {1}", Id, id);
 			}
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioInputMute(string id, bool mute)
 		{
-			NexiaAudioChannel found = this.inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var found = _inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (found != null)
 			{
 				found.SetAudioMute(mute);
 			}
 			else
 			{
-				Logger.Warn("NexiaDspTcp {0} - SetInputMute() : Unable to find input channel with ID {1}", this.Id, id);
+				Logger.Warn("NexiaDspTcp {0} - SetInputMute() : Unable to find input channel with ID {1}", Id, id);
 			}
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioOutputLevel(string id, int level)
 		{
-			NexiaAudioChannel found = this.outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var found = _outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (found != null)
 			{
 				found.SetAudioLevel(level);
 			}
 			else
 			{
-				Logger.Warn("NexiaDspTcp {0} - SetOutputLevel() : Unable to find output channel with ID {1}", this.Id, id);
+				Logger.Warn("NexiaDspTcp {0} - SetOutputLevel() : Unable to find output channel with ID {1}", Id, id);
 			}
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioOutputMute(string id, bool mute)
 		{
-			NexiaAudioChannel found = this.outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
+			var found = _outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (found != null)
 			{
 				found.SetAudioMute(mute);
 			}
 			else
 			{
-				Logger.Warn("NexiaDspTcp {0} - SetOutputMute() : Unable to find output channel with ID {1}", this.Id, id);
+				Logger.Warn("NexiaDspTcp {0} - SetOutputMute() : Unable to find output channel with ID {1}", Id, id);
 			}
 		}
 
 		/// <inheritdoc/>
 		public IEnumerable<string> GetAudioOutputIds()
 		{
-			List<string> ids = new List<string>();
-			foreach (var output in this.outputs)
+			List<string> ids = [];
+			foreach (var output in _outputs)
 			{
 				ids.Add(output.Id);
 			}
@@ -377,7 +377,7 @@
 		public IEnumerable<string> GetAudioInputIds()
 		{
 			List<string> ids = new List<string>();
-			foreach (var input in this.inputs)
+			foreach (var input in _inputs)
 			{
 				ids.Add(input.Id);
 			}
@@ -389,7 +389,7 @@
 		public IEnumerable<string> GetAudioPresetIds()
 		{
 			List<string> ids = new List<string>();
-			foreach (var preset in this.presets)
+			foreach (var preset in _presets)
 			{
 				ids.Add(preset.Id);
 			}
@@ -399,104 +399,99 @@
 
 		private void Dispose(bool disposing)
 		{
-			if (!this.isDisposed)
+			if (!_isDisposed)
 			{
 				if (disposing)
 				{
-					if (this.client != null)
+					if (_client != null)
 					{
-						this.UnsubscribeClient();
-						this.client.Disconnect();
-						this.client.Dispose();
+						UnsubscribeClient();
+						_client.Disconnect();
+						_client.Dispose();
 					}
 
-					if (this.sendTimer != null)
+					if (_sendTimer != null)
 					{
-						this.sendTimer.Dispose();
-						this.sendTimer = null;
+						_sendTimer.Dispose();
+						_sendTimer = null;
 					}
 				}
 
-				this.isDisposed = true;
+				_isDisposed = true;
 			}
 		}
 
 		private void TrySend(string command)
 		{
-			if (!this.IsOnline)
+			if (!IsOnline)
 			{
 				return;
 			}
 
-			this.client.Send(command);
-			if (this.sendTimer == null)
+			_client?.Send(command);
+			if (_sendTimer == null)
 			{
-				this.sendTimer = new CTimer(this.SendTimeoutcallback, 1000);
+				_sendTimer = new CTimer(SendTimeoutCallback, 1000);
 			}
 			else
 			{
-				this.sendTimer.Reset(1000);
+				_sendTimer.Reset(1000);
 			}
 		}
 
-		private void SendTimeoutcallback(object obj)
+		private void SendTimeoutCallback(object? obj)
 		{
-			Logger.Error("NexiaDspTcp {0} - No response after sending command. Attempting reconnect...", this.Id);
-			this.client.Disconnect();
-			this.client.Connect();
+			Logger.Error("NexiaDspTcp {0} - No response after sending command. Attempting reconnect...", Id);
+			_client?.Disconnect();
+			_client?.Connect();
 		}
 
-		private void InputControlMuteChange(object sender, GenericDualEventArgs<string, int> e)
+		private void InputControlMuteChange(object? sender, GenericDualEventArgs<string, int> e)
 		{
-			this.Notify(this.AudioInputMuteChanged, e.Arg1);
+			Notify(AudioInputMuteChanged, e.Arg1);
 		}
 
-		private void InputControlLevelChange(object sender, GenericDualEventArgs<string, int> e)
+		private void InputControlLevelChange(object? sender, GenericDualEventArgs<string, int> e)
 		{
-			this.Notify(this.AudioInputLevelChanged, e.Arg1);
+			Notify(AudioInputLevelChanged, e.Arg1);
 		}
 
-		private void OutputControlMuteChange(object sender, GenericDualEventArgs<string, int> e)
+		private void OutputControlMuteChange(object? sender, GenericDualEventArgs<string, int> e)
 		{
-			this.Notify(this.AudioOutputMuteChanged, e.Arg1);
+			Notify(AudioOutputMuteChanged, e.Arg1);
 		}
 
-		private void OutputControlLevelChange(object sender, GenericDualEventArgs<string, int> e)
+		private void OutputControlLevelChange(object? sender, GenericDualEventArgs<string, int> e)
 		{
-			this.Notify(this.AudioOutputLevelChanged, e.Arg1);
+			Notify(AudioOutputLevelChanged, e.Arg1);
 		}
 
-		private void Notify(EventHandler<GenericDualEventArgs<string, string>> handler, string arg)
+		private void Notify(EventHandler<GenericDualEventArgs<string, string>>? handler, string arg)
 		{
-			var temp = handler;
-			handler?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, arg));
+			handler?.Invoke(this, new GenericDualEventArgs<string, string>(Id, arg));
 		}
 
 		private void SubscribeClient()
 		{
-			if (this.client != null)
-			{
-				this.client.ConnectionFailed += this.ClientConnectFailedHandler;
-				this.client.ClientConnected += this.ClientConnectedHandler;
-				this.client.StatusChanged += this.ClientStatusChangedHandler;
-				this.client.RxBytesRecieved += this.ClientBytesReceived;
-			}
+			if (_client == null) return;
+			_client.ConnectionFailed += ClientConnectFailedHandler;
+			_client.ClientConnected += ClientConnectedHandler;
+			_client.StatusChanged += ClientStatusChangedHandler;
+			_client.RxBytesReceived += ClientBytesReceived;
 		}
 
 		private void UnsubscribeClient()
 		{
-			if (this.client != null)
-			{
-				this.client.ConnectionFailed -= this.ClientConnectFailedHandler;
-				this.client.ClientConnected -= this.ClientConnectedHandler;
-				this.client.StatusChanged -= this.ClientStatusChangedHandler;
-				this.client.RxBytesRecieved -= this.ClientBytesReceived;
-			}
+			if (_client == null) return;
+			_client.ConnectionFailed -= ClientConnectFailedHandler;
+			_client.ClientConnected -= ClientConnectedHandler;
+			_client.StatusChanged -= ClientStatusChangedHandler;
+			_client.RxBytesReceived -= ClientBytesReceived;
 		}
 
-		private void ClientBytesReceived(object sender, GenericSingleEventArgs<byte[]> e)
+		private void ClientBytesReceived(object? sender, GenericSingleEventArgs<byte[]> e)
 		{
-			this.sendTimer?.Stop();
+			_sendTimer?.Stop();
 
 			if (e.Arg.Length <= 0)
 			{
@@ -504,23 +499,23 @@
 			}
 
 			string converted = Encoding.GetEncoding("ISO-8859-1").GetString(e.Arg, 0, e.Arg.Length);
-			rxBuilder.Append(converted);
-			string currentStream = this.rxBuilder.ToString();
+			_rxBuilder.Append(converted);
+			string currentStream = _rxBuilder.ToString();
 
 			var matches = Regex.Matches(currentStream, @".*\r\n");
 			foreach (Match match in matches)
 			{
-				this.ParseResponse(match.Value);
+				ParseResponse(match.Value);
 
 				try
 				{
-					string data = rxBuilder.ToString();
-					int matchPos = data.IndexOf(match.Value, StringComparison.InvariantCulture);
-					rxBuilder.Remove(matchPos, match.Length);
+					var data = _rxBuilder.ToString();
+					var matchPos = data.IndexOf(match.Value, StringComparison.InvariantCulture);
+					_rxBuilder.Remove(matchPos, match.Length);
 				}
 				catch (Exception ex)
 				{
-					Logger.Error("{0}-{1}", ex.Message, ex.StackTrace);
+					Logger.Error("{0}-{1}", ex.Message, ex.StackTrace ?? string.Empty);
 				}
 			}
 		}
@@ -533,26 +528,26 @@
 				string result = match.Groups["result"].Value.ToUpper();
 				if (result.Contains("ERR"))
 				{
-					Logger.Error("NexiaDspTcp {0} - Error Rx Received from device: {1}", this.Id, rx);
+					Logger.Error("NexiaDspTcp {0} - Error Rx Received from device: {1}", Id, rx);
 					return;
 				}
 
 				string control = match.Groups["control"].Value.ToUpper();
-				if (control.Equals(NexiaComander.Blocks[NexiaBlocks.FaderLevel]))
+				if (control.Equals(NexiaCommander.Blocks[NexiaBlocks.FaderLevel]))
 				{
-					this.ParseLevelResponse(match);
+					ParseLevelResponse(match);
 				}
-				else if (control.Equals(NexiaComander.Blocks[NexiaBlocks.FaderMute]))
+				else if (control.Equals(NexiaCommander.Blocks[NexiaBlocks.FaderMute]))
 				{
-					this.ParseMuteResponse(match);
+					ParseMuteResponse(match);
 				}
-				else if (control.Equals(NexiaComander.Blocks[NexiaBlocks.Preset]))
+				else if (control.Equals(NexiaCommander.Blocks[NexiaBlocks.Preset]))
 				{
 					// Notify preset ACK?
 				}
 				else
 				{
-					Logger.Error("NexiaDspTcp {0} - Unknown control response received: {1}", this.Id, rx);
+					Logger.Error("NexiaDspTcp {0} - Unknown control response received: {1}", Id, rx);
 				}
 			}
 		}
@@ -561,16 +556,16 @@
 		{
 			try
 			{
-				percent = NexiaComander.FloatToPercent(float.Parse(value), levelMin, levelMax);
+				percent = NexiaCommander.FloatToPercent(float.Parse(value), levelMin, levelMax);
 				return true;
 			}
 			catch (FormatException err)
 			{
-				Logger.Error(err, "NexiaDspTcp {0} - failed to parse level value of {1}", this.Id, value);
+				Logger.Error(err, "NexiaDspTcp {0} - failed to parse level value of {1}", Id, value);
 			}
 			catch (ArgumentNullException)
 			{
-				Logger.Error("NexiaDspTcp {0} - Level change null data for value, cannot parse.", this.Id);
+				Logger.Error("NexiaDspTcp {0} - Level change null data for value, cannot parse.", Id);
 			}
 
 			percent = 0;
@@ -579,87 +574,74 @@
 
 		private bool UpdateOutputLevel(string instanceTag, string index, string rawValue)
 		{
-			int idx = 0;
+			int idx;
 			try
 			{
 				idx = int.Parse(index);
 			}
 			catch (Exception e)
 			{
-				Logger.Error(e, "NexiaDspTcp {0} - UpdateOutputLevel() - Failed to parse index number {0} for input {1}", this.Id, index, instanceTag);
+				Logger.Error(e, "NexiaDspTcp {0} - UpdateInputLevel() - Failed to parse index number {0} for input {1}", Id, index, instanceTag);
 				return false;
 			}
-
-			NexiaAudioChannel found = this.outputs.Find(x => x.LevelTag.Equals(instanceTag, StringComparison.InvariantCulture));
-			if (found != null)
-			{
-				if (this.TryConvertLevel(rawValue, out int percent, found.LevelMin, found.LevelMax))
-				{
-					found.AudioLevel = percent;
-					return true;
-				}
-			}
-
-			return false;
+			
+			var found = _outputs.Find(x => x.LevelTag.Equals(instanceTag, StringComparison.InvariantCulture) && x.Index == idx);
+			if (found == null) return false;
+			if (!TryConvertLevel(rawValue, out var percent, found.LevelMin, found.LevelMax)) return false;
+			found.AudioLevel = percent;
+			return true;
 		}
 
 		private bool UpdateInputLevel(string instanceTag, string index, string rawValue)
 		{
-			int idx = 0;
+			int idx;
 			try
 			{
 				idx = int.Parse(index);
 			}
 			catch (Exception e)
 			{
-				Logger.Error(e, "NexiaDspTcp {0} - UpdateInputLevel() - Failed to parse index number {0} for input {1}", this.Id, index, instanceTag);
+				Logger.Error(e, "NexiaDspTcp {0} - UpdateInputLevel() - Failed to parse index number {0} for input {1}", Id, index, instanceTag);
 				return false;
 			}
 
-			NexiaAudioChannel found = this.inputs.Find(x => x.LevelTag.Equals(instanceTag, StringComparison.InvariantCulture) && x.Index == idx);
-			if (found != null)
-			{
-				if (this.TryConvertLevel(rawValue, out int percent, found.LevelMin, found.LevelMax))
-				{
-					found.AudioLevel = percent;
-					return true;
-				}
-			}
+			var found = _inputs.Find(x => x.LevelTag.Equals(instanceTag, StringComparison.InvariantCulture) && x.Index == idx);
+			if (found == null) return false;
+			if (!TryConvertLevel(rawValue, out var percent, found.LevelMin, found.LevelMax)) return false;
+			found.AudioLevel = percent;
+			return true;
 
-			return false;
 		}
 
 		private void ParseLevelResponse(Match match)
 		{
 			Logger.Debug("ParseLevelResponse({0})", match.Value);
 
-			string level = match.Groups["value"].Value;
-			string tag = match.Groups["tag"].Value;
-			string index = match.Groups["index1"].Value;
+			var level = match.Groups["value"].Value;
+			var tag = match.Groups["tag"].Value;
+			var index = match.Groups["index1"].Value;
 
 			if (string.IsNullOrEmpty(level))
 			{
 				level = match.Groups["index2"].Value;
 			}
 
-			bool isOutput = this.UpdateOutputLevel(tag, index, level);
-			bool isInput = this.UpdateInputLevel(tag, index, level);
+			bool isOutput = UpdateOutputLevel(tag, index, level);
+			bool isInput = UpdateInputLevel(tag, index, level);
 
 			if (!isOutput && !isInput)
 			{
 				Logger.Error(
 					"NexiaDspTcp {0} - Cannot find input or output channel with tag {1}",
-					this.Id,
+					Id,
 					match.Groups["tag"].Value);
 			}
 		}
 
 		private void ParseMuteResponse(Match match)
 		{
-			string instanceTag = match.Groups["tag"].Value;
-			bool muted = false;
-
-			int idx = 0;
+			var instanceTag = match.Groups["tag"].Value;
+			int idx;
 			try
 			{
 				idx = int.Parse(match.Groups["index1"].Value);
@@ -676,24 +658,20 @@
 			}
 
 			// If there is no value returned by the device then data will be in the "index2" regex group.
-			if (string.IsNullOrEmpty(match.Groups["value"].Value))
-			{
-				muted = match.Groups["index2"].Value.Equals("1", StringComparison.InvariantCulture);
-			}
-			else
-			{
-				muted = match.Groups["value"].Value.Equals("1", StringComparison.InvariantCulture);
-			}
+			var muted = string.IsNullOrEmpty(match.Groups["value"].Value) ?
+				match.Groups["index2"].Value.Equals("1", StringComparison.InvariantCulture)
+				: match.Groups["value"].Value.Equals("1", StringComparison.InvariantCulture);
 
 
-			NexiaAudioChannel found = this.outputs.Find(x => x.MuteTag.Equals(instanceTag, StringComparison.InvariantCulture) && x.Index == idx);
+			var found = _outputs.Find(x => x.MuteTag.Equals(instanceTag, StringComparison.InvariantCulture) && x.Index == idx);
 			if (found != null)
 			{
 				found.AudioMute = muted;
 			}
 			else
 			{
-				found = this.inputs.FirstOrDefault(x => x.MuteTag.Equals(instanceTag, StringComparison.InvariantCulture) && x.Index == idx);
+				found = _inputs.FirstOrDefault(x =>
+					x.MuteTag.Equals(instanceTag, StringComparison.InvariantCulture) && x.Index == idx);
 				if (found != null)
 				{
 					found.AudioMute = muted;
@@ -705,63 +683,61 @@
 			}
 		}
 
-		private void ClientStatusChangedHandler(object sender, EventArgs e)
+		private void ClientStatusChangedHandler(object? sender, EventArgs e)
 		{
-			this.ClientConnectedHandler(sender, e);
+			ClientConnectedHandler(sender, e);
 		}
 
-		private void ClientConnectFailedHandler(object sender, GenericSingleEventArgs<SocketStatus> e)
+		private void ClientConnectFailedHandler(object? sender, GenericSingleEventArgs<SocketStatus> e)
 		{
-			if (this.errCount <= 9)
+			if (_errCount <= 9)
 			{
 				Logger.Error("NexiaDspTcp {0} - Failed to establish a connection.");
 			}
-			else if (this.errCount == 10)
+			else if (_errCount == 10)
 			{
 				Logger.Error("NexiaDspTcp {0} - 10 failed attempts to establish a connection. Silencing notice until connected.");
 			}
 
-			this.errCount++;
+			_errCount++;
 		}
 
-		private void ClientConnectedHandler(object sender, EventArgs e)
+		private void ClientConnectedHandler(object? sender, EventArgs e)
 		{
-			this.IsOnline = this.client.Connected;
-			if (this.IsOnline)
+			IsOnline = _client?.Connected ?? false;
+			if (IsOnline)
 			{
-				this.errCount = 0;
+				_errCount = 0;
 			}
 
-			this.NotifyOnlineStatus();
-			this.SendStatusQuery();
-			if (this.queryTimer == null)
+			NotifyOnlineStatus();
+			SendStatusQuery();
+			if (_queryTimer == null)
 			{
-				this.queryTimer = new CTimer(this.QueryCallback, 30000);
+				_queryTimer = new CTimer(QueryCallback, 30000);
 			}
 			else
 			{
-				this.queryTimer.Reset(30000);
+				_queryTimer.Reset(30000);
 			}
 		}
 
-		private void QueryCallback(object obj)
+		private void QueryCallback(object? obj)
 		{
-			if (this.IsOnline)
-			{
-				this.SendStatusQuery();
-				this.queryTimer.Reset(30000);
-			}
+			if (!IsOnline) return;
+			SendStatusQuery();
+			_queryTimer?.Reset(30000);
 		}
 
 		private void SendStatusQuery()
 		{
-			foreach (var input in this.inputs)
+			foreach (var input in _inputs)
 			{
 				input.QueryLevel();
 				input.QueryMute();
 			}
 
-			foreach (var output in this.outputs)
+			foreach (var output in _outputs)
 			{
 				output.QueryMute();
 				output.QueryLevel();

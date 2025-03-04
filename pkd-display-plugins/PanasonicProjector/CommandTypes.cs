@@ -1,15 +1,14 @@
-﻿namespace PanasonicProjector
+﻿namespace PanasonicProjector;
+
+internal enum CommandTypes
 {
-	internal enum CommandTypes
-	{
-		Unknown,
-		Power,
-		Mute,
-		Blank,
-		Freeze,
-		Volume,
-		UseTime,
-		Input,
-		Query
-	}
+	Unknown,
+	Power,
+	Mute,
+	Blank,
+	Freeze,
+	Volume,
+	UseTime,
+	Input,
+	Query
 }

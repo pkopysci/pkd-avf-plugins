@@ -18,143 +18,143 @@
 	/// </summary>
 	public class BroadataAvSwitchTcp : BaseDevice, IAvSwitcher, IDisposable, IAudioControl
 	{
-		private static readonly int RX_TIMEOUT_LENGTH = 5000;
-		private static readonly int POLL_TIME = 60000;
-		private static readonly string SOURCE_RX = @"a source (?<input>\d+)\r\n";
-		private readonly Dictionary<BroadataCommandTypes, Action<string>> rxHandlers;
-		private readonly Queue<CommandData> cmdQueue;
-		private BroadataAvChannel output;
-		private BroadataAvChannel input;
-		private BasicTcpClient client;
-		private CTimer rxTimer;
-		private CTimer pollTimer;
-		private bool sending;
-		private int numInputs;
-		private int numOutputs;
-		private bool disposed;
+		private const int RxTimeoutLength = 5000;
+		private const int PollTime = 60000;
+		private const string SourceRx = @"a source (?<input>\d+)\r\n";
+		private readonly Dictionary<BroadataCommandTypes, Action<string>> _rxHandlers;
+		private readonly Queue<CommandData> _cmdQueue;
+		private readonly BroadataAvChannel _output;
+		private readonly BroadataAvChannel _input;
+		private int _numInputs;
+		private int _numOutputs;
+		private bool _sending;
+		private bool _disposed;
+		private BasicTcpClient? _client;
+		private CTimer? _rxTimer;
+		private CTimer? _pollTimer;
 
 		/// <summary>
 		/// Instantiates a new instance of <see cref="BroadataAvSwitchTcp"/> and sets internal tracking to default states.
 		/// </summary>
 		public BroadataAvSwitchTcp()
 		{
-			this.cmdQueue = new Queue<CommandData>();
-			this.output = new BroadataAvChannel
+			_cmdQueue = new Queue<CommandData>();
+			_output = new BroadataAvChannel
 			{
 				Id = "DEFAULTID"
 			};
-			this.input = new BroadataAvChannel
+			_input = new BroadataAvChannel
 			{
 				Id = "DEFAULTID"
 			};
 
-			this.numOutputs = 1;
-			this.numInputs = 5;
+			_numOutputs = 1;
+			_numInputs = 5;
 
-			this.rxHandlers = new Dictionary<BroadataCommandTypes, Action<string>>
+			_rxHandlers = new Dictionary<BroadataCommandTypes, Action<string>>
 			{
-				{ BroadataCommandTypes.Route, this.HandleSourceRx },
-				{ BroadataCommandTypes.Mute, this.HandleMuteRx },
-				{ BroadataCommandTypes.Volume, this.HandleVolumeRx },
-				{ BroadataCommandTypes.MicVolume, this.HandleMicRx }
+				{ BroadataCommandTypes.Route, HandleSourceRx },
+				{ BroadataCommandTypes.Mute, HandleMuteRx },
+				{ BroadataCommandTypes.Volume, HandleVolumeRx },
+				{ BroadataCommandTypes.MicVolume, HandleMicRx }
 			};
 		}
 
 		~BroadataAvSwitchTcp()
 		{
-			this.Dispose(false);
+			Dispose(false);
 		}
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, uint>> VideoRouteChanged;
+		public event EventHandler<GenericDualEventArgs<string, uint>>? VideoRouteChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioOutputMuteChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioOutputMuteChanged;
 
 		/// <inheritdoc/>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioOutputLevelChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioOutputLevelChanged;
 
 		/// <summary>
 		/// Not supported.
 		/// </summary>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioInputMuteChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputMuteChanged;
 
 		/// <summary>
 		/// Not supported.
 		/// </summary>
-		public event EventHandler<GenericDualEventArgs<string, string>> AudioInputLevelChanged;
+		public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputLevelChanged;
 
 		/// <summary>
 		/// Not supported.
 		/// </summary>
-		public int AudioInputLevel { get { return 0; } }
+		public int AudioInputLevel => 0;
 
 		/// <summary>
 		/// Not supported.
 		/// </summary>
-		public bool AudioInputMute { get { return false; } }
+		public bool AudioInputMute => false;
 
 		/// <inheritdoc/>
 		public void Dispose()
 		{
-			this.Dispose(true);
+			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
 
 		/// <inheritdoc/>
 		public void Initialize(string hostName, int port, string id, string label, int numInputs, int numOutputs)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(id, "Ctor", "id");
-			ParameterValidator.ThrowIfNullOrEmpty(label, "Ctor", "label");
-			ParameterValidator.ThrowIfNullOrEmpty(hostName, "Ctor", "hostName");
+			ParameterValidator.ThrowIfNullOrEmpty(id, "Ctor", nameof(id));
+			ParameterValidator.ThrowIfNullOrEmpty(label, "Ctor", nameof(label));
+			ParameterValidator.ThrowIfNullOrEmpty(hostName, "Ctor", nameof(hostName));
 
 			Logger.Debug("BroadataAvSwitch.Initialize({0},{1},{2},{3},{4},{5}", hostName, port, id, label, numInputs, numOutputs);
 
-			this.Id = id;
-			this.Label = label;
-			this.numInputs = numInputs;
-			this.numOutputs = numOutputs;
+			Id = id;
+			Label = label;
+			_numInputs = numInputs;
+			_numOutputs = numOutputs;
 
-			if (client != null)
+			if (_client != null)
 			{
-				this.UnsubscribeClient();
-				this.client.Dispose();
+				UnsubscribeClient();
+				_client.Dispose();
 			}
 
-			this.client = new BasicTcpClient(hostName, port, 1024)
+			_client = new BasicTcpClient(hostName, port, 1024)
 			{
 				EnableReconnect = true
 			};
-			this.SubscribeClient();
+			SubscribeClient();
 		}
 
 		/// <inheritdoc/>
 		public override void Connect()
 		{
-			if (this.client != null && !this.IsOnline)
+			if (_client != null && !IsOnline)
 			{
-				this.client.Connect();
+				_client.Connect();
 			}
 		}
 
 		/// <inheritdoc/>
 		public override void Disconnect()
 		{
-			if (this.client != null && this.IsOnline)
+			if (_client != null && IsOnline)
 			{
-				this.client.Disconnect();
+				_client.Disconnect();
 			}
 		}
 
 		/// <inheritdoc/>
 		public uint GetCurrentVideoSource(uint output)
 		{
-			return this.output.CurrentSource;
+			return _output.CurrentSource;
 		}
 
 		/// <summary>
 		/// Sends a routing command for the given input to output.
-		/// LBC-PSW52 input indecies are offset by 1 compared to the device protocol.
+		/// LBC-PSW52 input indices are offset by 1 compared to the device protocol.
 		/// 1 = HDMI 1<br/>
 		/// 2 = HDMI 2<br/>
 		/// 3 = Display Port<br/>
@@ -163,37 +163,36 @@
 		/// </summary>
 		/// <param name="source">the input source to be routed.</param>
 		/// <param name="output">The output that the input will be routed to.</param>
-
 		public void RouteVideo(uint source, uint output)
 		{
 			Logger.Debug("RouteVideo({0}, {1}", source, output);
 
-			if (source > this.numInputs)
+			if (source > _numInputs)
 			{
 				Logger.Error("BroadataAvSwitchTcp.RouteVideo({0},{1}) - source out of bounds.", source, output);
 				return;
 			}
 
-			if (output > this.numOutputs)
+			if (output > _numOutputs)
 			{
 				Logger.Error("BroadataAvSwitchTcp.RouteVideo({0},{1}) - source out of bounds.", source, output);
 				return;
 			}
 
-			if (!this.IsOnline)
+			if (!IsOnline)
 			{
 				Logger.Error("BroadataAvSwitchTcp.RouteVideo({0},{1}) - cannot route while offline.", source, output);
 				return;
 			}
 
-			this.output.CurrentSource = source;
-			this.cmdQueue.Enqueue(new CommandData()
+			_output.CurrentSource = source;
+			_cmdQueue.Enqueue(new CommandData()
 			{
-				CommandString = string.Format("S SOURCE {0}\r\n", source - 1),
+				CommandString = $"S SOURCE {source - 1}\r\n",
 				CommandType = BroadataCommandTypes.Route
 			});
 
-			this.TrySend();
+			TrySend();
 		}
 
 		/// <inheritdoc/>
@@ -205,7 +204,7 @@
 		/// <inheritdoc/>
 		public void SetAudioOutputLevel(string id, int level)
 		{
-			if (!this.IsOnline)
+			if (!IsOnline)
 			{
 				Logger.Error("BroadataAvSwitchTcp - cannot change audio while offline.");
 				return;
@@ -221,52 +220,52 @@
 				newVal = 100;
 			}
 
-			this.output.AudioLevel = newVal;
-			this.cmdQueue.Enqueue(new CommandData()
+			_output.AudioLevel = newVal;
+			_cmdQueue.Enqueue(new CommandData()
 			{
-				CommandString = string.Format("S OUT-VOL {0}\r\n", newVal),
+				CommandString = $"S OUT-VOL {newVal}\r\n",
 				CommandType = BroadataCommandTypes.Volume
 			});
 
-			this.TrySend();
+			TrySend();
 		}
 
 		/// <inheritdoc/>
 		public int GetAudioOutputLevel(string id)
 		{
-			return this.output.AudioLevel;
+			return _output.AudioLevel;
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioOutputMute(string id, bool state)
 		{
-			if (!this.IsOnline)
+			if (!IsOnline)
 			{
 				Logger.Error("BroadataAvSwitchTcp - cannot change audio while offline.");
 				return;
 			}
 
-			this.output.AudioMute = state;
-			int newState = state ? 1 : 0;
-			this.cmdQueue.Enqueue(new CommandData()
+			_output.AudioMute = state;
+			var newState = state ? 1 : 0;
+			_cmdQueue.Enqueue(new CommandData()
 			{
-				CommandString = string.Format("S MUTE {0}\r\n", newState),
+				CommandString = $"S MUTE {newState}\r\n",
 				CommandType = BroadataCommandTypes.Mute
 			});
 
-			this.TrySend();
+			TrySend();
 		}
 
 		/// <inheritdoc/>
 		public bool GetAudioOutputMute(string id)
 		{
-			return this.output.AudioMute;
+			return _output.AudioMute;
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioInputLevel(string id, int level)
 		{
-			if (!this.IsOnline)
+			if (!IsOnline)
 			{
 				Logger.Error("BroadataAvSwitchTcp - cannot change audio while offline.");
 				return;
@@ -281,70 +280,57 @@
 			{
 				newVal = 100;
 			}
-
-			this.input.AudioLevel = newVal;
-			this.cmdQueue.Enqueue(new CommandData()
+			
+			_cmdQueue.Enqueue(new CommandData()
 			{
-				CommandString = string.Format("S MIC-VOL {0}\r\n", newVal),
+				CommandString = $"S MIC-VOL {newVal}\r\n",
 				CommandType = BroadataCommandTypes.MicVolume,
 			});
 
-			this.TrySend();
+			TrySend();
 		}
 
 		/// <inheritdoc/>
 		public int GetAudioInputLevel(string id)
 		{
-			if (this.input == null)
-			{
-				return 0;
-			}
-
-			return this.input.AudioLevel;
+			return _input.AudioLevel;
 		}
 
 		/// <inheritdoc/>
 		public void SetAudioInputMute(string id, bool state)
 		{
-			if (!this.IsOnline)
+			if (!IsOnline)
 			{
 				Logger.Error("BroadataAvSwitchTcp - cannot change audio while offline.");
 				return;
 			}
 
-			this.input.AudioMute = state;
-
 			int level;
-			if (this.input.AudioMute)
+			if (_input.AudioMute)
 			{
-				this.input.PreMuteLevel = this.input.AudioLevel;
-				this.input.AudioLevel = 0;
+				_input.PreMuteLevel = _input.AudioLevel;
+				_input.AudioLevel = 0;
 				level = 0;
 			}
 			else
 			{
-				this.input.AudioLevel = this.input.PreMuteLevel;
-				level = this.input.PreMuteLevel;
+				_input.AudioLevel = _input.PreMuteLevel;
+				level = _input.PreMuteLevel;
 			}
 
-			this.cmdQueue.Enqueue(new CommandData()
+			_cmdQueue.Enqueue(new CommandData()
 			{
-				CommandString = string.Format("S MIC-VOL {0}\r\n", level),
+				CommandString = $"S MIC-VOL {level}\r\n",
 				CommandType = BroadataCommandTypes.MicVolume,
 			});
 
-			this.TrySend();
+			TrySend();
 		}
 
 		/// <inheritdoc/>
 		public bool GetAudioInputMute(string id)
 		{
-			if (this.input == null)
-			{
-				return false;
-			}
-
-			return this.input.AudioMute;
+			return _input.AudioMute;
 		}
 
 		/// <summary>
@@ -362,59 +348,27 @@
 		/// <inheritdoc/>
 		public IEnumerable<string> GetAudioInputIds()
 		{
-			return new List<string>() { this.input.Id };
+			return [_input.Id];
 		}
 
 		/// <inheritdoc/>
 		public IEnumerable<string> GetAudioOutputIds()
 		{
-			return new List<string>() { this.output.Id };
+			return [_output.Id];
 		}
 
 		/// <inheritdoc/>
 		public void AddInputChannel(string id, string levelTag, string muteTag, int bankIndex, int levelMax, int levelMin, int routerIndex)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(id, "AddInputChannel", "id");
-			if (this.input == null)
-			{
-				this.input = new BroadataAvChannel()
-				{
-					Id = id,
-					Number = bankIndex,
-					VideoFreeze = false,
-					VideoMute = false,
-					AudioLevel = 0,
-					AudioMute = false,
-					CurrentSource = 0,
-				};
-			}
-			else
-			{
-				this.input.Id = id;
-			}
+			ParameterValidator.ThrowIfNullOrEmpty(id, "AddInputChannel", nameof(id));
+			_input.Id = id;
 		}
 
 		/// <inheritdoc/>
 		public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int bankIndex, int levelMax, int levelMin, int routerIndex)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(id, "AddOutputChannel", "id");
-			if (this.output == null)
-			{
-				this.output = new BroadataAvChannel()
-				{
-					Id = id,
-					Number = bankIndex,
-					VideoFreeze = false,
-					VideoMute = false,
-					AudioLevel = 0,
-					AudioMute = false,
-					CurrentSource = 0,
-				};
-			}
-			else
-			{
-				this.output.Id = id;
-			}
+			ParameterValidator.ThrowIfNullOrEmpty(id, "AddOutputChannel", nameof(id));
+			_output.Id = id;
 		}
 
 		/// <summary>
@@ -424,109 +378,105 @@
 		{
 			Logger.Warn(
 				"BroadataAvSwitchTcp {0} AddPreset({1},{2}) - Presets not supported by this device.",
-				this.Id,
+				Id,
 				id,
 				index);
 		}
 
 		private void Dispose(bool disposing)
 		{
-			if (!this.disposed)
+			if (_disposed) return;
+			if (disposing)
 			{
-				if (disposing)
+				if (_client != null)
 				{
-					if (this.client != null)
-					{
-						this.UnsubscribeClient();
-						this.client.Dispose();
-					}
-
-					this.rxTimer?.Dispose();
+					UnsubscribeClient();
+					_client.Dispose();
 				}
 
-				this.disposed = true;
+				_rxTimer?.Dispose();
 			}
+
+			_disposed = true;
 		}
 
 		private void TrySend()
 		{
-			if (this.IsOnline && !this.sending && this.cmdQueue.Count > 0)
+			if (!IsOnline || _sending || _cmdQueue.Count <= 0) return;
+			_sending = true;
+			
+			Logger.Debug("BroadataAvSwitch {0} - Sending command: {1}", Id, _cmdQueue.Peek().CommandString);
+			
+			_client?.Send(_cmdQueue.Peek().CommandString);
+			if (_rxTimer == null)
 			{
-				this.sending = true;
-				Logger.Debug("BroadataAvSwitch {0} - Sending command: {1}", this.Id, this.cmdQueue.Peek().CommandString);
-				this.client.Send(this.cmdQueue.Peek().CommandString);
-				if (this.rxTimer == null)
-				{
-					this.rxTimer = new CTimer(this.RxTimerCallback, RX_TIMEOUT_LENGTH);
-				}
-				else
-				{
-					this.rxTimer.Reset(RX_TIMEOUT_LENGTH);
-				}
+				_rxTimer = new CTimer(RxTimerCallback, RxTimeoutLength);
+			}
+			else
+			{
+				_rxTimer.Reset(RxTimeoutLength);
 			}
 		}
 
-		private void RxTimerCallback(object obj)
+		private void RxTimerCallback(object? obj)
 		{
-			if (this.cmdQueue.Count > 0)
+			if (_cmdQueue.Count > 0)
 			{
-				var cmd = this.cmdQueue.Dequeue();
-				Logger.Error("BraodataAvSwitcher - no response for command of type {0}", cmd.CommandType);
+				var cmd = _cmdQueue.Dequeue();
+				Logger.Error("BroadataAvSwitcher - no response for command of type {0}", cmd.CommandType);
 			}
 
-			this.sending = false;
-			this.TrySend();
+			_sending = false;
+			TrySend();
 		}
 
-		private void PollTimerCallback(object ojb)
+		private void PollTimerCallback(object? ojb)
 		{
-			if (!this.IsOnline)
+			if (!IsOnline)
 			{
 				return;
 			}
 
-			this.QueryStatus();
+			QueryStatus();
 
-			this.pollTimer?.Reset(POLL_TIME);
+			_pollTimer?.Reset(PollTime);
 		}
 
 		private void QueryStatus()
 		{
-			if (!this.sending)
+			if (_sending) return;
+			_cmdQueue.Enqueue(new CommandData()
 			{
-				this.cmdQueue.Enqueue(new CommandData()
-				{
-					CommandString = "R SOURCE\r\n",
-					CommandType = BroadataCommandTypes.Route
-				});
+				CommandString = "R SOURCE\r\n",
+				CommandType = BroadataCommandTypes.Route
+			});
 
-				this.cmdQueue.Enqueue(new CommandData()
-				{
-					CommandType = BroadataCommandTypes.Mute,
-					CommandString = "R MUTE\r\n"
-				});
+			_cmdQueue.Enqueue(new CommandData()
+			{
+				CommandType = BroadataCommandTypes.Mute,
+				CommandString = "R MUTE\r\n"
+			});
 
-				this.cmdQueue.Enqueue(new CommandData()
-				{
-					CommandType = BroadataCommandTypes.Volume,
-					CommandString = "R OUT-VOL\r\n"
-				});
+			_cmdQueue.Enqueue(new CommandData()
+			{
+				CommandType = BroadataCommandTypes.Volume,
+				CommandString = "R OUT-VOL\r\n"
+			});
 
-				this.cmdQueue.Enqueue(new CommandData()
-				{
-					CommandType = BroadataCommandTypes.MicVolume,
-					CommandString = "R MIC-VOL\r\n",
-				});
+			_cmdQueue.Enqueue(new CommandData()
+			{
+				CommandType = BroadataCommandTypes.MicVolume,
+				CommandString = "R MIC-VOL\r\n",
+			});
 
-				this.TrySend();
-			}
+			TrySend();
 		}
 
-		private void ClientStringReceived(object sender, GenericSingleEventArgs<string> e)
+		private void ClientStringReceived(object? sender, GenericSingleEventArgs<string> e)
 		{
-			this.rxTimer?.Stop();
+			_rxTimer?.Stop();
 
-			Logger.Debug("BroadataAvSwitchTcp {0} - Received from client: {1}", this.Id, e.Arg);
+			Logger.Debug("BroadataAvSwitchTcp {0} - Received from client: {1}", Id, e.Arg);
 
 			// remove junk characters and ignore handshake
 			string formatted = Regex.Replace(e.Arg, @"[\p{C}-[\t\r\n]]+", string.Empty);
@@ -535,66 +485,66 @@
 				return;
 			}
 
-			if (this.cmdQueue.Count > 0)
+			if (_cmdQueue.Count > 0)
 			{
-				var cmd = this.cmdQueue.Dequeue();
-				this.rxHandlers[cmd.CommandType].Invoke(formatted);
+				var cmd = _cmdQueue.Dequeue();
+				_rxHandlers[cmd.CommandType].Invoke(formatted);
 			}
 
-			this.sending = false;
-			this.TrySend();
+			_sending = false;
+			TrySend();
 		}
 
-		private void ClientStatusChangedHandler(object sender, EventArgs e)
+		private void ClientStatusChangedHandler(object? sender, EventArgs e)
 		{
-			this.pollTimer?.Stop();
-			this.rxTimer?.Stop();
-			this.cmdQueue.Clear();
-			this.IsOnline = this.client.Connected;
-			this.NotifyOnlineStatus();
+			_pollTimer?.Stop();
+			_rxTimer?.Stop();
+			_cmdQueue.Clear();
+			IsOnline = _client?.Connected ?? false;
+			NotifyOnlineStatus();
 		}
 
-		private void ClientConnectFailedHandler(object sender, GenericSingleEventArgs<SocketStatus> e)
+		private void ClientConnectFailedHandler(object? sender, GenericSingleEventArgs<SocketStatus> e)
 		{
-			this.pollTimer?.Stop();
-			this.rxTimer?.Stop();
-			this.cmdQueue.Clear();
-			this.IsOnline = this.client.Connected;
-			this.NotifyOnlineStatus();
+			_pollTimer?.Stop();
+			_rxTimer?.Stop();
+			_cmdQueue.Clear();
+			IsOnline = _client?.Connected ?? false;
+			NotifyOnlineStatus();
 		}
 
-		private void ClientConnectedHandler(object sender, EventArgs e)
+		private void ClientConnectedHandler(object? sender, EventArgs e)
 		{
-			this.IsOnline = this.client.Connected;
-			this.NotifyOnlineStatus();
-			this.QueryStatus();
-			if (this.pollTimer != null)
+			IsOnline = _client?.Connected ?? false;
+			NotifyOnlineStatus();
+			QueryStatus();
+			if (_pollTimer != null)
 			{
-				this.pollTimer.Reset(POLL_TIME);
+				_pollTimer.Reset(PollTime);
 			}
 			else
 			{
-				this.pollTimer = new CTimer(this.PollTimerCallback, POLL_TIME);
+				_pollTimer = new CTimer(PollTimerCallback, PollTime);
 			}
 		}
 
 		private void HandleSourceRx(string rx)
 		{
-			if (rx.Contains("OK"))
+			if (rx.Contains("OK", StringComparison.OrdinalIgnoreCase))
 			{
-				this.Notify(this.VideoRouteChanged, 1);
+				Notify(VideoRouteChanged, 1);
 				return;
 			}
 
-			if (rx.ToUpper().Contains("SOURCE"))
+			if (rx.Contains("SOURCE", StringComparison.CurrentCultureIgnoreCase))
 			{
-				Match sourceMatch = Regex.Match(rx, SOURCE_RX);
+				Match sourceMatch = Regex.Match(rx, SourceRx);
 				if (sourceMatch.Success)
 				{
 					try
 					{
-						this.output.CurrentSource = uint.Parse(sourceMatch.Groups["input"].Value) + 1;
-						this.Notify(this.VideoRouteChanged, 1);
+						_output.CurrentSource = uint.Parse(sourceMatch.Groups["input"].Value) + 1;
+						Notify(VideoRouteChanged, 1);
 					}
 					catch (Exception)
 					{
@@ -608,14 +558,14 @@
 			}
 			else if (rx.Contains("NG"))
 			{
-				this.HandleErrorRx(BroadataCommandTypes.Route);
+				HandleErrorRx(BroadataCommandTypes.Route);
 			}
 			else
 			{
 				try
 				{
-					this.output.CurrentSource = uint.Parse(rx) + 1;
-					this.Notify(this.VideoRouteChanged, 1);
+					_output.CurrentSource = uint.Parse(rx) + 1;
+					Notify(VideoRouteChanged, 1);
 				}
 				catch (Exception)
 				{
@@ -628,18 +578,18 @@
 		{
 			if (rx.Contains("OK"))
 			{
-				this.Notify(this.AudioOutputMuteChanged, this.output.Id);
+				Notify(AudioOutputMuteChanged, _output.Id);
 			}
 			else if (rx.Contains("NG"))
 			{
-				this.HandleErrorRx(BroadataCommandTypes.Mute);
+				HandleErrorRx(BroadataCommandTypes.Mute);
 			}
 			else
 			{
 				try
 				{
-					this.output.AudioMute = short.Parse(rx) == 1;
-					this.Notify(this.AudioOutputMuteChanged, this.output.Id);
+					_output.AudioMute = short.Parse(rx) == 1;
+					Notify(AudioOutputMuteChanged, _output.Id);
 				}
 				catch (Exception e)
 				{
@@ -652,18 +602,18 @@
 		{
 			if (rx.Contains("OK"))
 			{
-				this.Notify(this.AudioOutputLevelChanged, this.output.Id);
+				Notify(AudioOutputLevelChanged, _output.Id);
 			}
 			else if (rx.Contains("NG"))
 			{
-				this.HandleErrorRx(BroadataCommandTypes.Volume);
+				HandleErrorRx(BroadataCommandTypes.Volume);
 			}
 			else
 			{
 				try
 				{
-					this.output.AudioLevel = int.Parse(rx);
-					this.Notify(this.AudioOutputLevelChanged, this.output.Id);
+					_output.AudioLevel = int.Parse(rx);
+					Notify(AudioOutputLevelChanged, _output.Id);
 				}
 				catch (Exception e)
 				{
@@ -676,22 +626,22 @@
 		{
 			if (rx.Contains("OK"))
 			{
-				this.input.AudioMute = this.input.AudioLevel <= 0;
-				this.Notify(this.AudioInputLevelChanged, this.input.Id);
-				this.Notify(this.AudioInputMuteChanged, this.input.Id);
+				_input.AudioMute = _input.AudioLevel <= 0;
+				Notify(AudioInputLevelChanged, _input.Id);
+				Notify(AudioInputMuteChanged, _input.Id);
 			}
 			else if (rx.Contains("NG"))
 			{
-				this.HandleErrorRx(BroadataCommandTypes.MicVolume);
+				HandleErrorRx(BroadataCommandTypes.MicVolume);
 			}
 			else
 			{
 				try
 				{
-					this.input.AudioLevel = int.Parse(rx);
-					this.input.AudioMute = this.input.AudioLevel <= 0;
-					this.Notify(this.AudioInputLevelChanged, this.input.Id);
-					this.Notify(this.AudioInputMuteChanged, this.input.Id);
+					_input.AudioLevel = int.Parse(rx);
+					_input.AudioMute = _input.AudioLevel <= 0;
+					Notify(AudioInputLevelChanged, _input.Id);
+					Notify(AudioInputMuteChanged, _input.Id);
 				}
 				catch (Exception e)
 				{
@@ -702,33 +652,35 @@
 
 		private void HandleErrorRx(BroadataCommandTypes command)
 		{
-			Logger.Error("BroadataAvSwitch - Error response rececived for command {0}", command);
+			Logger.Error("BroadataAvSwitch - Error response received for command {0}", command);
 		}
 
 		private void SubscribeClient()
 		{
-			this.client.ConnectionFailed += this.ClientConnectFailedHandler;
-			this.client.ClientConnected += this.ClientConnectedHandler;
-			this.client.StatusChanged += this.ClientStatusChangedHandler;
-			this.client.RxRecieved += this.ClientStringReceived;
+			if (_client == null) return;
+			_client.ConnectionFailed += ClientConnectFailedHandler;
+			_client.ClientConnected += ClientConnectedHandler;
+			_client.StatusChanged += ClientStatusChangedHandler;
+			_client.RxReceived += ClientStringReceived;
 		}
 
 		private void UnsubscribeClient()
 		{
-			this.client.ConnectionFailed -= this.ClientConnectFailedHandler;
-			this.client.ClientConnected -= this.ClientConnectedHandler;
-			this.client.StatusChanged -= this.ClientStatusChangedHandler;
-			this.client.RxRecieved -= this.ClientStringReceived;
+			if (_client == null) return;
+			_client.ConnectionFailed -= ClientConnectFailedHandler;
+			_client.ClientConnected -= ClientConnectedHandler;
+			_client.StatusChanged -= ClientStatusChangedHandler;
+			_client.RxReceived -= ClientStringReceived;
 		}
 
-		private void Notify(EventHandler<GenericDualEventArgs<string, string>> handler, string arg2)
+		private void Notify(EventHandler<GenericDualEventArgs<string, string>>? handler, string arg2)
 		{
-			handler?.Invoke(this, new GenericDualEventArgs<string, string>(this.Id, arg2));
+			handler?.Invoke(this, new GenericDualEventArgs<string, string>(Id, arg2));
 		}
 
-		private void Notify(EventHandler<GenericDualEventArgs<string, uint>> handler, uint arg2)
+		private void Notify(EventHandler<GenericDualEventArgs<string, uint>>? handler, uint arg2)
 		{
-			handler?.Invoke(this, new GenericDualEventArgs<string, uint>(this.Id, arg2));
+			handler?.Invoke(this, new GenericDualEventArgs<string, uint>(Id, arg2));
 		}
 	}
 }

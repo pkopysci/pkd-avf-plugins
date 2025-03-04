@@ -1,411 +1,424 @@
-﻿namespace CrComLibUi.Components.VideoControl
+﻿namespace CrComLibUi.Components.VideoControl;
+
+using Crestron.SimplSharpPro.DeviceSupport;
+using pkd_application_service.DisplayControl;
+using pkd_application_service.UserInterface;
+using pkd_common_utils.GenericEventArgs;
+using pkd_common_utils.Logging;
+using pkd_ui_service.Interfaces;
+using Api;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using Newtonsoft.Json.Linq;
+
+internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 {
-	using Crestron.SimplSharpPro.DeviceSupport;
-	using pkd_application_service.DisplayControl;
-	using pkd_application_service.UserInterface;
-	using pkd_common_utils.GenericEventArgs;
-	using pkd_common_utils.Logging;
-	using pkd_ui_service.Interfaces;
-	using CrComLibUi.Api;
-	using System;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	using System.Linq;
-    using Newtonsoft.Json.Linq;
+	private const string CommandPower = "POWER";
+	private const string CommandScreen = "SCREEN";
+	private const string CommandInput = "INPUT";
+	private const string CommandState = "STATUS";
+	private const string CommandConfig = "CONFIG";
+	private const string CommandFreeze = "FREEZE";
+	private const string CommandBlank = "BLANK";
 
-    internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
+	private readonly List<Display> _displays;
+
+	public DisplayControlComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
+		: base(ui, uiData)
 	{
-		private static readonly string SUBJECT = "DISPLAY";
-		private static readonly string COMMAND_POWER = "POWER";
-		private static readonly string COMMAND_SCREEN = "SCREEN";
-		private static readonly string COMMAND_INPUT = "INPUT";
-		private static readonly string COMMAND_STATE = "STATUS";
-		private static readonly string COMMAND_CONFIG = "CONFIG";
-		private static readonly string COMMAND_FREEZE = "FREEZE";
-		private static readonly string COMMAND_BLANK = "BLANK";
+		GetHandlers.Add(CommandConfig, HandleGetConfigRequest);
+		GetHandlers.Add(CommandState, HandleGetStateRequest);
+		PostHandlers.Add(CommandInput, HandlePostInputResponse);
+		PostHandlers.Add(CommandScreen, HandlePostScreenResponse);
+		PostHandlers.Add(CommandPower, HandlePostPowerResponse);
+		PostHandlers.Add(CommandBlank, HandlePostBlankResponse);
+		PostHandlers.Add(CommandFreeze, HandlePostFreezeResponse);
+		_displays = [];
+	}
 
-		private List<Display> displays;
+	public event EventHandler<GenericDualEventArgs<string, bool>>? DisplayPowerChangeRequest;
+	public event EventHandler<GenericSingleEventArgs<string>>? DisplayFreezeChangeRequest;
+	public event EventHandler<GenericSingleEventArgs<string>>? DisplayBlankChangeRequest;
+	public event EventHandler<GenericSingleEventArgs<string>>? DisplayScreenUpRequest;
+	public event EventHandler<GenericSingleEventArgs<string>>? DisplayScreenDownRequest;
+	public event EventHandler<GenericSingleEventArgs<string>>? StationLocalInputRequest;
+	public event EventHandler<GenericSingleEventArgs<string>>? StationLecternInputRequest;
 
-		public DisplayControlComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-			: base(ui, uiData)
+	public override void HandleSerialResponse(string response)
+	{
+		if (!CheckInitialized(
+			    "DisplayControlComponent",
+			    "HandleSerialResponse")) return;
+
+		var rxObj = MessageFactory.DeserializeMessage(response);
+		if (string.IsNullOrEmpty(rxObj.Method))
 		{
-			GetHandlers.Add(COMMAND_CONFIG, HandleGetConfigRequest);
-			GetHandlers.Add(COMMAND_STATE, HandleGetStateRequest);
-			PostHandlers.Add(COMMAND_INPUT, HandlePostInputResponse);
-			PostHandlers.Add(COMMAND_SCREEN, HandlePostScreenResponse);
-			PostHandlers.Add(COMMAND_POWER, HandlePostPowerResponse);
-			PostHandlers.Add(COMMAND_BLANK, HandlePostBlankResponse);
-			PostHandlers.Add(COMMAND_FREEZE, HandlePostFreezeResponse);
+			Send(MessageFactory.CreateErrorResponse("Invalid message format."), ApiHooks.DisplayChange);
+			return;
 		}
 
-		public event EventHandler<GenericDualEventArgs<string, bool>> DisplayPowerChangeRequest;
-		public event EventHandler<GenericSingleEventArgs<string>> DisplayFreezeChangeRequest;
-		public event EventHandler<GenericSingleEventArgs<string>> DisplayBlankChangeRequest;
-		public event EventHandler<GenericSingleEventArgs<string>> DisplayScreenUpRequest;
-		public event EventHandler<GenericSingleEventArgs<string>> DisplayScreenDownRequest;
-		public event EventHandler<GenericSingleEventArgs<string>> StationLocalInputRequest;
-		public event EventHandler<GenericSingleEventArgs<string>> StationLecternInputRequest;
-
-		public override void HandleSerialResponse(string response)
+		var method = rxObj.Method.ToUpper();
+		switch (method)
 		{
-			if (!CheckInitialized(
-				"DisplayControlComponent",
-				"HandleSerialResponse")) return;
-
-			ResponseBase rxObj = MessageFactory.DeserializeMessage(response);
-			if (rxObj == null)
-			{
-				Send(MessageFactory.CreateErrorResponse("Invalid message format."), ApiHooks.DisplayChange);
-
-				return;
-			}
-
-			string method = rxObj.Method.ToUpper();
-			if (method.Equals("GET"))
-			{
+			case "GET":
 				HandleGetRequests(rxObj);
-			}
-			else if (method.Equals("POST"))
-			{
+				break;
+			case "POST":
 				HandlePostRequests(rxObj);
-			}
-			else
-			{
+				break;
+			default:
 				Send(MessageFactory.CreateErrorResponse(
-					$"HTTP Method '{method}' not supported."),
+						$"HTTP Method '{method}' not supported."),
 					ApiHooks.DisplayChange);
-			}
+				break;
 		}
+	}
 
-		public override void Initialize()
+	public override void Initialize()
+	{
+		Initialized = false;
+		if (_displays.Count == 0)
 		{
-			Initialized = false;
-			if (uiData == null)
-			{
-				Logger.Error("CrComLibUi.DisplayControlComponent.Initialize() - Set UiData first.");
-				return;
-			}
-
-			if (displays == null)
-			{
-				Logger.Error("CrComLibUi.DisplayControlComponent.Initialize() - set display data first (call SetDisplayData()).");
-				return;
-			}
-
-			Initialized = true;
+			Logger.Debug("CrComLibUi.DisplayControlComponent.Initialize() - No displays have been added for control.");
+			return;
 		}
+		Initialized = true;
+	}
 
-        public override void SendConfig()
-        {
-			Logger.Debug("CrComLibUserInterface - DisplayControlComponent.SendConfig()");
+	public override void SendConfig()
+	{
+		Logger.Debug("CrComLibUserInterface - DisplayControlComponent.SendConfig()");
 
-			HandleGetConfigRequest(MessageFactory.CreateGetResponseObject());
-        }
+		HandleGetConfigRequest(MessageFactory.CreateGetResponseObject());
+	}
 
-        public void SetDisplayData(ReadOnlyCollection<DisplayInfoContainer> displayData)
+	public void SetDisplayData(ReadOnlyCollection<DisplayInfoContainer> displayData)
+	{
+		_displays.Clear();
+		foreach (var item in displayData)
 		{
-			if (displayData == null)
+			var display = new Display
 			{
-				Logger.Error("CrComLibUi.DisplayControlComponent.SetDisplayData() - argument 'displayData' cannot be null.");
-				return;
-			}
+				Id = item.Id,
+				Label = item.Label,
+				Icon = item.Icon,
+				Tags = item.Tags,
+				IsOnline = item.IsOnline,
+				HasScreen = item.HasScreen,
+				PowerState = false,
+				Blank = false,
+				Freeze = false,
+			};
 
-			displays = new List<Display>();
-            foreach (var item in displayData)
+			foreach (var input in item.Inputs)
 			{
-				Display disp = new Display()
+				display.Inputs.Add(new DisplayInput
 				{
-					Id = item.Id,
-					Label = item.Label,
-					Icon = item.Icon,
-					Tags = item.Tags,
-					IsOnline = item.IsOnline,
-					HasScreen = item.HasScreen,
-					PowerState = false,
-					Blank = false,
-					Freeze = false,
-				};
-
-				foreach (var input in item.Inputs)
-				{
-					disp.Inputs.Add(new DisplayInput()
-					{
-						Id = input.Id,
-						Label = input.Label,
-						Tags = input.Tags,
-						Selected = false,
-					});
-				}
-
-				displays.Add(disp);
+					Id = input.Id,
+					Label = input.Label,
+					Tags = input.Tags,
+					Selected = false,
+				});
 			}
+
+			_displays.Add(display);
+		}
+	}
+
+	public void SetStationLecternInput(string id)
+	{
+		if (!CheckInitialized("DisplayControlComponent", "SetStationLecternInput"))
+			return;
+
+		var display = FindDisplay("SetStationLecternInput", id);
+		if (display == null) return;
+
+		foreach (var input in display.Inputs)
+		{
+			input.Selected = input.Tags.Contains("lectern");
 		}
 
-		public void SetStationLecternInput(string id)
+		SendDisplayStatus(display);
+	}
+
+	public void SetStationLocalInput(string id)
+	{
+		if (!CheckInitialized("DisplayControlComponent", "SetStationLocalInput"))
+			return;
+
+		var display = FindDisplay("SetStationLocalInput", id);
+		if (display == null) return;
+
+		foreach (var input in display.Inputs)
 		{
-			if (!CheckInitialized("DisplayControlComponent", "SetStationLecternInput"))
+			input.Selected = input.Tags.Contains("station");
+		}
+
+		SendDisplayStatus(display);
+	}
+
+	public void UpdateDisplayBlank(string id, bool newState)
+	{
+		if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayBlank"))
+			return;
+
+		var display = FindDisplay("UpdateDisplayBlank", id);
+		if (display == null) return;
+
+		display.Blank = newState;
+		SendDisplayStatus(display);
+	}
+
+	public void UpdateDisplayFreeze(string id, bool newState)
+	{
+		if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayFreeze"))
+			return;
+
+		var display = FindDisplay("UpdateDisplayFreeze", id);
+		if (display == null) return;
+
+		display.Freeze = newState;
+		SendDisplayStatus(display);
+	}
+
+	public void UpdateDisplayPower(string id, bool newState)
+	{
+		if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayPower")) return;
+		var display = FindDisplay("UpdateDisplayPower", id);
+		if (display == null) return;
+		display.PowerState = newState;
+		SendDisplayStatus(display);
+	}
+
+	public void UpdateDisplayConnectionStatus(string id, bool isOnline)
+	{
+		if (!CheckInitialized("DisplayControlComponent", nameof(UpdateDisplayConnectionStatus))) return;
+		var display = FindDisplay(nameof(UpdateDisplayConnectionStatus), id);
+		if (display == null) return;
+		display.IsOnline = isOnline;
+		SendDisplayStatus(display);
+	}
+
+	private void HandleGetRequests(ResponseBase response)
+	{
+		if (GetHandlers.TryGetValue(response.Command.ToUpper(), out var handler))
+		{
+			handler.Invoke(response);
+		}
+		else
+		{
+			Logger.Error(
+				"CrComLibUi.DisplayControlComponent.HandleGetRequest() - Unknown command received: {0}",
+				response.Command);
+
+			SendError($"Unsupported command: {response.Command}", ApiHooks.DisplayChange);
+		}
+	}
+
+	private void HandlePostRequests(ResponseBase response)
+	{
+		if (PostHandlers.TryGetValue(response.Command.ToUpper(), out var handler))
+		{
+			handler.Invoke(response);
+		}
+		else
+		{
+			SendError($"Unsupported command: {response.Command}", ApiHooks.DisplayChange);
+		}
+	}
+
+	private void HandleGetConfigRequest(ResponseBase response)
+	{
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandConfig;
+		message.Data["Displays"] = JToken.FromObject(_displays);
+		Send(message, ApiHooks.DisplayChange);
+	}
+
+	private void HandleGetStateRequest(ResponseBase response)
+	{
+		Logger.Debug("CrComLibUi.DisplayControlComponent.HandleGetStateRequest()");
+
+		try
+		{
+			var id = response.Data.Value<string>("Id");
+			if (string.IsNullOrEmpty(id))
+			{
+				SendError("Invalid state GET request - missing Id.", ApiHooks.DisplayChange);
 				return;
-
-			var display = FindDisplay("SetStationLecternInput", id);
-			if (display == null) return;
-
-			foreach (var input in display.Inputs)
-			{
-				input.Selected = input.Tags.Contains("lectern");
 			}
-
-			SendDisplayStatus(display);
-		}
-
-		public void SetStationLocalInput(string id)
-		{
-			if (!CheckInitialized("DisplayControlComponent", "SetStationLocalInput"))
-				return;
-
-			var display = FindDisplay("SetStationLocalInput", id);
-			if (display == null) return;
-
-			foreach (var input in display.Inputs)
-			{
-				input.Selected = input.Tags.Contains("station");
-			}
-
-			SendDisplayStatus(display);
-		}
-
-		public void UpdateDisplayBlank(string id, bool newState)
-		{
-			if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayBlank"))
-				return;
-
-			var display = FindDisplay("UpdateDisplayBlank", id);
-			if (display == null) return;
-
-			display.Blank = newState;
-			SendDisplayStatus(display);
-		}
-
-		public void UpdateDisplayFreeze(string id, bool newState)
-		{
-			if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayFreeze"))
-				return;
-
-			var display = FindDisplay("UpdateDisplayFreeze", id);
-			if (display == null) return;
-
-			display.Freeze = newState;
-			SendDisplayStatus(display);
-		}
-
-		public void UpdateDisplayPower(string id, bool newState)
-		{
-			if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayPower"))
-				return;
-
-			var display = FindDisplay("UpdateDisplayPower", id);
-			if (display == null) return;
-
-			display.PowerState = newState;
-			SendDisplayStatus(display);
-		}
-
-		private void HandleGetRequests(ResponseBase response)
-		{
-			if (GetHandlers.TryGetValue(response.Command.ToUpper(), out var handler))
-			{
-				handler.Invoke(response);
-			}
-			else
-			{
-				Logger.Error(
-					"CrComLibUi.DisplayControlComponent.HandleGetRequest() - Unknown command recieved: {0}",
-					response.Command);
-
-				Send(MessageFactory.CreateErrorResponse(
-					$"Unsupported command: {response.Command}"),
-					ApiHooks.DisplayChange);
-			}
-		}
-
-		private void HandlePostRequests(ResponseBase response)
-		{
-			if (PostHandlers.TryGetValue(response.Command.ToUpper(), out var handler))
-			{
-				handler.Invoke(response);
-			}
-			else
-			{
-				Send(MessageFactory.CreateErrorResponse(
-					$"Unsupported command: {response.Command}"),
-					ApiHooks.DisplayChange);
-			}
-		}
-
-		private void HandleGetConfigRequest(ResponseBase response)
-		{
-			ResponseBase message = MessageFactory.CreateGetResponseObject();
-			message.Command = COMMAND_CONFIG;
-			message.Data = displays;
-			Send(message, ApiHooks.DisplayChange);
-		}
-
-		private void HandleGetStateRequest(ResponseBase response)
-		{
-			Logger.Debug("CrComLibUi.DisplayControlComponent.HandleGetStateRequest()");
-
-			try
-			{
-				var display = FindDisplay("HandleGetStateRequest", response.Data.Id);
-				if (display == null)
-				{
-					Send(MessageFactory.CreateErrorResponse(
-						$"No display found with ID {response.Data.Id}"),
-						ApiHooks.DisplayChange);
-					return;
-				}
-
-				ResponseBase message = MessageFactory.CreateGetResponseObject();
-				message.Command = COMMAND_STATE;
-				message.Data = display;
-				Send(message, ApiHooks.DisplayChange);
-			}
-			catch (Exception ex)
-			{
-				Send(MessageFactory.CreateErrorResponse(
-					$"Failed to parse state request: {ex.Message}"),
-					ApiHooks.DisplayChange);
-			}
-		}
-
-		private void HandlePostScreenResponse(ResponseBase response)
-		{
-			try
-			{
-				JObject data = response.Data as JObject;
-				var temp = data.Value<bool>("State") ? DisplayScreenUpRequest : DisplayScreenDownRequest;
-				temp?.Invoke(this, new GenericSingleEventArgs<string>(data.Value<string>("Id")));
-			}
-			catch (Exception ex)
-			{
-				Send(MessageFactory.CreateErrorResponse(
-					$"Failed to parse screen request: {ex.Message}"),
-					ApiHooks.DisplayChange);
-			}
-		}
-
-		private void HandlePostPowerResponse(ResponseBase response)
-		{
-			var temp = DisplayPowerChangeRequest;
-			if (temp == null) return;
-
-			try
-			{
-				JObject data = response.Data as JObject;
-				temp?.Invoke(this, new GenericDualEventArgs<string, bool>(
-					data["Id"].ToString(),
-					data.Value<bool>("State")
-				));
-			}
-			catch (Exception ex)
-			{
-				Send(MessageFactory.CreateErrorResponse(
-					$"Failed to parse power request: {ex.Message}"),
-					ApiHooks.DisplayChange);
-			}
-		}
-
-		private void HandlePostInputResponse(ResponseBase response)
-		{
-			try
-			{
-				JObject data = response.Data as JObject;
-				string targetId = data.Value<string>("Id");
-				string inputId = data.Value<string>("InputId");
-
-                var display = displays.FirstOrDefault(x => x.Id == targetId);
-				if (display == null)
-				{
-					Send(MessageFactory.CreateErrorResponse(
-						$"No display with ID {targetId}"),
-						ApiHooks.DisplayChange);
-					return;
-				}
-
-				var input = display.Inputs.FirstOrDefault(x => x.Id == inputId);
-				if (input == null)
-				{
-					Send(MessageFactory.CreateErrorResponse(
-						$"display {targetId} does not contain an input with ID {inputId}"),
-						ApiHooks.DisplayChange);
-					return;
-				}
-
-				var temp = input.Tags.Contains("lectern") ? StationLecternInputRequest : StationLocalInputRequest;
-				temp?.Invoke(this, new GenericSingleEventArgs<string>(targetId));
-			}
-			catch (Exception ex)
-			{
-				Send(MessageFactory.CreateErrorResponse(
-					$"Failed to parse display input request: {ex.Message}"),
-					ApiHooks.DisplayChange);
-			}
-		}
-
-		private void HandlePostFreezeResponse(ResponseBase response)
-		{
-			Logger.Debug("CrComLibUi.DisplayControlComponent.HandlePostFreezeResponse()");
-
-			try
-			{
-				var temp = DisplayFreezeChangeRequest;
-				temp?.Invoke(this, new GenericSingleEventArgs<string>(response.Data.Id));
-			}
-			catch (Exception ex)
-			{
-				Send(MessageFactory.CreateErrorResponse(
-					$"Failed to parse display freeze request: {ex.Message}"),
-					ApiHooks.DisplayChange);
-			}
-		}
-
-		private void HandlePostBlankResponse(ResponseBase response)
-		{
-			Logger.Debug("CrComLibUi.DisplayControlComponent.HandlePostBlankResponse()");
-
-			try
-			{
-				var temp = DisplayBlankChangeRequest;
-				temp?.Invoke(this, new GenericSingleEventArgs<string>(response.Data.Id));
-			}
-			catch (Exception ex)
-			{
-				Send(MessageFactory.CreateErrorResponse(
-					$"Failed to parse display blank request: {ex.Message}"),
-					ApiHooks.DisplayChange);
-			}
-		}
-
-		private Display FindDisplay(string callingMethod, string id)
-		{
-			var display = displays.FirstOrDefault(x => x.Id.Equals(id));
+			var display = FindDisplay("HandleGetStateRequest", id);
 			if (display == null)
 			{
-				Logger.Error(
-					"CrComLibUi.DisplayControlComponent.{0}() - no display found with ID {1}",
-					callingMethod,
-					id);
-				return null;
+				Send(MessageFactory.CreateErrorResponse(
+						$"No display found with ID {id}"),
+					ApiHooks.DisplayChange);
+				return;
 			}
 
-			return display;
-		}
-
-		private void SendDisplayStatus(Display display)
-		{
-			ResponseBase message = MessageFactory.CreateGetResponseObject();
-			message.Command = COMMAND_STATE;
-			message.Data = display;
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CommandState;
+			message.Data = new JObject(display);
 			Send(message, ApiHooks.DisplayChange);
 		}
+		catch (Exception ex)
+		{
+			Logger.Error("CrComLibUi.DisplayControlComponent.HandleGetStateRequest()", ex);
+			SendServerError(ApiHooks.DisplayChange);
+		}
+	}
+
+	private void HandlePostScreenResponse(ResponseBase response)
+	{
+		try
+		{
+			var id = response.Data.Value<string>("Id");
+			var hasState = response.Data.ContainsKey("State");
+			if (string.IsNullOrEmpty(id) || !hasState)
+			{
+				SendError("Invalid screen POST request - missing Id or State", ApiHooks.DisplayChange);
+				return;
+			}
+			
+			var temp = response.Data.Value<bool>("State") ?
+				DisplayScreenUpRequest :
+				DisplayScreenDownRequest;
+			temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("DisplayControlComponent.HandlePostScreenResponse:\n\r{0}", ex.Message);
+			SendServerError(ApiHooks.DisplayChange);
+		}
+	}
+
+	private void HandlePostPowerResponse(ResponseBase response)
+	{
+		var temp = DisplayPowerChangeRequest;
+		if (temp == null) return;
+		
+		try
+		{
+			var id = response.Data.Value<string>("Id");
+			var hasState = response.Data.ContainsKey("State");
+			if (string.IsNullOrEmpty(id) || !hasState)
+			{
+				SendError("Invalid power POST request - missing Id or State", ApiHooks.DisplayChange);
+				return;
+			}
+			
+			temp.Invoke(this, new GenericDualEventArgs<string, bool>(id,
+				response.Data.Value<bool>("State")));
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("DisplayControlComponent.HandlePostPowerResponse:\n\r{0}", ex.Message);
+			SendServerError(ApiHooks.DisplayChange);
+		}
+	}
+
+	private void HandlePostInputResponse(ResponseBase response)
+	{
+		try
+		{
+			var targetId = response.Data.Value<string>("Id");
+			var inputId = response.Data.Value<string>("InputId");
+			if (string.IsNullOrEmpty(targetId) || string.IsNullOrEmpty(inputId))
+			{
+				SendError("Invalid input POST request - missing Id or InputId.", ApiHooks.DisplayChange);
+				return;
+			}
+
+			var display = _displays.FirstOrDefault(x => x.Id == targetId);
+			if (display == null)
+			{
+				SendError($"No display with ID {targetId}", ApiHooks.DisplayChange);
+				return;
+			}
+
+			var input = display.Inputs.FirstOrDefault(x => x.Id == inputId);
+			if (input == null)
+			{
+				SendError($"display {targetId} does not contain an input with ID {inputId}", ApiHooks.DisplayChange);
+				return;
+			}
+
+			var temp = input.Tags.Contains("lectern") ? StationLecternInputRequest : StationLocalInputRequest;
+			temp?.Invoke(this, new GenericSingleEventArgs<string>(targetId));
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("DisplayControlComponent.HandlePostInputResponse():\n\r{0}", ex.Message);
+			SendServerError(ApiHooks.DisplayChange);
+		}
+	}
+
+	private void HandlePostFreezeResponse(ResponseBase response)
+	{
+		try
+		{
+			var id = response.Data.Value<string>("Id");
+			if (string.IsNullOrEmpty(id))
+			{
+				SendError("Invalid freeze POST request - missing Id.", ApiHooks.DisplayChange);
+				return;
+			}
+			
+			var temp = DisplayFreezeChangeRequest;
+			temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("DisplayControlComponent.HandlePostFreezeResponse():\n\r{0}", ex.Message);
+			SendServerError(ApiHooks.DisplayChange);
+		}
+	}
+
+	private void HandlePostBlankResponse(ResponseBase response)
+	{
+		Logger.Debug("CrComLibUi.DisplayControlComponent.HandlePostBlankResponse()");
+
+		try
+		{
+			var id = response.Data.Value<string>("Id");
+			if (string.IsNullOrEmpty(id))
+			{
+				SendError("Invalid blank POST request - missing Id.", ApiHooks.DisplayChange);
+				return;
+			}
+			
+			var temp = DisplayBlankChangeRequest;
+			temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("DisplayControlComponent.HandlePostBlankResponse():\n\r{0}", ex.Message);
+			SendServerError(ApiHooks.DisplayChange);
+		}
+	}
+
+	private Display? FindDisplay(string callingMethod, string id)
+	{
+		var display = _displays.FirstOrDefault(x => x.Id.Equals(id));
+		if (display == null)
+		{
+			Logger.Error(
+				"CrComLibUi.DisplayControlComponent.{0}() - no display found with ID {1}",
+				callingMethod,
+				id);
+			return null;
+		}
+
+		return display;
+	}
+
+	private void SendDisplayStatus(Display display)
+	{
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandState;
+		message.Data = JObject.FromObject(display);
+		Send(message, ApiHooks.DisplayChange);
 	}
 }

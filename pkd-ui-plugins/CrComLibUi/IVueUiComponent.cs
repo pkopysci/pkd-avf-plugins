@@ -1,9 +1,8 @@
-namespace CrComLibUi
-{
-    using pkd_ui_service.Interfaces;
+namespace CrComLibUi;
 
-    internal interface IVueUiComponent : IUiComponent
-    {
-        void SendConfig();
-    }
+using pkd_ui_service.Interfaces;
+
+internal interface IVueUiComponent : IUiComponent
+{
+    void SendConfig();
 }

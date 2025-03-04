@@ -1,17 +1,16 @@
-﻿namespace CrComLibUi.Components.ErrorReporting
+﻿namespace CrComLibUi.Components.ErrorReporting;
+
+using Newtonsoft.Json;
+using System.ComponentModel;
+
+[JsonObject(MemberSerialization.OptIn)]
+internal class ErrorData
 {
-	using Newtonsoft.Json;
-	using System.ComponentModel;
+	[DefaultValue("NOTSET")]
+	[JsonProperty("Id", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string Id { get; set; } = string.Empty;
 
-	[JsonObject(MemberSerialization.OptIn)]
-	internal class ErrorData
-	{
-		[DefaultValue("NOTSET")]
-		[JsonProperty("Id", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string Id { get; set; }
-
-		[DefaultValue("NOTSET")]
-		[JsonProperty("Message", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string Message { get; set; }
-	}
+	[DefaultValue("NOTSET")]
+	[JsonProperty("Message", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string Message { get; set; } = string.Empty;
 }

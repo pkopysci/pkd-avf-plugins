@@ -1,312 +1,305 @@
-﻿namespace CrComLibUi.Components.VideoControl
+﻿using Newtonsoft.Json.Linq;
+
+namespace CrComLibUi.Components.VideoControl;
+
+using Api;
+using Crestron.SimplSharpPro.DeviceSupport;
+using pkd_application_service.AvRouting;
+using pkd_application_service.Base;
+using pkd_application_service.UserInterface;
+using pkd_common_utils.GenericEventArgs;
+using pkd_common_utils.Logging;
+using pkd_ui_service.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Dynamic;
+using System.Linq;
+
+internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 {
-	using Crestron.SimplSharpPro.DeviceSupport;
-	using pkd_application_service.AvRouting;
-	using pkd_application_service.Base;
-	using pkd_application_service.UserInterface;
-	using pkd_common_utils.GenericEventArgs;
-	using pkd_common_utils.Logging;
-	using pkd_ui_service.Interfaces;
-	using CrComLibUi.Api;
-	using System;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	using System.Dynamic;
-	using System.Linq;
-    using Newtonsoft.Json.Linq;
+	private const string CommandConfig = "CONFIG";
+	private const string CommandRoute = "ROUTE";
+	private const string CommandFreeze = "GLOBALFREEZE";
+	private const string CommandBlank = "GLOBALBLANK";
+	private const string CommandStatus = "STATUS";
+	private readonly List<VideoDestinationInfo> _destinations;
+	private ReadOnlyCollection<AvSourceInfoContainer> _sources;
+	private ReadOnlyCollection<InfoContainer> _routers;
+	private bool _globalBlankState;
+	private bool _globalFreezeState;
 
-    internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
+	public VideoControlComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
+		: base(ui, uiData)
 	{
-		private static readonly string COMMAND_CONFIG = "CONFIG";
-		private static readonly string COMMAND_ROUTE = "ROUTE";
-		private static readonly string COMMAND_FREEZE = "GLOBALFREEZE";
-		private static readonly string COMMAND_BLANK = "GLOBALBLANK";
-		private ReadOnlyCollection<AvSourceInfoContainer> sources;
-		private List<VideoDestinationInfo> destinations;
-		private ReadOnlyCollection<InfoContainer> avrs;
-		private bool globalBlankState;
-		private bool globalFreezeState;
+		GetHandlers.Add(CommandConfig, HandleGetConfigRequest);
+		PostHandlers.Add(CommandRoute, HandlePostRouteRequest);
+		PostHandlers.Add(CommandBlank, HandlePostBlankRequest);
+		PostHandlers.Add(CommandFreeze, HandlePostFreezeRequest);
+		_sources = new ReadOnlyCollection<AvSourceInfoContainer>([]);
+		_routers = new ReadOnlyCollection<InfoContainer>([]);
+		_destinations = [];
+	}
 
-		public VideoControlComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-			: base(ui, uiData)
-		{
-			GetHandlers.Add(COMMAND_CONFIG, HandleGetConfigRequest);
-			PostHandlers.Add(COMMAND_ROUTE, HandlePostRouteRequest);
-			PostHandlers.Add(COMMAND_BLANK, HandlePostBlankRequest);
-			PostHandlers.Add(COMMAND_FREEZE, HandlePostFreezeRequest);
-		}
-
-		public event EventHandler<GenericDualEventArgs<string, string>> AvRouteChangeRequest;
-		public event EventHandler GlobalFreezeToggleRequest;
-		public event EventHandler GlobalBlankToggleRequest;
+	public event EventHandler<GenericDualEventArgs<string, string>>? AvRouteChangeRequest;
+	public event EventHandler? GlobalFreezeToggleRequest;
+	public event EventHandler? GlobalBlankToggleRequest;
 		
-		/// <inheritdoc/>
-		public override void HandleSerialResponse(string response)
+	/// <inheritdoc/>
+	public override void HandleSerialResponse(string response)
+	{
+		if (!CheckInitialized(
+			    "VideoControlComponent",
+			    nameof(HandleSerialResponse))) return;
+
+		try
 		{
-			if (!this.CheckInitialized(
-				"VideoControlComponent",
-				nameof(HandleSerialResponse))) return;
-
-			try
+			var message = MessageFactory.DeserializeMessage(response);
+			if (string.IsNullOrEmpty(message.Method))
 			{
-				ResponseBase message = MessageFactory.DeserializeMessage(response);
-				if (message == null)
-				{
-					ResponseBase errMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
-					Send(errMessage, ApiHooks.RoomConfig);
-					return;
-				}
+				var errMessage = MessageFactory.CreateErrorResponse("Invalid message format.");
+				Send(errMessage, ApiHooks.RoomConfig);
+				return;
+			}
 
-				if (message.Method.Equals("GET"))
-				{
+			switch (message.Method)
+			{
+				case "GET":
 					HandleGetRequest(message);
-				}
-				else if (message.Method.Equals("POST"))
-				{
+					break;
+				case "POST":
 					HandlePostRequest(message);
-				}
-				else
+					break;
+				default:
 				{
-					ResponseBase errMessage = MessageFactory.CreateErrorResponse($"Unsupported method: {message.Method}.");
+					var errMessage = MessageFactory.CreateErrorResponse($"Unsupported method: {message.Method}.");
 					Send(errMessage, ApiHooks.VideoControl);
 					return;
 				}
 			}
-			catch (Exception ex)
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("CrComLibUi.VideoControlComponent.HandleSerialResponse() - {0}", ex);
+			var errRx = MessageFactory.CreateErrorResponse("500 - Internal Server Error.");
+			Send(errRx, ApiHooks.VideoControl);
+		}
+	}
+
+	/// <inheritdoc/>
+	public override void Initialize()
+	{
+		Initialized = false;
+		if (_sources.Count == 0 || _destinations.Count == 0)
+		{
+			Logger.Debug("CrComLibUi.VideoControlComponent.Initialize() - sources or destinations are empty.");
+			return;
+		}
+		Initialized = true;
+	}
+
+	public override void SendConfig()
+	{
+		HandleGetConfigRequest(MessageFactory.CreateGetResponseObject());
+	}
+
+	/// <inheritdoc/>
+	public void SetRoutingData(
+		ReadOnlyCollection<AvSourceInfoContainer> sources,
+		ReadOnlyCollection<InfoContainer> destinations,
+		ReadOnlyCollection<InfoContainer> avRouters)
+	{
+		_sources = sources;
+		_routers = avRouters;
+		_destinations.Clear();
+		foreach (var dest in destinations)
+		{
+			_destinations.Add(new VideoDestinationInfo(dest.Id, dest.Label, dest.Icon, dest.Tags)
 			{
-				Logger.Error("CrComLibUi.VideoControlComponent.HandleSerialResponse() - {0}", ex);
-				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Failed to parse message: {ex.Message}");
-				Send(errRx, ApiHooks.VideoControl);
-			}
+				CurrentSourceId = string.Empty,
+			});
+		}
+	}
+
+	public void SetGlobalBlankState(bool state)
+	{
+		_globalBlankState = state;
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandBlank;
+		message.Data.Add(new JProperty("State", _globalBlankState));
+		Send(message, ApiHooks.VideoControl);
+	}
+
+	public void SetGlobalFreezeState(bool state)
+	{
+		_globalFreezeState = state;
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandFreeze;
+		message.Data.Add(new JProperty("State", _globalFreezeState));
+		Send (message, ApiHooks.VideoControl);
+	}
+
+	public void UpdateAvRouterConnectionStatus(string avrId, bool isOnline)
+	{
+		var found = _routers.FirstOrDefault(x => x.Id == avrId);
+		if (found == null)
+		{
+			Logger.Error($"CrComLibUi.VideoControlComponent.UpdateAvRouterConnectionStatus() - {avrId} not found.");
+			return;
 		}
 
-		/// <inheritdoc/>
-		public override void Initialize()
+		found.IsOnline = isOnline;
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandStatus;
+		message.Data["Avr"] = JObject.FromObject(found);
+		Send(message, ApiHooks.VideoControl);
+	}
+
+	/// <inheritdoc/>
+	public void UpdateAvRoute(AvSourceInfoContainer inputInfo, string outputId)
+	{
+		if (!CheckInitialized("VideoControlComponent", nameof(UpdateAvRoute))) return;
+
+		var dest = _destinations.FirstOrDefault(x => x.Id == outputId);
+		if (dest == null)
 		{
-			Initialized = false;
-			if (uiData == null)
-			{
-				Logger.Error("CrComLibUi.VideoControlComponent.Initialize() - Set UiData first.");
-				return;
-			}
-
-			if (sources == null || destinations == null)
-			{
-				Logger.Error("CrComLibUi.VideoControlComponent.Initialize() - set source and destination data first (call SetRoutingData()).");
-				return;
-			}
-
-			Initialized = true;
+			Logger.Error("CrComLibUi.VideoControlComponent.UpdateAvRoute() - No destination with id {0}", outputId);
+			return;
 		}
 
-        public override void SendConfig()
-        {
-			Logger.Debug("CrComLibUserInterface - VideoControlComponent.SendConfig()");
+		dest.CurrentSourceId = inputInfo.Id;
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandRoute;
 
-			HandleGetConfigRequest(MessageFactory.CreateGetResponseObject());
-        }
+		dynamic dataObj = new ExpandoObject();
+		dataObj.DestId = dest.Id;
+		dataObj.SrcId = inputInfo.Id;
+		message.Data = JObject.FromObject(dataObj);
+		Send(message, ApiHooks.VideoControl);
+	}
 
-        /// <inheritdoc/>
-        public void SetRoutingData(
-			ReadOnlyCollection<AvSourceInfoContainer> sources,
-			ReadOnlyCollection<InfoContainer> destinations,
-			ReadOnlyCollection<InfoContainer> avRouters)
+	private void HandleGetRequest(ResponseBase response)
+	{
+		if (GetHandlers.TryGetValue(response.Command, out var handler))
 		{
-			Logger.Debug("VideoControlComponent.SetRoutingData()");
-
-			if (sources == null)
-			{
-				Logger.Error("CrComLibUi.VideoControlComponent.SetRoutingData() - argument 'sources' cannot be null.");
-				return;
-			}
-
-			if (destinations == null)
-			{
-				Logger.Error("CrComLibUi.VideoControlComponent.SetRoutingData() - argument 'destinations' cannot be null.");
-				return;
-			}
-
-			if (avRouters == null)
-			{
-				Logger.Error("CrComLibUi.VideoControlComponent.SetRoutingData() - argument 'avRouters' cannot be null.");
-				return;
-			}
-
-
-			this.sources = sources;
-			this.avrs = avRouters;
-			this.destinations = new List<VideoDestinationInfo>();
-			foreach (var dest in destinations)
-			{
-				this.destinations.Add(new VideoDestinationInfo(dest.Id, dest.Label, dest.Icon, dest.Tags)
-				{
-					CurrentSourceId = string.Empty,
-				});
-			}
+			handler.Invoke(response);
 		}
-
-		public void SetGlobalBlankState(bool state)
+		else
 		{
-			globalBlankState = state;
-			ResponseBase message = MessageFactory.CreateGetResponseObject();
-			message.Command = COMMAND_BLANK;
-			message.Data = globalBlankState;
+			var errRx = MessageFactory.CreateErrorResponse($"Unsupported GET command: {response.Command}");
+			Send(errRx, ApiHooks.VideoControl);
+		}
+	}
+
+	private void HandlePostRequest(ResponseBase response)
+	{
+		if (PostHandlers.TryGetValue(response.Command, out var handler))
+		{
+			handler.Invoke(response);
+		}
+		else
+		{
+			var errRx = MessageFactory.CreateErrorResponse($"Unsupported POST command: {response.Command}");
+			Send(errRx, ApiHooks.VideoControl);
+		}
+	}
+
+	private void HandleGetConfigRequest(ResponseBase response)
+	{
+		try
+		{
+			var message = MessageFactory.CreateGetResponseObject();
+			message.Command = CommandConfig;
+			message.Data = JObject.FromObject(CreateConfigData());
 			Send(message, ApiHooks.VideoControl);
 		}
-
-		public void SetGlobalFreezeState(bool state)
+		catch (Exception ex)
 		{
-			globalFreezeState = state;
-			ResponseBase message = MessageFactory.CreateGetResponseObject();
-			message.Command = COMMAND_FREEZE;
-			message.Data = globalFreezeState;
-			Send (message, ApiHooks.VideoControl);
+			Logger.Error("CrComLibUi.VideoControlComponent.HandleGetConfigRequest() - {0}", ex);
+			SendServerError(ApiHooks.VideoControl);
 		}
+	}
 
-		/// <inheritdoc/>
-		public void UpdateAvRoute(AvSourceInfoContainer inputInfo, string outputId)
+	private void HandlePostRouteRequest(ResponseBase response)
+	{
+		var temp = AvRouteChangeRequest;
+		if (temp == null) return;
+		
+		try
 		{
-			if (!this.CheckInitialized(
-				"VideoControlComponent",
-				nameof(UpdateAvRoute))) return;
-
-			var dest = destinations.FirstOrDefault(x => x.Id == outputId);
-			if (dest == null)
+			var srcId = response.Data.Value<string>("SrcId");
+			var destId = response.Data.Value<string>("DestId");
+			if (string.IsNullOrEmpty(srcId) || string.IsNullOrEmpty(destId))
 			{
-				Logger.Error("CrComLibUi.VideoControlComponent.UpdateAvRoute() - No destination with id {0}", outputId);
+				Send(
+				MessageFactory.CreateErrorResponse("Invalid route POST request - Missing SrcId or DestId"),
+				ApiHooks.VideoControl);
 				return;
 			}
-
-			dest.CurrentSourceId = inputInfo.Id;
-			ResponseBase message = MessageFactory.CreateGetResponseObject();
-			message.Command = COMMAND_ROUTE;
-
-			dynamic dataObj = new ExpandoObject();
-			dataObj.DestId = dest.Id;
-			dataObj.SrcId = inputInfo.Id;
-			message.Data = dataObj;
-			Send(message, ApiHooks.VideoControl);
+			
+			temp.Invoke(this, new GenericDualEventArgs<string, string>(srcId, destId));
 		}
-
-		private void HandleGetRequest(ResponseBase response)
+		catch (Exception ex)
 		{
-			if (GetHandlers.TryGetValue(response.Command, out var handler))
-			{
-				handler.Invoke(response);
-			}
-			else
-			{
-				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Unsupported GET command: {response.Command}");
-				Send(errRx, ApiHooks.VideoControl);
-			}
+			Logger.Error("CrComLibUi.VideoControlComponent.HandlePostRouteRequest() - {0}", ex);
+			SendServerError(ApiHooks.VideoControl);
 		}
+	}
 
-		private void HandlePostRequest(ResponseBase response)
+	private void HandlePostFreezeRequest(ResponseBase response)
+	{
+		var temp = GlobalFreezeToggleRequest;
+		temp?.Invoke(this, EventArgs.Empty);
+	}
+
+	private void HandlePostBlankRequest(ResponseBase response)
+	{
+		var temp = GlobalBlankToggleRequest;
+		temp?.Invoke(this, EventArgs.Empty);
+	}
+
+	private VideoConfigData CreateConfigData()
+	{
+		var config = new VideoConfigData()
 		{
-			if (PostHandlers.TryGetValue(response.Command, out var handler))
-			{
-				handler.Invoke(response);
-			}
-			else
-			{
-				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Unsupported POST command: {response.Command}");
-				Send(errRx, ApiHooks.VideoControl);
-			}
-		}
+			Blank = _globalBlankState,
+			Freeze = _globalFreezeState,
+		};
 
-		private void HandleGetConfigRequest(ResponseBase response)
+		foreach (var avr in _routers)
 		{
-			try
+			config.AvRouters.Add(new AvRouter()
 			{
-				ResponseBase message = MessageFactory.CreateGetResponseObject();
-				message.Command = COMMAND_CONFIG;
-				message.Data = CreateConfigData();
-				Send(message, ApiHooks.VideoControl);
-			}
-			catch (Exception ex)
-			{
-				Logger.Error("CrComLibUi.VideoControlComponent.HandleGetConfigRequest() - {0}", ex);
-				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Failed to parse config request: {ex.Message}");
-				Send(errRx, ApiHooks.VideoControl);
-			}
+				Id = avr.Id,
+				Label = avr.Label,
+				IsOnline = avr.IsOnline,
+			});
 		}
-
-		private void HandlePostRouteRequest(ResponseBase response)
+		foreach (var source in _sources)
 		{
-			var temp = AvRouteChangeRequest;
-			if (temp == null) return;
-
-			try
+			config.Sources.Add(new VideoSource()
 			{
-				JObject data = response.Data as JObject;
-				temp?.Invoke(this, new GenericDualEventArgs<string, string>(
-					data["SrcId"].ToString(),
-					data["DestId"].ToString()
-				));
-			}
-			catch (Exception ex)
-			{
-				Logger.Error("CrComLibUi.VideoControlComponent.HandlePostRouteRequest() - {0}", ex);
-				ResponseBase errRx = MessageFactory.CreateErrorResponse($"Failed to parse route POST request: {ex.Message}");
-				Send(errRx, ApiHooks.VideoControl);
-			}
+				Icon = source.Icon,
+				Id = source.Id,
+				Label = source.Label,
+				Control = source.ControlId,
+				HasSync = true,
+				Tags = source.Tags,
+			});
 		}
 
-		private void HandlePostFreezeRequest(ResponseBase response)
+		foreach (var dest in _destinations)
 		{
-			var temp = GlobalFreezeToggleRequest;
-			temp?.Invoke(this, EventArgs.Empty);
+			config.Destinations.Add(new VideoDestination()
+			{
+				Icon = dest.Icon,
+				Id = dest.Id,
+				Label = dest.Label,
+				CurrentSourceId = dest.CurrentSourceId,
+				Tags = dest.Tags,
+			});
 		}
 
-		private void HandlePostBlankRequest(ResponseBase response)
-		{
-			var temp = GlobalBlankToggleRequest;
-			temp?.Invoke(this, EventArgs.Empty);
-		}
-
-		private VideoConfigData CreateConfigData()
-		{
-			VideoConfigData config = new VideoConfigData()
-			{
-				Blank = globalBlankState,
-				Freeze = globalFreezeState,
-			};
-
-			foreach (var avr in avrs)
-			{
-				config.AvRouters.Add(new AvRouter()
-				{
-					Id = avr.Id,
-					Label = avr.Label,
-					IsOnline = avr.IsOnline,
-				});
-			}
-			foreach (var source in sources)
-			{
-				config.Sources.Add(new VideoSource()
-				{
-					Icon = source.Icon,
-					Id = source.Id,
-					Label = source.Label,
-					Control = source.ControlId,
-					HasSync = true,
-					Tags = source.Tags,
-				});
-			}
-
-			foreach (var dest in destinations)
-			{
-				config.Destinations.Add(new VideoDestination()
-				{
-					Icon = dest.Icon,
-					Id = dest.Id,
-					Label = dest.Label,
-					CurrentSourceId = dest.CurrentSourceId,
-					Tags = dest.Tags,
-				});
-			}
-
-			return config;
-		}
+		return config;
 	}
 }

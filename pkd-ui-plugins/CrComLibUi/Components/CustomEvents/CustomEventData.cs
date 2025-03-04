@@ -1,19 +1,18 @@
-﻿namespace CrComLibUi.Components.CustomEvents
+﻿namespace CrComLibUi.Components.CustomEvents;
+
+using Newtonsoft.Json;
+using System.ComponentModel;
+
+internal class CustomEventData
 {
-	using Newtonsoft.Json;
-	using System.ComponentModel;
+	[DefaultValue("")]
+	[JsonProperty("Id", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string Id { get; set; } = string.Empty;
 
-	internal class CustomEventData
-	{
-		[DefaultValue("")]
-		[JsonProperty("Id", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string Id { get; set; }
+	[DefaultValue("")]
+	[JsonProperty("Label", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string Label { get; set; } = string.Empty;
 
-		[DefaultValue("")]
-		[JsonProperty("Label", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public string Label { get; set; }
-
-		[JsonProperty("State")]
-		public bool State { get; set; }
-	}
+	[JsonProperty("State")]
+	public bool State { get; set; }
 }
