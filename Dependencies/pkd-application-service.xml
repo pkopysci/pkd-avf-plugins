@@ -1211,6 +1211,16 @@
             True = preset states can be saved as well as recalled. False = cannot save preset changes.
             </summary>
         </member>
+        <member name="P:pkd_application_service.CameraControl.CameraInfoContainer.SupportsZoom">
+            <summary>
+            True = device implements zoom in/out controls, false = zoom not supported.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.CameraControl.CameraInfoContainer.SupportsPanTilt">
+            <summary>
+            True = device implements pan/tilt controls, false = not supported.
+            </summary>
+        </member>
         <member name="P:pkd_application_service.CameraControl.CameraInfoContainer.PowerState">
             <summary>
             True = device power is on, false = device power is off.

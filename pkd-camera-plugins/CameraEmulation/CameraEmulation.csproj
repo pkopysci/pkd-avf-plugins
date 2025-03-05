@@ -6,4 +6,13 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Reference Include="pkd-common-utils">
+        <HintPath>..\..\Dependencies\pkd-common-utils.dll</HintPath>
+      </Reference>
+      <Reference Include="pkd-hardware-service">
+        <HintPath>..\..\Dependencies\pkd-hardware-service.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

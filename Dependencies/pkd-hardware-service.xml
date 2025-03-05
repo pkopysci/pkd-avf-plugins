@@ -643,20 +643,24 @@
             Properties, events, and methods required for any PTZ camera device.
             </summary>
         </member>
-        <member name="M:pkd_hardware_service.CameraDevices.ICameraDevice.Initialize(System.String,System.Int32,System.String,System.String,System.String,System.String,System.Collections.Generic.List{System.String})">
+        <member name="M:pkd_hardware_service.CameraDevices.ICameraDevice.Initialize(System.String,System.Int32,System.String,System.String,System.String,System.String)">
             <param name="hostname">The IP Address or hostname used to connect to the hardware.</param>
             <param name="port">The port number used to connect to the hardware.</param>
             <param name="id">A unique id used to reference this device.</param>
             <param name="label">A human-friendly name of this device.</param>
             <param name="username">the authentication username used when connecting.</param>
             <param name="password">The authentication password used when connecting.</param>
-            <param name="tags">Any custom behavior or description tags associated with the device.</param>
         </member>
-        <member name="M:pkd_hardware_service.CameraDevices.ICameraDevice.SetPowerState(System.Boolean)">
-            <param name="state">true = turn power on, false = turn power off.</param>
+        <member name="T:pkd_hardware_service.CameraDevices.IPanTiltDevice">
+            <summary>
+            Minimum required methods for a device that supports pant/tilt controls.
+            </summary>
         </member>
-        <member name="M:pkd_hardware_service.CameraDevices.ICameraDevice.QueryPowerState">
-            <returns>True = power is on, false = power is off.</returns>
+        <member name="M:pkd_hardware_service.CameraDevices.IPanTiltDevice.SetPanTilt(pkd_common_utils.DataObjects.Vector2D)">
+            <summary>
+            pan / tilt the camera. sending a Vector2D.Zero will stop the movement.
+            </summary>
+            <param name="direction">The direction to pan and tilt. This may be normalized depending on the device implementation.</param>
         </member>
         <member name="T:pkd_hardware_service.CameraDevices.IPresetDevice">
             <summary>
@@ -683,18 +687,12 @@
             </summary>
             <param name="id">The id of the preset to create or overwrite.</param>
         </member>
-        <member name="T:pkd_hardware_service.CameraDevices.IPtzDevice">
+        <member name="T:pkd_hardware_service.CameraDevices.IZoomDevice">
             <summary>
-            Minimum required methods for a device that supports pant/tilt controls.
+            Minimum required methods for a device that supports zoom controls.
             </summary>
         </member>
-        <member name="M:pkd_hardware_service.CameraDevices.IPtzDevice.SetPanTilt(pkd_common_utils.DataObjects.Vector2D)">
-            <summary>
-            pan / tilt the camera. sending a Vector2D.Zero will stop the movement.
-            </summary>
-            <param name="direction">The direction to pan and tilt. This may be normalized depending on the device implementation.</param>
-        </member>
-        <member name="M:pkd_hardware_service.CameraDevices.IPtzDevice.SetZoom(System.Int32)">
+        <member name="M:pkd_hardware_service.CameraDevices.IZoomDevice.SetZoom(System.Int32)">
             <summary>
             Zoom in (telephoto) or out (wide angle). Sending 0 (zero) will stop the zoom.
             </summary>
@@ -808,20 +806,9 @@
             Common attributes and methods of all video display devices.
             </summary>
         </member>
-        <member name="E:pkd_hardware_service.DisplayDevices.IDisplayDevice.PowerChanged">
-            <summary>
-            Event triggered whenever the power status change is reported by the display.
-            </summary>
-        </member>
         <member name="E:pkd_hardware_service.DisplayDevices.IDisplayDevice.HoursUsedChanged">
             <summary>
             Event triggered when a "lamp hours" update is reported by the display driver.
-            </summary>
-        </member>
-        <member name="P:pkd_hardware_service.DisplayDevices.IDisplayDevice.PowerState">
-            <summary>
-            Gets a value indicating whether the device is on or off.
-            true = power on, false = power off.
             </summary>
         </member>
         <member name="P:pkd_hardware_service.DisplayDevices.IDisplayDevice.SupportsFreeze">
@@ -839,16 +826,6 @@
             <summary>
             Gets or sets a value that indicates whether the object should
             try to reconnect if disconnected from the hardware for any reason.
-            </summary>
-        </member>
-        <member name="M:pkd_hardware_service.DisplayDevices.IDisplayDevice.PowerOn">
-            <summary>
-            Send the "Power on" command to the display hardware.
-            </summary>
-        </member>
-        <member name="M:pkd_hardware_service.DisplayDevices.IDisplayDevice.PowerOff">
-            <summary>
-            Send the "Power off" command to the display hardware.
             </summary>
         </member>
         <member name="M:pkd_hardware_service.DisplayDevices.IDisplayDevice.EnablePolling">
@@ -1416,6 +1393,32 @@
         <member name="M:pkd_hardware_service.LightingDevices.ILightingDevice.GetZoneLoad(System.String)">
             <param name="id">the unique id of the zone to query.</param>
             <returns>a 0-100 value representing the current load level.</returns>
+        </member>
+        <member name="T:pkd_hardware_service.PowerControl.IPowerControllable">
+            <summary>
+            Events, properties, and methods for devices that allow for power on/off control.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.PowerControl.IPowerControllable.PowerChanged">
+            <summary>
+            Trigger when the power state for the devices changes.
+            </summary>
+            <remarks>Arg = the id of the device that changed.</remarks>
+        </member>
+        <member name="P:pkd_hardware_service.PowerControl.IPowerControllable.PowerState">
+            <summary>
+            True = device is powered on, false = device is powered off or in standby.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.PowerControl.IPowerControllable.PowerOn">
+            <summary>
+            Send a command to turn the device on.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.PowerControl.IPowerControllable.PowerOff">
+            <summary>
+            Send a command to turn the device off/standby.
+            </summary>
         </member>
         <member name="T:pkd_hardware_service.Routable.IAudioRoutable">
             <summary>
