@@ -29,7 +29,7 @@ public class VideoWallApplication : ApplicationService, IVideoWallApp
     /// on the base ApplicationService.
     /// </summary>
     /// <param name="hwService">The device control service that manages hardware interactions.</param>
-    /// <param name="domain">The configuration domain that contains all of the system configuration.</param>
+    /// <param name="domain">The configuration domain that contains the system configuration.</param>
     public override void Initialize(IInfrastructureService hwService, IDomainService domain)
     {
         foreach (var device in hwService.VideoWallDevices.GetAllDevices())
