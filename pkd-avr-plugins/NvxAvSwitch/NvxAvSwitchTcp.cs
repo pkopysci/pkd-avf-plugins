@@ -58,6 +58,12 @@
 		/// </summary>
 		public string Label { get; private set; } = string.Empty;
 
+		/// <inheritdoc/>
+		public string Manufacturer { get; set; } = "Crestron";
+		
+		/// <inheritdoc/>
+		public string Model { get; set; } = "NVX Av-Ip Switch";
+		
 		/// <summary>
 		/// Gets a value indicating whether the device is online or not.
 		/// </summary>

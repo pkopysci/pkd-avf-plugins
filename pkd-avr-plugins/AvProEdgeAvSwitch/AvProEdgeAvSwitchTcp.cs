@@ -62,6 +62,12 @@
 
 		/// <inheritdoc/>
 		public string Label { get; private set; } = string.Empty;
+		
+		/// <inheritdoc/>
+		public string Manufacturer { get; set; } = "Av Pro Edge";
+		
+		/// <inheritdoc/>
+		public string Model { get; set; } = "MXNet";
 
 		/// <inheritdoc/>
 		public void AddEndpoint(string id, List<string> tags, int ioIndex, AvIpEndpointTypes endpointType, CrestronControlSystem control) { }

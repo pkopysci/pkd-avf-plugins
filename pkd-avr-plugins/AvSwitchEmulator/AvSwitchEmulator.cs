@@ -19,6 +19,12 @@
 		private string _hostname = string.Empty;
 		private int _port;
 
+		public AvSwitchEmulator()
+		{
+			Manufacturer = "Emulator, Inc.";
+			Model = "Av-Switch Emulator";
+		}
+		
 		/// <inheritdoc/>
 		public event EventHandler<GenericDualEventArgs<string, uint>>? VideoRouteChanged;
 		

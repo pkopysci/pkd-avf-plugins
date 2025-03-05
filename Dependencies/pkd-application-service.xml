@@ -1086,6 +1086,16 @@
             Gets the user-friendly label of this data item.
             </summary>
         </member>
+        <member name="P:pkd_application_service.Base.InfoContainer.Manufacturer">
+            <summary>
+            If relevant, this is the company that creates the represented device. Defaults to the empty string.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.InfoContainer.Model">
+            <summary>
+            If relevant, this is the device name as defined by the manufacturer. Defaults to the empty string.
+            </summary>
+        </member>
         <member name="P:pkd_application_service.Base.InfoContainer.Icon">
             <summary>
             Gets the Icon key for this data item.

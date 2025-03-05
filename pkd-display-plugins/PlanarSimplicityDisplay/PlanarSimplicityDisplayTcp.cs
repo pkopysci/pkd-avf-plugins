@@ -92,6 +92,12 @@ public class PlanarSimplicityDisplayTcp : IDisplayDevice, IDisposable
 	public bool IsOnline { get; private set; }
 
 	public string Label { get; private set; } = string.Empty;
+	
+	/// <inheritdoc/>
+	public string Manufacturer { get; set; } = "Panasonic";
+
+	/// <inheritdoc/>
+	public string Model { get; set; } = "Flat-panel Display";
 
 	public void Initialize(string ipAddress, int port, string label, string id)
 	{

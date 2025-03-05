@@ -40,6 +40,9 @@
 			_inputs = [];
 			_outputs = [];
 			_snapshots = [];
+
+			Manufacturer = "Q-Sys";
+			Model = "QSC DSP";
 		}
 
 		~QscDspTcp()

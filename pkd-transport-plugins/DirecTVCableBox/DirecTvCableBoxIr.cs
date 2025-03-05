@@ -48,6 +48,12 @@ namespace DirecTvCableBox
 
 		/// <inheritdoc />
 		public bool SupportsDiscretePower { get; }
+		
+		/// <inheritdoc />
+		public string Manufacturer { get; set; } = "DirecTV";
+		
+		/// <inheritdoc />
+		public string Model { get; set; } = "Cable Box";
 
 		/// <inheritdoc />
 		public void Initialize(IROutputPort port, string id, string label)

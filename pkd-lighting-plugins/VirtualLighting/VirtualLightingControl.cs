@@ -40,6 +40,12 @@ public class VirtualLightingControl : ILightingDevice
 	/// <inheritdoc/>
 	public string Label { get; private set; } = string.Empty;
 
+	/// <inheritdoc />
+	public string Manufacturer { get; set; } = "Emulation, Inc.";
+
+	/// <inheritdoc />
+	public string Model { get; set; } = "Virtual Lighting";
+
 	/// <inheritdoc/>
 	public ReadOnlyCollection<string> SceneIds
 	{

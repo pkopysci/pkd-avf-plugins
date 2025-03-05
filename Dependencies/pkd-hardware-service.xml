@@ -375,102 +375,102 @@
         <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd400.DmMd400AvSwitch.Initialize(System.String,System.Int32,System.String,System.String,System.Int32,System.Int32)">
             <inheritdoc />
         </member>
-        <member name="T:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch">
+        <member name="T:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch">
             <summary>
             Wrapper class for controlling a Crestron DM-MD-8x1 AV Switch.
             </summary>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.#ctor(pkd_domain_service.Data.RoutingData.MatrixData,Crestron.SimplSharpPro.CrestronControlSystem)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.#ctor(pkd_domain_service.Data.RoutingData.MatrixData,Crestron.SimplSharpPro.CrestronControlSystem)">
             <summary>
-            Initializes a new instance of the <see cref="T:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch"/> class.
+            Initializes a new instance of the <see cref="T:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch"/> class.
             </summary>
             <param name="config">The configuration data used to control the device.</param>
             <param name="parent">The root control system that is running the program.</param>
         </member>
-        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.VideoRouteChanged">
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.VideoRouteChanged">
             <inheritdoc/>
         </member>
-        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AudioOutputMuteChanged">
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.AudioOutputMuteChanged">
             <inheritdoc/>
         </member>
-        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AudioOutputLevelChanged">
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.AudioOutputLevelChanged">
             <inheritdoc/>
         </member>
-        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AudioInputMuteChanged">
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.AudioInputMuteChanged">
             <inheritdoc/>
         </member>
-        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AudioInputLevelChanged">
+        <member name="E:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.AudioInputLevelChanged">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioPresetIds">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.GetAudioPresetIds">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioInputIds">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.GetAudioInputIds">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioOutputIds">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.GetAudioOutputIds">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AddInputChannel(System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.AddInputChannel(System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AddOutputChannel(System.String,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.AddOutputChannel(System.String,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.AddPreset(System.String,System.Int32)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.AddPreset(System.String,System.Int32)">
             <summary>
             Interface method not supported by this device.
             </summary>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioInputLevel(System.String)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.GetAudioInputLevel(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.SetAudioInputLevel(System.String,System.Int32)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.SetAudioInputLevel(System.String,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioOutputLevel(System.String)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.GetAudioOutputLevel(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.SetAudioOutputLevel(System.String,System.Int32)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.SetAudioOutputLevel(System.String,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.SetAudioInputMute(System.String,System.Boolean)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.SetAudioInputMute(System.String,System.Boolean)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioInputMute(System.String)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.GetAudioInputMute(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.SetAudioOutputMute(System.String,System.Boolean)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.SetAudioOutputMute(System.String,System.Boolean)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetAudioOutputMute(System.String)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.GetAudioOutputMute(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.ClearVideoRoute(System.UInt32)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.ClearVideoRoute(System.UInt32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.RecallAudioPreset(System.String)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.RecallAudioPreset(System.String)">
             <summary>
             Interface feature not supported by this device.
             </summary>
             <param name="id">The id of the preset to recall.</param>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.Connect">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.Connect">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.Disconnect">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.Disconnect">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.GetCurrentVideoSource(System.UInt32)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.GetCurrentVideoSource(System.UInt32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.RouteVideo(System.UInt32,System.UInt32)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.RouteVideo(System.UInt32,System.UInt32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.Dispose">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.Dispose">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8x1AvSwitch.Initialize(System.String,System.Int32,System.String,System.String,System.Int32,System.Int32)">
+        <member name="M:pkd_hardware_service.AvSwitchDevices.DmMd8x1.DmMd8X1AvSwitch.Initialize(System.String,System.Int32,System.String,System.String,System.Int32,System.Int32)">
             <inheritdoc/>
         </member>
         <member name="T:pkd_hardware_service.AvSwitchDevices.IAvSwitcher">
@@ -507,6 +507,12 @@
             <inheritdoc/>
         </member>
         <member name="P:pkd_hardware_service.BaseDevice.BaseDevice.IsInitialized">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.BaseDevice.Manufacturer">
+            <inheritdoc/>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.BaseDevice.Model">
             <inheritdoc/>
         </member>
         <member name="M:pkd_hardware_service.BaseDevice.BaseDevice.Connect">
@@ -597,6 +603,16 @@
         <member name="P:pkd_hardware_service.BaseDevice.IBaseDevice.IsInitialized">
             <summary>
             Gets a value indicating whether or not the device has been initialized and ready to connect.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.IBaseDevice.Manufacturer">
+            <summary>
+            The name of the company that created the device.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.BaseDevice.IBaseDevice.Model">
+            <summary>
+            The specific device/hardware name used by the manufacturer.
             </summary>
         </member>
         <member name="M:pkd_hardware_service.BaseDevice.IBaseDevice.Connect">
