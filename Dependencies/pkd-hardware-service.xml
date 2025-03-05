@@ -625,6 +625,81 @@
             Closes an active connection/communications protocol with the hardware.
             </summary>
         </member>
+        <member name="T:pkd_hardware_service.CameraDevices.CameraPreset">
+            Data type for a single preset element.
+        </member>
+        <member name="P:pkd_hardware_service.CameraDevices.CameraPreset.Id">
+            <summary>
+            A unique id used to reference this preset.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.CameraDevices.CameraPreset.Label">
+            <summary>
+            A human-friendly name of this preset.
+            </summary>
+        </member>
+        <member name="T:pkd_hardware_service.CameraDevices.ICameraDevice">
+            <summary>
+            Properties, events, and methods required for any PTZ camera device.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.CameraDevices.ICameraDevice.Initialize(System.String,System.Int32,System.String,System.String,System.String,System.String,System.Collections.Generic.List{System.String})">
+            <param name="hostname">The IP Address or hostname used to connect to the hardware.</param>
+            <param name="port">The port number used to connect to the hardware.</param>
+            <param name="id">A unique id used to reference this device.</param>
+            <param name="label">A human-friendly name of this device.</param>
+            <param name="username">the authentication username used when connecting.</param>
+            <param name="password">The authentication password used when connecting.</param>
+            <param name="tags">Any custom behavior or description tags associated with the device.</param>
+        </member>
+        <member name="M:pkd_hardware_service.CameraDevices.ICameraDevice.SetPowerState(System.Boolean)">
+            <param name="state">true = turn power on, false = turn power off.</param>
+        </member>
+        <member name="M:pkd_hardware_service.CameraDevices.ICameraDevice.QueryPowerState">
+            <returns>True = power is on, false = power is off.</returns>
+        </member>
+        <member name="T:pkd_hardware_service.CameraDevices.IPresetDevice">
+            <summary>
+            Minimum required properties and methods for a device that supports preset features, usually used by PTZ cameras.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.CameraDevices.IPresetDevice.SupportsSavingPresets">
+            <summary>
+            True = this device supports saving preset states from 3rd party controls. False = no support.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.CameraDevices.IPresetDevice.QueryAllPresets">
+            <returns>A collection of all presets configured on the device hardware.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.CameraDevices.IPresetDevice.RecallPreset(System.String)">
+            <summary>
+            Send a command to the device to recall the target preset state.
+            </summary>
+            <param name="id">The id of the preset to recall.</param>
+        </member>
+        <member name="M:pkd_hardware_service.CameraDevices.IPresetDevice.SavePreset(System.String)">
+            <summary>
+            Save the current device position or state to the target preset, if <see cref="P:pkd_hardware_service.CameraDevices.IPresetDevice.SupportsSavingPresets"/> is true.
+            </summary>
+            <param name="id">The id of the preset to create or overwrite.</param>
+        </member>
+        <member name="T:pkd_hardware_service.CameraDevices.IPtzDevice">
+            <summary>
+            Minimum required methods for a device that supports pant/tilt controls.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.CameraDevices.IPtzDevice.SetPanTilt(pkd_common_utils.DataObjects.Vector2D)">
+            <summary>
+            pan / tilt the camera. sending a Vector2D.Zero will stop the movement.
+            </summary>
+            <param name="direction">The direction to pan and tilt. This may be normalized depending on the device implementation.</param>
+        </member>
+        <member name="M:pkd_hardware_service.CameraDevices.IPtzDevice.SetZoom(System.Int32)">
+            <summary>
+            Zoom in (telephoto) or out (wide angle). Sending 0 (zero) will stop the zoom.
+            </summary>
+            <param name="speed">negative values for zoom wide, positive values for zoom telephoto.</param>
+        </member>
         <member name="T:pkd_hardware_service.DisplayDevices.CcdDisplayDevice">
             <summary>
             Display control object that uses a Crestron certified driver for control.
@@ -844,52 +919,52 @@
             Does nothing if video freeze is not supported.
             </summary>
         </member>
-        <member name="T:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice">
+        <member name="T:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice">
             <summary>
             Crestron C2N-IO relay controller via Cresnet.
             </summary>
         </member>
-        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.#ctor(pkd_domain_service.Data.EndpointData.Endpoint,Crestron.SimplSharpPro.CrestronControlSystem)">
+        <member name="M:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.#ctor(pkd_domain_service.Data.EndpointData.Endpoint,Crestron.SimplSharpPro.CrestronControlSystem)">
             <summary>
-            Creates an instance of <see cref="T:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice"/>.
+            Creates an instance of <see cref="T:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice"/>.
             </summary>
             <param name="data">The configuration data for this endpoint device.</param>
             <param name="controlSystem">The control system that's running the framework program.</param>
         </member>
-        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.Finalize">
+        <member name="M:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.Finalize">
             <inheritdoc />
         </member>
-        <member name="E:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.RelayChanged">
+        <member name="E:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.RelayChanged">
             <inheritdoc/>
         </member>
-        <member name="P:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.IsRegistered">
+        <member name="P:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.IsRegistered">
             <inheritdoc/>
         </member>
-        <member name="P:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.SupportsRelays">
+        <member name="P:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.SupportsRelays">
             <inheritdoc/>
         </member>
-        <member name="P:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.SupportsIr">
+        <member name="P:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.SupportsIr">
             <inheritdoc/>
         </member>
-        <member name="P:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.SupportsRs232">
+        <member name="P:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.SupportsRs232">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.Register">
+        <member name="M:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.Register">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.GetCurrentRelayState(System.Int32)">
+        <member name="M:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.GetCurrentRelayState(System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.PulseRelay(System.Int32,System.Int32)">
+        <member name="M:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.PulseRelay(System.Int32,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.LatchRelayClosed(System.Int32)">
+        <member name="M:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.LatchRelayClosed(System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.LatchRelayOpen(System.Int32)">
+        <member name="M:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.LatchRelayOpen(System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:pkd_hardware_service.EndpointDevices.C2nIoRelayDevice.Dispose">
+        <member name="M:pkd_hardware_service.EndpointDevices.C2NIoRelayDevice.Dispose">
             <inheritdoc />
         </member>
         <member name="T:pkd_hardware_service.EndpointDevices.CenIoRy401RelayDevice">
@@ -1112,6 +1187,11 @@
             Gets a collection of video wall controllers that are in the system configuration.
             </summary>
         </member>
+        <member name="P:pkd_hardware_service.IInfrastructureService.CameraDevices">
+            <summary>
+            Gets a collection of controllable cameras in the system configuration.
+            </summary>
+        </member>
         <member name="M:pkd_hardware_service.IInfrastructureService.AddDsp(pkd_domain_service.Data.DspData.Dsp)">
             <summary>
             Add a DSP control object to the current collection. Any DSP in the collection with
@@ -1168,6 +1248,12 @@
             </summary>
             <param name="videoWall">The config data for the video wall device to add.</param>
         </member>
+        <member name="M:pkd_hardware_service.IInfrastructureService.AddCamera(pkd_domain_service.Data.CameraData.Camera)">
+            <summary>
+            Add a camera controller to the current collection.
+            </summary>
+            <param name="cameraData">The config data for the camera device to add.</param>
+        </member>
         <member name="M:pkd_hardware_service.IInfrastructureService.ConnectAllDevices">
             <summary>
             Initialize all hardware connections and connect to the devices for control.
@@ -1210,6 +1296,9 @@
         <member name="P:pkd_hardware_service.InfrastructureService.VideoWallDevices">
             <inheritdoc/>
         </member>
+        <member name="P:pkd_hardware_service.InfrastructureService.CameraDevices">
+            <inheritdoc/>
+        </member>
         <member name="M:pkd_hardware_service.InfrastructureService.AddAvSwitch(pkd_domain_service.Data.RoutingData.MatrixData,pkd_domain_service.Data.RoutingData.Routing)">
             <inheritdoc/>
         </member>
@@ -1232,6 +1321,9 @@
             <inheritdoc/>
         </member>
         <member name="M:pkd_hardware_service.InfrastructureService.AddVideoWall(pkd_domain_service.Data.VideoWallData.VideoWall)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_hardware_service.InfrastructureService.AddCamera(pkd_domain_service.Data.CameraData.Camera)">
             <inheritdoc/>
         </member>
         <member name="M:pkd_hardware_service.InfrastructureService.ConnectAllDevices">

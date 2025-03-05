@@ -432,6 +432,52 @@
             <param name="deviceId">The id of the audio controller being updated.</param>
             <param name="isOnline">true = device is online, false = device is offline.</param>
         </member>
+        <member name="T:pkd_ui_service.Interfaces.ICameraUserInterface">
+            <summary>
+            Events, properties, and methods for a user interface that supports camera control.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ICameraUserInterface.CameraPanTiltRequest">
+            <summary>
+            Trigger when requesting a Pan/tilt control of a camera.
+            </summary>
+            <remarks>Arg1 = camera id, arg2 = direction</remarks>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ICameraUserInterface.CameraZoomRequest">
+            <summary>
+            Trigger when requesting zoom control of a camera. negative speed values are zoom wide, positive values are zoom telephoto.
+            </summary>
+            <remarks>Arg1 = camera id, Arg2 = speed.</remarks>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ICameraUserInterface.CameraPresetRecallRequest">
+            <summary>
+            Args.Arg1 = id of the camera to adjust.
+            Args.Arg2 = id of the preset to recall
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ICameraUserInterface.CameraPresetSaveRequest">
+            <summary>
+            Args.Arg1 = id of the camera to adjust.
+            Args.Arg2 = id of the preset to save.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ICameraUserInterface.CameraPowerChangeRequest">
+            <summary>
+            Args.Arg1 = id of the camera to adjust.
+            Args.Arg2 = true = turn power on, false = turn power off.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ICameraUserInterface.SetCameraData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.CameraControl.CameraInfoContainer})">
+            <param name="cameras">A collection of all controllable cameras in the system.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ICameraUserInterface.SetCameraPowerState(System.String,System.Boolean)">
+            <param name="id">The id of the camera being updated.</param>
+            <param name="newState">true = device power is now on, false = device power is now off.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ICameraUserInterface.SetCameraConnectionStatus(System.String,System.Boolean)">
+            <param name="id">The id of the camera being updated.</param>
+            <param name="newState">true = device is online, false = device is offline.</param>
+        </member>
         <member name="T:pkd_ui_service.Interfaces.ICrestronUserInterface">
             <summary>
             Required events, methods, and properties for any Crestron-based interface, such as a TSW-xx70.
