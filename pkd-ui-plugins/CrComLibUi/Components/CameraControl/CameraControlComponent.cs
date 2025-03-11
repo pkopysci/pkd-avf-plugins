@@ -153,8 +153,9 @@ internal class CameraControlComponent(BasicTriListWithSmartObject ui, UserInterf
     private void HandlePostPtzRequest(ResponseBase response)
     {
         var deviceId = response.Data.Value<string>("DeviceId");
-        var direction = response.Data.Value<Vector2D>("Direction");
-        if (string.IsNullOrEmpty(deviceId) || direction == null)
+        var xVal = response.Data.Value<float>("X");
+        var yVal = response.Data.Value<float>("Y");
+        if (string.IsNullOrEmpty(deviceId))
         {
             SendError("Invalid POST PTZ request: missing DeviceId or Direction.", ApiHooks.Camera);
             return;
@@ -172,9 +173,10 @@ internal class CameraControlComponent(BasicTriListWithSmartObject ui, UserInterf
             SendError($"Invalid POST preset recall request. device {deviceId} does not support Pan/tilt.", ApiHooks.Camera);
             return;
         }
-
+        
+        var vector = new Vector2D() { X = xVal, Y = yVal };
         var temp = CameraPanTiltRequest;
-        temp?.Invoke(this, new GenericDualEventArgs<string, Vector2D>(deviceId, direction));
+        temp?.Invoke(this, new GenericDualEventArgs<string, Vector2D>(deviceId, vector));
     }
 
     private void HandlePostZoomRequest(ResponseBase response)
