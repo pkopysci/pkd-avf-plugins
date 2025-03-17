@@ -27,7 +27,7 @@ public class AsyncHttpClient : IDisposable
         var request = HttpResponseFactory.CreateGetRequest(url);
         var response = await _client.SendAsync(request);
         
-        Logger.Debug($"AsyncHttpClient.SendGetAsync response code: {response.StatusCode}");
+        Logger.Debug($"AsyncHttpClient.SendGetAsync() - auth headers: {response.Headers.WwwAuthenticate}");
 
         switch (response.StatusCode)
         {
@@ -66,23 +66,15 @@ public class AsyncHttpClient : IDisposable
 
     private async Task SendAuthGet(HttpResponseMessage response, string url, string username, string password)
     {
-        Logger.Debug($"AsyncHttpClient.SendAuthGet()");
-
         try
         {
             var authData = HttpResponseFactory.GetWwwAuthentication(response);
             authData.Username = username;
             authData.Password = password;
             authData.ResponseNonce = new Random().Next(123400, 999999).ToString();
-            
             var request = HttpResponseFactory.CreateGetRequest(url);
             request.Headers.Add("Authorization", HttpResponseFactory.CreateAuthHeader(authData, request));
-            
-            Logger.Debug($"AsyncHttpClient.SendAuthGet() {request.Headers.Authorization}");
             var authResponse = await _client.SendAsync(request);
-            
-            Logger.Debug($"AsyncHttpClient.SendAuthGet response code: {authResponse.StatusCode}");
-            
             if (!authResponse.IsSuccessStatusCode)
             {
                 RequestFailedCallback?.Invoke(this, authResponse.ReasonPhrase ?? "Unknown Error");

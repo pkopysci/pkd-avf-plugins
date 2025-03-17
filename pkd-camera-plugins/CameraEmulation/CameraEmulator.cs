@@ -10,17 +10,30 @@ namespace CameraEmulation;
 
 public class CameraEmulator : BaseDevice, ICameraDevice, IPowerControllable, IPanTiltDevice, IZoomDevice, IPresetDevice
 {
+    private List<CameraPreset> _presets = [];
+    
     public event EventHandler<GenericSingleEventArgs<string>>? PowerChanged;
 
     public bool PowerState { get; private set; }
 
     public bool SupportsSavingPresets { get; } = true;
     
+    
     public void Initialize(string hostname, int port, string id, string label, string username, string password)
     {
         IsInitialized = true;
         Id = id;
         Label = label;
+    }
+
+    public void SetPresetData(List<CameraPreset> presets)
+    {
+        _presets = presets;
+    }
+
+    public ReadOnlyCollection<CameraPreset> QueryAllPresets()
+    {
+        return new ReadOnlyCollection<CameraPreset>(_presets);
     }
 
     public override void Connect()
@@ -62,11 +75,6 @@ public class CameraEmulator : BaseDevice, ICameraDevice, IPowerControllable, IPa
     public void SetZoom(int speed)
     {
         Logger.Debug($"CameraEmulator {Id} - SetZoom() - speed: {speed}");
-    }
-
-    public ReadOnlyCollection<CameraPreset> QueryAllPresets()
-    {
-        throw new NotImplementedException();
     }
 
     public void RecallPreset(string id)

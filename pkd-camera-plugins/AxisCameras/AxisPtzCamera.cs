@@ -3,13 +3,14 @@ using AxisCameras.Http;
 using pkd_common_utils.DataObjects;
 using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
+using pkd_common_utils.Validation;
 using pkd_hardware_service.BaseDevice;
 using pkd_hardware_service.CameraDevices;
 using pkd_hardware_service.PowerControl;
 
 namespace AxisCameras;
 
-public class AxisPtzCamera : BaseDevice, ICameraDevice, IDisposable, IPanTiltDevice, IZoomDevice, IPresetDevice, IPowerControllable
+public class AxisPtzCamera : BaseDevice, ICameraDevice, IDisposable, IPanTiltDevice, IZoomDevice, IPresetDevice
 {
     private const string InfoQuery = "/axis-cgi/com/ptz.cgi?info=1&camera=1";
     private const string PanTilt = "/axis-cgi/com/ptz.cgi?camera=1&continuouspantiltmove=";
@@ -18,6 +19,7 @@ public class AxisPtzCamera : BaseDevice, ICameraDevice, IDisposable, IPanTiltDev
     private const string PresetRecall = "/axis-cgi/com/ptz.cgi?camera=1&gotoserverpresetno=";
     
     private readonly AsyncHttpClient _client = new();
+    private readonly Dictionary<string, CameraPreset> _presets = [];
     private string _username = string.Empty;
     private string _password = string.Empty;
     private bool _disposed;
@@ -29,12 +31,8 @@ public class AxisPtzCamera : BaseDevice, ICameraDevice, IDisposable, IPanTiltDev
         if (!CheckInit(nameof(Connect))) return;
         Task.Run(() => _client.SendGetAsync(InfoQuery, _username, _password));
     }
-
-    public event EventHandler<GenericSingleEventArgs<string>>? PowerChanged;
     
     public bool SupportsSavingPresets => true;
-
-    public bool PowerState { get; private set; }
     
     public override void Disconnect()
     {
@@ -72,30 +70,48 @@ public class AxisPtzCamera : BaseDevice, ICameraDevice, IDisposable, IPanTiltDev
         var cmd =  Zoom + speed;
         Task.Run(() => _client.SendGetAsync(cmd, _username, _password));
     }
+
+    public void SetPresetData(List<CameraPreset> presets)
+    {
+        Logger.Debug("AxisPtzCamera.SetPresetData()");
+        
+        _presets.Clear();
+        foreach (var preset in presets)
+        {
+            _presets.Add(preset.Id, preset);
+        }
+    }
     
     public ReadOnlyCollection<CameraPreset> QueryAllPresets()
     {
-        throw new NotImplementedException();
+        return new ReadOnlyCollection<CameraPreset>(_presets.Values.ToList());
     }
 
     public void RecallPreset(string id)
     {
-        throw new NotImplementedException();
+        if (!CheckInit(nameof(PresetRecall))) return;
+        if (!_presets.TryGetValue(id, out var found))
+        {
+            Logger.Error($"AxisPtzCamera {Id} - RecallPreset() - no preset with id {id} found.");
+            return;
+        }
+
+        Logger.Debug($"AxisPtzCamera {Id} - RecallPreset() - found =  {found.Id} - {found.Number}");
+        var cmd = PresetRecall + found.Number;
+        Task.Run(() => _client.SendGetAsync(cmd, _username, _password) );
     }
 
     public void SavePreset(string id)
     {
-        throw new NotImplementedException();
-    }
+        if (!CheckInit(nameof(SavePreset))) return;
+        if (!_presets.TryGetValue(id, out var found))
+        {
+            Logger.Error($"AxisPtzCamera {Id} - SavePreset() - no preset with id {id} found.");
+            return;
+        }
 
-    public void PowerOn()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void PowerOff()
-    {
-        throw new NotImplementedException();
+        var cmd = PresetSave + found.Number;
+        Task.Run(() => _client.SendGetAsync(cmd, _username, _password) );
     }
     
     public void Dispose()

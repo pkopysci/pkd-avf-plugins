@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using pkd_common_utils.Logging;
 
 namespace AxisCameras.Http;
 
@@ -15,7 +16,8 @@ internal static class HttpResponseFactory
             var props = item.Parameter.Split(',');
             foreach (var prop in props)
             {
-                const string regex = @"(?<param>\w+)=(?<value>""*[\w,=,\d]+""*)";
+                const string regex = @"(?<param>\w+)=(?<value>""*[\w,=,/,+,-,\d]+""*)";
+                //const string regex = @"(?<param>\w+)=(?<value>"".*""+)";
                 var match = Regex.Match(prop, regex);
                 if (match.Success)
                 {

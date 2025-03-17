@@ -633,9 +633,9 @@
             A unique id used to reference this preset.
             </summary>
         </member>
-        <member name="P:pkd_hardware_service.CameraDevices.CameraPreset.Label">
+        <member name="P:pkd_hardware_service.CameraDevices.CameraPreset.Number">
             <summary>
-            A human-friendly name of this preset.
+            camera-defined integer value
             </summary>
         </member>
         <member name="T:pkd_hardware_service.CameraDevices.ICameraDevice">
@@ -674,6 +674,12 @@
         </member>
         <member name="M:pkd_hardware_service.CameraDevices.IPresetDevice.QueryAllPresets">
             <returns>A collection of all presets configured on the device hardware.</returns>
+        </member>
+        <member name="M:pkd_hardware_service.CameraDevices.IPresetDevice.SetPresetData(System.Collections.Generic.List{pkd_hardware_service.CameraDevices.CameraPreset})">
+            <summary>
+            Update the internally stored collection of presets.
+            </summary>
+            <param name="presets">The collection of preset data to store, typically created from a framework configuration file.</param>
         </member>
         <member name="M:pkd_hardware_service.CameraDevices.IPresetDevice.RecallPreset(System.String)">
             <summary>

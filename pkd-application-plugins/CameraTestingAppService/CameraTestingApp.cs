@@ -70,8 +70,12 @@ public class CameraTestingApp : ApplicationService, ICameraControlApp
 
     public void SendCameraPresetRecall(string cameraId, string presetId)
     {
+        Logger.Debug($"CameraTestingApp.SendCameraPresetRecall({cameraId}, {presetId})");
+        
         var camera = HwService.CameraDevices.GetDevice(cameraId);
         if (camera is not IPresetDevice presetCam) return;
+        
+        Logger.Debug($"CameraTestingApp.SendCameraPresetRecall() - found camera with ID {cameraId}");
         presetCam.RecallPreset(presetId);
     }
 

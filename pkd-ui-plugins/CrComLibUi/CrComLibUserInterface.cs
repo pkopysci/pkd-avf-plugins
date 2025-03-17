@@ -750,6 +750,8 @@ public class CrComLibUserInterface :
 
 	private void CameraPresetRecallHandler(object? sender, GenericDualEventArgs<string, string> e)
 	{
+		Logger.Debug("CrComLibUserInterface.CameraPresetRecallHandler()");
+		
 		var temp = CameraPresetRecallRequest;
 		temp?.Invoke(this, e);
 	}
