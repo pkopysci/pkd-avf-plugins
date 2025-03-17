@@ -4,6 +4,53 @@
         <name>pkd-common-utils</name>
     </assembly>
     <members>
+        <member name="T:pkd_common_utils.DataObjects.Vector2D">
+            <summary>
+            Data object for a 2-dimensional vector.
+            </summary>
+        </member>
+        <member name="F:pkd_common_utils.DataObjects.Vector2D.Up">
+            <summary>
+            A vector with the points [0 1].
+            </summary>
+        </member>
+        <member name="F:pkd_common_utils.DataObjects.Vector2D.Down">
+            <summary>
+            A vector with the points [0 -1].
+            </summary>
+        </member>
+        <member name="F:pkd_common_utils.DataObjects.Vector2D.Left">
+            <summary>
+            A vector with the points [-1 0].
+            </summary>
+        </member>
+        <member name="F:pkd_common_utils.DataObjects.Vector2D.Right">
+            <summary>
+            A vector with the points [1 0].
+            </summary>
+        </member>
+        <member name="F:pkd_common_utils.DataObjects.Vector2D.Zero">
+            <summary>
+            A vector with the points [0 0].
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.DataObjects.Vector2D.X">
+            <summary>
+            The x-axis point of the vector.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.DataObjects.Vector2D.Y">
+            <summary>
+            The y-axis point of the vector
+            </summary>
+        </member>
+        <member name="M:pkd_common_utils.DataObjects.Vector2D.Equals(System.Object)">
+            <param name="obj">The Vector2D object to compare against this one.</param>
+            <returns>true if the X and Y properties of this object match the X and Y properties of the compared Vector2D.</returns>
+        </member>
+        <member name="M:pkd_common_utils.DataObjects.Vector2D.GetHashCode">
+            <inheritdoc />
+        </member>
         <member name="T:pkd_common_utils.FileOps.DirectoryHelper">
             <summary>
             Provides methods for reading files into memory.

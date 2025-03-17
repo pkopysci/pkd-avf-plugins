@@ -1,6 +1,9 @@
 ﻿using CrComLibUi.Api;
+using CrComLibUi.Components.CameraControl;
 using CrComLibUi.Components.VideoWallControl;
+using pkd_application_service.CameraControl;
 using pkd_application_service.VideoWallControl;
+using pkd_common_utils.DataObjects;
 
 namespace CrComLibUi;
 
@@ -48,6 +51,7 @@ public class CrComLibUserInterface :
 	ICustomEventUserInterface,
 	ISecurityUserInterface,
 	IVideoWallUserInterface,
+	ICameraUserInterface,
 	IDisposable
 {
 	private readonly Dictionary<uint, Action<string>> _apiHandlerActions;
@@ -175,6 +179,21 @@ public class CrComLibUserInterface :
 	
 	/// <inheritdoc/>
 	public event EventHandler<GenericTrippleEventArgs<string, string, string>>? VideoWallRouteRequest;
+	
+	/// <inheritdoc/>
+	public event EventHandler<GenericDualEventArgs<string, Vector2D>>? CameraPanTiltRequest;
+	
+	/// <inheritdoc/>
+	public event EventHandler<GenericDualEventArgs<string, int>>? CameraZoomRequest;
+	
+	/// <inheritdoc/>
+	public event EventHandler<GenericDualEventArgs<string, string>>? CameraPresetRecallRequest;
+	
+	/// <inheritdoc/>
+	public event EventHandler<GenericDualEventArgs<string, string>>? CameraPresetSaveRequest;
+	
+	/// <inheritdoc/>
+	public event EventHandler<GenericDualEventArgs<string, bool>>? CameraPowerChangeRequest;
 
 	/// <inheritdoc/>
 	public void Connect(){}
@@ -571,6 +590,11 @@ public class CrComLibUserInterface :
 	/// <inheritdoc/>
 	public void EnableTechOnlyLock() => FindComponent<ISecurityUserInterface>()?.EnableTechOnlyLock();
 	
+	public void SetCameraData(ReadOnlyCollection<CameraInfoContainer> data) => FindComponent<ICameraUserInterface>()?.SetCameraData(data);
+	
+	public void SetCameraPowerState(string id, bool newState) => FindComponent<ICameraUserInterface>()?.SetCameraPowerState(id, newState);
+	public void SetCameraConnectionStatus(string id, bool newState) => FindComponent<ICameraUserInterface>()?.SetCameraConnectionStatus(id, newState);
+	
 	private void Dispose(bool disposing)
 	{
 		if (_disposed) return;
@@ -702,11 +726,52 @@ public class CrComLibUserInterface :
 			wcc.VideoWallLayoutChangeRequest += VideoWallLayoutHandler;
 			_uiComponents.Add(wcc);
 			_apiHandlerActions.Add((uint)ApiHooks.VideoWall, wcc.HandleSerialResponse);
+			
+			var ccc = new CameraControlComponent(_ui, _uiData);
+			ccc.CameraPresetSaveRequest += CameraPresetSaveHandler;
+			ccc.CameraPanTiltRequest += CameraPtzHandler;
+			ccc.CameraZoomRequest += CameraZoomHandler;
+			ccc.CameraPresetRecallRequest += CameraPresetRecallHandler;
+			ccc.CameraPowerChangeRequest += CameraPowerHandler;
+			_uiComponents.Add(ccc);
+			_apiHandlerActions.Add((uint)ApiHooks.Camera, ccc.HandleSerialResponse);
 		}
 		catch (Exception e)
 		{
 			Logger.Error("CrComLibUi.CrComLibUserInterface.CreateComponents() - Failed to initialize all components.", e.Message);
 		}
+	}
+
+	private void CameraPowerHandler(object? sender, GenericDualEventArgs<string, bool> e)
+	{
+		var temp = CameraPowerChangeRequest;
+		temp?.Invoke(this, e);
+	}
+
+	private void CameraPresetRecallHandler(object? sender, GenericDualEventArgs<string, string> e)
+	{
+		Logger.Debug("CrComLibUserInterface.CameraPresetRecallHandler()");
+		
+		var temp = CameraPresetRecallRequest;
+		temp?.Invoke(this, e);
+	}
+
+	private void CameraZoomHandler(object? sender, GenericDualEventArgs<string, int> e)
+	{
+		var temp = CameraZoomRequest;
+		temp?.Invoke(this, e);
+	}
+
+	private void CameraPtzHandler(object? sender, GenericDualEventArgs<string, Vector2D> e)
+	{
+		var temp = CameraPanTiltRequest;
+		temp?.Invoke(this, e);
+	}
+
+	private void CameraPresetSaveHandler(object? sender, GenericDualEventArgs<string, string> e)
+	{
+		var temp = CameraPresetSaveRequest;
+		temp?.Invoke(this, e);
 	}
 
 	private void VideoWallRouteHandler(object? sender, GenericTrippleEventArgs<string, string, string> args)
