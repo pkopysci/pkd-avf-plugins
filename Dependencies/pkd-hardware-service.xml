@@ -1426,6 +1426,40 @@
             Send a command to turn the device off/standby.
             </summary>
         </member>
+        <member name="T:pkd_hardware_service.Redundancy.IRedundancySupport">
+            <summary>
+            required events, properties, and methods for a device that supports back/redundant fail-over to a separate device.
+            </summary>
+        </member>
+        <member name="E:pkd_hardware_service.Redundancy.IRedundancySupport.RedundancyStateChanged">
+            <summary>
+            Trigger when the implementation switches between primary and backup/redundant connections.
+            </summary>
+            <remarks>Arg package is a unique ID of the implementing object.</remarks>
+        </member>
+        <member name="P:pkd_hardware_service.Redundancy.IRedundancySupport.PrimaryDeviceActive">
+            <summary>
+            True = the main/primary connection in use, false otherwise.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.Redundancy.IRedundancySupport.BackupDeviceActive">
+            <summary>
+            True = the backup/redundant device is in use.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.Redundancy.IRedundancySupport.BackupDeviceOnline">
+            <summary>
+            True = the backup device connection is established, false = no connection.
+            </summary>
+        </member>
+        <member name="M:pkd_hardware_service.Redundancy.IRedundancySupport.SetBackupDeviceConnection(System.String,System.Int32)">
+            <summary>
+            Assign the back/redundant device TCP connection information. This method is called by the framework after Initialize()
+            and before Connect().
+            </summary>
+            <param name="hostname">The hostname or IP address used to connect to the redundant device.</param>
+            <param name="port">the port number used to connect to the device.</param>
+        </member>
         <member name="T:pkd_hardware_service.Routable.IAudioRoutable">
             <summary>
             Common methods and attributes for all devices that can route audio.

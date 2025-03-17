@@ -2364,11 +2364,6 @@
             Gets the IT support phone number or other contact information to display on the UI.
             </summary>
         </member>
-        <member name="P:pkd_application_service.UserInterface.UserInterfaceDataContainer.Model">
-            <summary>
-            Gets the specific model of the UI, such as TSW-770, TSW-760, XPANEL, etc.
-            </summary>
-        </member>
         <member name="P:pkd_application_service.UserInterface.UserInterfaceDataContainer.DefaultActivity">
             <summary>
             Gets the default activity that should be displayed on the UI during startup.
