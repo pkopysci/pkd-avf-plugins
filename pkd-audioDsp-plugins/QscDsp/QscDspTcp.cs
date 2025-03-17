@@ -1,4 +1,6 @@
-﻿namespace QscDsp
+﻿using pkd_hardware_service.Redundancy;
+
+namespace QscDsp
 {
 	using Crestron.SimplSharp;
 	using pkd_common_utils.GenericEventArgs;
@@ -17,14 +19,17 @@
 	/// Uses QscQsys dependency library for tx/rx, developed by Mat Klucznyk:
 	/// https://github.com/MatKlucznyk/Qsys.
 	/// </summary>
-	public class QscDspTcp : BaseDevice, IDsp, IAudioRoutable, IAudioZoneEnabler
+	public class QscDspTcp : BaseDevice, IDsp, IAudioRoutable, IAudioZoneEnabler, IRedundancySupport
 	{
+		private const int CrestronMax = 65534;
+		private const int PercentMax = 100;
 		private bool _disposed;
 		private readonly List<QscAudioChannel> _inputs;
 		private readonly List<QscAudioChannel> _outputs;
 		private readonly List<QscSnapshotBank> _snapshots;
 		private bool _coreRegistered;
 		private string? _hostname;
+		private string _backupHostname = string.Empty;
 		private string? _username;
 		private string? _password;
 		private int _port;
@@ -68,6 +73,33 @@
 		/// <inheritdoc/>
 		public event EventHandler<GenericDualEventArgs<string, string>>? AudioZoneEnableChanged;
 
+		/// <inheritdoc/>
+		public event EventHandler<GenericSingleEventArgs<string>>? RedundancyStateChanged;
+
+		/// <inheritdoc/>
+		public event EventHandler<GenericSingleEventArgs<string>>? BackupDeviceConnectionChanged;
+		
+		/// <inheritdoc/>
+		public bool PrimaryDeviceActive { get; private set; }
+		
+		/// <inheritdoc/>
+		public bool BackupDeviceActive { get; private set; }
+		
+		/// <inheritdoc/>
+		public bool BackupDeviceOnline { get; private set; }
+
+		/// <inheritdoc/>
+		public void SetBackupDeviceConnection(string hostname, int port)
+		{
+			ParameterValidator.ThrowIfNullOrEmpty(hostname, nameof(SetBackupDeviceConnection),nameof(hostname));
+			if (port is < 0 or > 65535)
+			{
+				throw new ArgumentOutOfRangeException(nameof(port), "Port must be between 0 and 65535");
+			}
+			
+			_backupHostname = hostname;
+		}
+		
 		/// <inheritdoc/>
 		public void AddInputChannel(string id, string levelTag, string muteTag, int bankIndex, int levelMax, int levelMin, int routerIndex)
 		{
@@ -176,11 +208,13 @@
 				_core.OnPrimaryIsConnected = OnCoreConnected;
 				_core.OnNewCoreStatus += OnCoreStatusChange;
 				_core.OnIsRegistered += OnCoreRegistered;
+				_core.OnBackupIsConnected += OnBackupConnected;
+				_core.OnPrimaryIsActive += OnPrimaryActive;
 
 				_core.Initialize(
 					Id,
 					_hostname ?? string.Empty,
-					string.Empty, // TODO: support backup core
+					_backupHostname,
 					(ushort)_port,
 					_username ?? string.Empty,
 					_password ?? string.Empty,
@@ -190,6 +224,21 @@
 			{
 				Logger.Error("QscDspTcp {0} - Cannot connect. Run Initialize() first.", Id);
 			}
+		}
+
+		private void OnPrimaryActive()
+		{
+			PrimaryDeviceActive = _core?.PrimaryCoreActive ?? false;
+			BackupDeviceActive = !PrimaryDeviceActive;
+			var temp = RedundancyStateChanged;
+			temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
+		}
+
+		private void OnBackupConnected(SimplSharpString id, ushort value)
+		{
+			BackupDeviceOnline = value > 0;
+			var temp = BackupDeviceConnectionChanged;
+			temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
 		}
 
 		/// <inheritdoc/>
@@ -224,7 +273,7 @@
 		public bool GetAudioInputMute(string id)
 		{
 			var found = _inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
-			return found != null && found.AudioMute;
+			return found is { AudioMute: true };
 		}
 
 		/// <inheritdoc/>
@@ -244,7 +293,7 @@
 		public bool GetAudioOutputMute(string id)
 		{
 			var found = _outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
-			return found != null && found.AudioMute;
+			return found is { AudioMute: true };
 		}
 
 		/// <inheritdoc/>
@@ -410,35 +459,22 @@
 			Dispose(true);
 		}
 
-		private void SetChannelLevel(string id, int level, List<QscAudioChannel> channels)
+		private static void SetChannelLevel(string id, int level, List<QscAudioChannel> channels)
 		{
-			int percentMax = 100;
-			int crestronMax = 65534;
-			int scaled = (level * crestronMax) / percentMax;
+			var scaled = (level * CrestronMax) / PercentMax;
 			var found = channels.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
-			if (found == null)
-			{
-				return;
-			}
-
-			found.SetAudioLevel(scaled);
+			found?.SetAudioLevel(scaled);
 		}
 
-		private void SetChannelMute(string id, bool mute, List<QscAudioChannel> channels)
+		private static void SetChannelMute(string id, bool mute, List<QscAudioChannel> channels)
 		{
 			var found = channels.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
-			if (found == null)
-			{
-				return;
-			}
-
-			found.SetAudioMute(mute);
+			found?.SetAudioMute(mute);
 		}
 
-		private int ConvertLevelToPercent(int level)
+		private static int ConvertLevelToPercent(int level)
 		{
-			int currentMax = 65534;
-			int scaled = (level * 100) / currentMax;
+			var scaled = (level * PercentMax) / CrestronMax;
 			return scaled;
 		}
 
@@ -450,13 +486,13 @@
 			{
 				RegisterNamedControls();
 				IsOnline = true;
-				NotifyOnlineStatus();
 			}
 			else
 			{
 				IsOnline = false;
-				NotifyOnlineStatus();
 			}
+			
+			NotifyOnlineStatus();
 		}
 
 		private void OnCoreStatusChange(SimplSharpString name, SimplSharpString designName, ushort redundant, ushort emulator)
