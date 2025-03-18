@@ -171,7 +171,15 @@
 		}
 
 		/// <inheritdoc/>
-		public void AddInputChannel(string id, string levelTag, string muteTag, int index, int levelMax, int levelMin, int routerIndex)
+		public void AddInputChannel(
+			string id,
+			string levelTag,
+			string muteTag,
+			int index,
+			int levelMax,
+			int levelMin,
+			int routerIndex,
+			List<string> tags)
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "AddInputChannel", "muteTag");
 			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "AddInputChannel", "levelTag");
@@ -202,7 +210,16 @@
 		}
 
 		/// <inheritdoc/>
-		public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int routerIndex, int index, int levelMax, int levelMin)
+		public void AddOutputChannel(
+			string id,
+			string levelTag,
+			string muteTag,
+			string routerTag,
+			int routerIndex,
+			int index,
+			int levelMax,
+			int levelMin,
+			List<string> tags)
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "AddInputChannel", "muteTag");
 			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "AddInputChannel", "levelTag");

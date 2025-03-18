@@ -1,4 +1,5 @@
 ﻿using pkd_hardware_service.Redundancy;
+#pragma warning disable CS8601 // Possible null reference assignment.
 
 namespace QscDsp
 {
@@ -101,7 +102,15 @@ namespace QscDsp
 		}
 		
 		/// <inheritdoc/>
-		public void AddInputChannel(string id, string levelTag, string muteTag, int bankIndex, int levelMax, int levelMin, int routerIndex)
+		public void AddInputChannel(
+			string id,
+			string levelTag,
+			string muteTag,
+			int bankIndex,
+			int levelMax,
+			int levelMin,
+			int routerIndex,
+			List<string> tags)
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(id, "QscDspTcp.AddInputChannel", nameof(id));
 			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "QscDspTcp.AddInputChannel", nameof(levelTag));
@@ -127,7 +136,16 @@ namespace QscDsp
 		}
 
 		/// <inheritdoc/>
-		public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int routerIndex, int bankIndex, int levelMax, int levelMin)
+		public void AddOutputChannel(
+			string id,
+			string levelTag,
+			string muteTag,
+			string routerTag,
+			int routerIndex,
+			int bankIndex,
+			int levelMax,
+			int levelMin,
+			List<string> tags)
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(id, "QscDspTcp.AddOutputChannel", nameof(id));
 			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "QscDspTcp.AddOutputChannel", nameof(levelTag));

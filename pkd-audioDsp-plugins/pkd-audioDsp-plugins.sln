@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiampNexiaDsp", "BiampNexia
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QscDsp", "QscDsp\QscDsp.csproj", "{0095297E-4929-4CE4-800A-0D0EB7068971}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiampTesira", "BiampTesira\BiampTesira.csproj", "{1A893CF3-23EC-48E8-ADA8-9E59C4180884}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{0095297E-4929-4CE4-800A-0D0EB7068971}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0095297E-4929-4CE4-800A-0D0EB7068971}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0095297E-4929-4CE4-800A-0D0EB7068971}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A893CF3-23EC-48E8-ADA8-9E59C4180884}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A893CF3-23EC-48E8-ADA8-9E59C4180884}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A893CF3-23EC-48E8-ADA8-9E59C4180884}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A893CF3-23EC-48E8-ADA8-9E59C4180884}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
