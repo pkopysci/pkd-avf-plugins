@@ -6,7 +6,6 @@ namespace QscDsp
 	using pkd_common_utils.GenericEventArgs;
 	using pkd_common_utils.Logging;
 	using pkd_common_utils.Validation;
-	using QscQsys;
 	using System;
 	using System.Collections.Generic;
 
@@ -146,6 +145,7 @@ namespace QscDsp
 		/// </summary>
 		public void Register()
 		{
+			_registered = false;
 			_levelControl.Initialize(_coreId, _levelTag, 1);
 			_muteControl.Initialize(_coreId, _muteTag, 1);
 			_zoneEnables.Register(_coreId);
@@ -153,6 +153,7 @@ namespace QscDsp
 			{
 				_routerControl?.Initialize(_coreId, _routerTag, 0);
 			}
+			_registered = true;
 		}
 
 		/// <summary>
@@ -166,7 +167,7 @@ namespace QscDsp
 				return;
 			}
 
-			int tempLevel = AudioLevel;
+			var tempLevel = AudioLevel;
 			_levelControl.SetUnsignedInteger((ushort)(tempLevel - 3), 1);
 		}
 

@@ -1437,6 +1437,11 @@
             </summary>
             <remarks>Arg package is a unique ID of the implementing object.</remarks>
         </member>
+        <member name="E:pkd_hardware_service.Redundancy.IRedundancySupport.BackupDeviceConnectionChanged">
+            <summary>
+            Trigger whenever the backup/redundant device loses or establishes a connection.
+            </summary>
+        </member>
         <member name="P:pkd_hardware_service.Redundancy.IRedundancySupport.PrimaryDeviceActive">
             <summary>
             True = the main/primary connection in use, false otherwise.
