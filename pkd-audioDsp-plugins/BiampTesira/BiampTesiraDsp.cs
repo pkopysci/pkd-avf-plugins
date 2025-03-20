@@ -12,18 +12,7 @@ namespace BiampTesira;
 
 public class BiampTesiraDsp : BaseDevice, IAudioRoutable, IDsp
 {
-    private const int RxTimeoutLength = 5000;
-    private const int PollTime = 60000;
     private bool _disposed;
-    private bool _sending;
-    private BasicTcpClient? _client;
-    private System.Timers.Timer _rxTimer;
-
-    public BiampTesiraDsp()
-    {
-        _rxTimer = new System.Timers.Timer(RxTimeoutLength);
-        _rxTimer.Elapsed += RxTimerOnElapsed;
-    }
 
     public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputLevelChanged;
     public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputMuteChanged;
@@ -46,16 +35,10 @@ public class BiampTesiraDsp : BaseDevice, IAudioRoutable, IDsp
         string password)
     {
         IsInitialized = false;
+        Logger.Info("TODO: BiampTesiraDsp.Initialize()");
+        //TODO: BiampTesiraDsp.Initialize()
+        
         Id = hostId;
-        if (_client != null)
-        {
-            UnsubscribeClient();
-            _client?.Dispose();
-            IsOnline = false;
-        }
-
-        _client = new BasicTcpClient(hostname, port);
-        SubscribeClient();
         IsInitialized = true;
     }
 
@@ -67,8 +50,8 @@ public class BiampTesiraDsp : BaseDevice, IAudioRoutable, IDsp
             return;
         }
 
-        if (_client is not { Connected: false }) return;
-        _client.Connect();
+        Logger.Info("TODO: BiampTesiraDsp.Connect()");
+        //TODO: BiampTesiraDsp.Connect()
     }
 
     public override void Disconnect()
@@ -79,8 +62,8 @@ public class BiampTesiraDsp : BaseDevice, IAudioRoutable, IDsp
             return;
         }
 
-        if (_client is not { Connected: true }) return;
-        _client.Disconnect();
+        Logger.Info("TODO: BiampTesiraDsp.Disconnect()");
+        //TODO: BiampTesiraDsp.Disconnect()
     }
 
     public IEnumerable<string> GetAudioPresetIds()
@@ -177,71 +160,12 @@ public class BiampTesiraDsp : BaseDevice, IAudioRoutable, IDsp
     
     private void Dispose(bool disposing)
     {
-        if (!_disposed) return;
+        if (_disposed) return;
         if (disposing)
         {
             // TODO: Release resources.
-            _rxTimer.Elapsed -= RxTimerOnElapsed;
-            _rxTimer?.Dispose();
-            
-            UnsubscribeClient();
-            _client?.Dispose();
+
         }
         _disposed = true;
-    }
-
-    private void TrySend()
-    {
-        if (_sending || _client is not { Connected: true }) return;
-        Logger.Debug($"BiampTesiraDsp {Id} - TrySend()");
-    }
-    
-    private void RxTimerOnElapsed(object? sender, ElapsedEventArgs e)
-    {
-        Logger.Error($"BiampTesiraDsp {Id} - no response from device.");
-        _sending = false;
-        TrySend();
-    }
-
-    private void SubscribeClient()
-    {
-        if (_client == null) return;
-        _client.ClientConnected += ClientConnectedHandler;
-        _client.StatusChanged += ClientStatusChangedHandler;
-        _client.ConnectionFailed += ClientConnectionFailedHandler; 
-        _client.RxReceived += ClientOnRxReceived;
-    }
-
-    private void UnsubscribeClient()
-    {
-        if (_client == null) return;
-        _client.ClientConnected -= ClientConnectedHandler;
-        _client.StatusChanged -= ClientStatusChangedHandler;
-        _client.ConnectionFailed -= ClientConnectionFailedHandler; 
-        _client.RxReceived -= ClientOnRxReceived;
-    }
-    
-    private void ClientOnRxReceived(object? sender, GenericSingleEventArgs<string> e)
-    {
-        //TODO: BiampTesiraDsp.ClientOnRxReceived()
-        Logger.Info("TODO: BiampTesiraDsp.ClientOnRxReceived()");
-        Logger.Info(e.Arg);
-    }
-
-    private void ClientConnectionFailedHandler(object? sender, GenericSingleEventArgs<SocketStatus> e)
-    {
-        Logger.Error($"BiampTesiraDsp {Id} - Failed to connect to device: {e.Arg}");
-        IsOnline = _client?.Connected ?? false;
-        NotifyOnlineStatus();
-    }
-
-    private void ClientStatusChangedHandler(object? sender, EventArgs e) => ClientConnectedHandler(sender, e);
-
-    private void ClientConnectedHandler(object? sender, EventArgs e)
-    {
-        IsOnline = _client?.Connected ?? false;
-        NotifyOnlineStatus();
-        // TODO: BiampTesiraDsp.ClientConnectedHandler() - start polling timer.
-        Logger.Info("TODO: BiampTesiraDsp.ClientConnectedHandler() - start polling timer.");
     }
 }

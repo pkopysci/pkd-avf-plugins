@@ -23,7 +23,7 @@ internal static class Converter
         const int newRange = 100;
         return (rawVal - lvlMin) * newRange / (lvlMax - lvlMin);
     }
-    
+
     public static float ConvertToDb(int percent, int lvlMin, int lvlMax)
     {
         var rawVal = percent switch
@@ -36,11 +36,9 @@ internal static class Converter
         float newRange = lvlMax - lvlMin;
         return ((rawVal * newRange) / 100) + lvlMin;
     }
-    
+
     public static int FloatToPercent(float dbLevel, int lvlMin, int lvlMax)
     {
-        Logger.Debug("BiampTesira.Converter.FloatToPercent({0}, {1}, {2})", dbLevel, lvlMin, lvlMax);
-
         double rawVal;
         if (dbLevel < lvlMin)
         {
