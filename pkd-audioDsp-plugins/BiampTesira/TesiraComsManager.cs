@@ -47,7 +47,7 @@ public class TesiraComsManager(string hostname, int port, string username, strin
             _client.SocketStatusChange += ClientStatusChangedHandler;
         }
 
-        _client?.ConnectToServerAsync(ClientConnectedHandler);
+        _client?.ConnectToServerAsync((_) => { });
     }
 
     public void Disconnect()
@@ -79,7 +79,7 @@ public class TesiraComsManager(string hostname, int port, string username, strin
                         bytes[i] = (byte)chars[i];
                     }
 
-                    _client?.SendDataAsync(bytes, bytes.Length, (c, n) => { });
+                    _client?.SendDataAsync(bytes, bytes.Length, (_, _) => { });
                 }
                 catch (Exception e)
                 {
@@ -108,17 +108,14 @@ public class TesiraComsManager(string hostname, int port, string username, strin
                 {
                     var handshakeRx = GetHandshakeRx(bytes, bytesReceived);
                     _client?.SendDataAsync(handshakeRx, handshakeRx.Length,
-                        (c, n) =>
+                        (_, _) =>
                         {
                             Logger.Debug($"BiampTesira.TesiraComsManager {hostname}:{port} - sent handshake Rx");
                         });
                 }
                 else
                 {
-                    var chArray = new char[bytes.Length];
-                    for (var index = 0; index < bytes.Length; ++index)
-                        chArray[index] = (char)bytes[index];
-                    HandlePostHandshakeResponse(new string(chArray));
+                    HandlePostHandshakeResponse(bytes);
                 }
             }
             catch (Exception e)
@@ -147,17 +144,26 @@ public class TesiraComsManager(string hostname, int port, string username, strin
         return handshakeTx;
     }
 
-    private void HandlePostHandshakeResponse(string rx)
+    private void HandlePostHandshakeResponse(byte[] bytes)
     {
         // TODO: BiampTesiraDsp.TesiraComsManager.HandlePostHandshakeResponse()
+        
+        // convert byte[] to string, this is just for testing. We still need to implement a response buffer and properly
+        // parse incoming data.
+        var chArray = new char[bytes.Length];
+        for (var index = 0; index < bytes.Length; ++index)
+            chArray[index] = (char)bytes[index];
+        var rx =  new string(chArray);
         Logger.Debug($"BiampTesira.TesiraComsManager {hostname}:{port} - rx string: {rx}");
+        
         if (rx.Contains("Welcome to the Tesira Text Protocol Server..."))
         {
             ReadyForCommands = true;
             ReadyForCommandsReceived?.Invoke(this, EventArgs.Empty);
             return;
         }
-
+        
+        // TODO: Handle prompts for login if authentication is enabled on the server.
         if (_commandQueue.TryDequeue(out var command))
         {
             Logger.Debug($"BiampTesira.TesiraComsManager() - Dequeued Command: {command.SerializedCommand}");
@@ -197,12 +203,6 @@ public class TesiraComsManager(string hostname, int port, string username, strin
 
         // TODO: BiampTesiraDsp.TesiraComsManager.ClientStatusChangedHandler() - start polling timer.
         Logger.Info("TODO: BiampTesiraDsp.TesiraComsManager.ClientStatusChangedHandler()");
-    }
-
-    private void ClientConnectedHandler(TCPClient client)
-    {
-        // TODO: BiampTesiraDsp.ClientConnectedHandler() - start polling timer.
-        Logger.Info("TODO: BiampTesiraDsp.TesiraComsManager.ClientConnectedHandler()");
     }
 
     private void Dispose(bool disposing)
