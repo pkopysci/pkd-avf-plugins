@@ -2,12 +2,14 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
 using pkd_common_utils.Logging;
 
-namespace BiampTesira;
+
+namespace BiampTesira.Coms;
 
 public class TesiraComsManager(string hostname, int port, string username, string password)
     : IDisposable
 {
     private readonly Queue<TesiraComsData> _commandQueue = [];
+    private readonly ListBuffer<byte> _rxBuffer = new();
     private readonly object _lock = new();
     private TCPClient? _client;
     private bool _disposed;
@@ -79,7 +81,7 @@ public class TesiraComsManager(string hostname, int port, string username, strin
                         bytes[i] = (byte)chars[i];
                     }
 
-                    _client?.SendDataAsync(bytes, bytes.Length, (_, _) => { });
+                    _client?.SendData(bytes, bytes.Length);
                 }
                 catch (Exception e)
                 {
@@ -99,23 +101,41 @@ public class TesiraComsManager(string hostname, int port, string username, strin
         if (bytesReceived <= 0) return;
         lock (_lock)
         {
-            Logger.Debug($"BiampTesira.TesiraComsManager {hostname}:{port} - ClientRxReceived()");
             try
             {
                 var bytes = client.IncomingDataBuffer.Take(bytesReceived).ToArray();
-
                 if (bytes[0] == 0xFF) // handshake request received
                 {
+                    CrestronConsole.PrintLine("Handshake received:");
+                    foreach (var b in bytes)
+                    {
+                        CrestronConsole.Print($"{b:X2} ");
+                    }
+
+                    CrestronConsole.PrintLine(string.Empty);
+
                     var handshakeRx = GetHandshakeRx(bytes, bytesReceived);
-                    _client?.SendDataAsync(handshakeRx, handshakeRx.Length,
-                        (_, _) =>
-                        {
-                            Logger.Debug($"BiampTesira.TesiraComsManager {hostname}:{port} - sent handshake Rx");
-                        });
+
+                    CrestronConsole.PrintLine("Sending response:");
+                    foreach (var b in handshakeRx)
+                    {
+                        CrestronConsole.Print($"{b:X2} ");
+                    }
+
+                    CrestronConsole.PrintLine("\n\r");
+
+                    _client?.SendDataAsync(handshakeRx, handshakeRx.Length, (_, _) => { });
+                }
+                else if (CreateString(bytes).Contains("Welcome to the Tesira Text Protocol Server..."))
+                {
+                    ReadyForCommands = true;
+                    ReadyForCommandsReceived?.Invoke(this, EventArgs.Empty);
+                    // TODO: Handle prompts for login if authentication is enabled on the server.
                 }
                 else
                 {
-                    HandlePostHandshakeResponse(bytes);
+                    _rxBuffer.AddItems(bytes);
+                    HandlePostHandshakeResponse();
                 }
             }
             catch (Exception e)
@@ -134,7 +154,6 @@ public class TesiraComsManager(string hostname, int port, string username, strin
     /// </summary>
     private static byte[] GetHandshakeRx(byte[] response, int bytesReceived)
     {
-        CrestronConsole.PrintLine("Telnet Handshake Received");
         var handshakeTx = new byte[bytesReceived];
         for (var i = 0; i < bytesReceived; i++)
         {
@@ -144,33 +163,39 @@ public class TesiraComsManager(string hostname, int port, string username, strin
         return handshakeTx;
     }
 
-    private void HandlePostHandshakeResponse(byte[] bytes)
+    private void HandlePostHandshakeResponse()
     {
         // TODO: BiampTesiraDsp.TesiraComsManager.HandlePostHandshakeResponse()
-        
-        // convert byte[] to string, this is just for testing. We still need to implement a response buffer and properly
-        // parse incoming data.
-        var chArray = new char[bytes.Length];
-        for (var index = 0; index < bytes.Length; ++index)
-            chArray[index] = (char)bytes[index];
-        var rx =  new string(chArray);
-        Logger.Debug($"BiampTesira.TesiraComsManager {hostname}:{port} - rx string: {rx}");
-        
-        if (rx.Contains("Welcome to the Tesira Text Protocol Server..."))
+        var delimiterIndex = _rxBuffer.GetIndexOfItem(0x0D);
+        if (delimiterIndex < 0 || delimiterIndex + 1 > _rxBuffer.Length) return;
+
+        var cmd = _rxBuffer.RemoveByLength(delimiterIndex + 1);
+        if (cmd.Count == 0)
         {
-            ReadyForCommands = true;
-            ReadyForCommandsReceived?.Invoke(this, EventArgs.Empty);
-            return;
-        }
-        
-        // TODO: Handle prompts for login if authentication is enabled on the server.
-        if (_commandQueue.TryDequeue(out var command))
-        {
-            Logger.Debug($"BiampTesira.TesiraComsManager() - Dequeued Command: {command.SerializedCommand}");
+            Logger.Debug(
+                "BiampTesira.TesiraComsManager {hostname}:{port} -  HandlePostHandshakeResponse() - cmd is empty.");
         }
         else
         {
-            Logger.Error($"BiampTesira.TesiraComsManager.ClientOnRxReceived() - could not remove command from queue.");
+            var rx = CreateString(cmd.ToArray());
+            if (rx.Contains("+OK"))
+            {
+                var command = _commandQueue.Dequeue();
+                CrestronConsole.PrintLine($"dequeued command: {command.SerializedCommand}");
+                CrestronConsole.PrintLine($"Received response: {rx}");
+            }
+            else if (rx.Contains("-ERR"))
+            {
+                var command = _commandQueue.Dequeue();
+                CrestronConsole.PrintLine($"dequeued command: {command.SerializedCommand}");
+                CrestronConsole.PrintLine($"Received response: {rx}");
+            }
+            else if (rx.Contains("! \"publishToken\":"))
+            {
+                var command = _commandQueue.Dequeue();
+                CrestronConsole.PrintLine($"dequeued command: {command.SerializedCommand}");
+                CrestronConsole.PrintLine($"Received response: {rx}");
+            }
         }
     }
 
@@ -183,8 +208,12 @@ public class TesiraComsManager(string hostname, int port, string username, strin
                 break;
             case SocketStatus.SOCKET_STATUS_NO_CONNECT:
                 Logger.Debug("BiampTesira.TesiraComsManager.ClientStatusChangedHandler() - Client disconnected.");
+                lock(_lock) _commandQueue.Clear();
+                _rxBuffer.Clear();
                 break;
             case SocketStatus.SOCKET_STATUS_BROKEN_REMOTELY:
+                lock(_lock) _commandQueue.Clear();
+                _rxBuffer.Clear();
                 Logger.Error(
                     "BiampTesira.TesiraComsManager.ClientStatusChangedHandler() - Client disconnected remotely.");
                 break;
@@ -215,6 +244,23 @@ public class TesiraComsManager(string hostname, int port, string username, strin
         }
 
         _disposed = true;
+    }
+
+    private string CreateString(byte[] bytes)
+    {
+        try
+        {
+            var chArray = new char[bytes.Length];
+            for (var index = 0; index < bytes.Length; ++index)
+                chArray[index] = (char)bytes[index];
+            return new string(chArray);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(
+                $"BiampTesira.TesiraComsManager.ClientStatusChangedHandler(): {e.Message} -  {e.StackTrace?.Replace("\n", "\n\r")}");
+            return string.Empty;
+        }
     }
 
     #endregion private methods

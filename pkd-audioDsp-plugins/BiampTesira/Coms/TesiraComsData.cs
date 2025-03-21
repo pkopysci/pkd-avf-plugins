@@ -1,4 +1,4 @@
-namespace BiampTesira;
+namespace BiampTesira.Coms;
 
 public class TesiraComsData
 {
