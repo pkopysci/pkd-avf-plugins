@@ -68,14 +68,14 @@ public class ControlSystem : CrestronControlSystem
     private void SendTestCommands(string arg)
     {
         Logger.Info("ControlSystem.SendTestCommands()");
-        for (var i = 1; i <= 5; i++)
+        for (var i = 5; i <= 7; i++)
         {
             TesiraComsData data = new()
             {
                 InstanceTag = "matrixmxr",
                 BlockType = BlockTypes.Router,
                 ChannelId = "c01",
-                SerializedCommand = $"matrixmxr get crosspoint 1 {i}\n"
+                SerializedCommand = $"matrixmxr get crosspoint 16 {i}\n"
             };
 
             _comsManager.SendCommand(data);
