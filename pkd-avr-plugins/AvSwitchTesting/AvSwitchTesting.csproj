@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Crestron.SimplSharp.SDK.Program" Version="2.21.90" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CarboniteAvrs\CarboniteAvrs.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="pkd-common-utils">
+        <HintPath>..\..\Dependencies\pkd-common-utils.dll</HintPath>
+      </Reference>
+      <Reference Include="pkd-hardware-service">
+        <HintPath>..\..\Dependencies\pkd-hardware-service.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>
