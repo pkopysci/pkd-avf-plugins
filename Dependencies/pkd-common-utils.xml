@@ -367,7 +367,7 @@
             <param name="password">The password used to log into the SFTP server.</param>
             <exception cref="T:System.ArgumentException">If any argument is null or empty.</exception>
         </member>
-        <member name="M:pkd_common_utils.NetComs.BasicFtpClient.#ctor(System.String,System.String,Crestron.SimplSharp.Ssh.PrivateKeyFile)">
+        <member name="M:pkd_common_utils.NetComs.BasicFtpClient.#ctor(System.String,System.String,Renci.SshNet.PrivateKeyFile)">
             <summary>
             Creates an instance of <see cref="T:pkd_common_utils.NetComs.BasicFtpClient"/> using a username and SSH key for SFTP connection.
             </summary>
