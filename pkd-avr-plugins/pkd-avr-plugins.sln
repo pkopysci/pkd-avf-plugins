@@ -10,6 +10,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KramerAvSwitch", "KramerAvS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NvxAvSwitch", "NvxAvSwitch\NvxAvSwitch.csproj", "{B2A9F328-236D-4D48-BDFA-B1961BFF15C7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarboniteAvrs", "CarboniteAvrs\CarboniteAvrs.csproj", "{5449949C-092C-49F8-8F03-8BB1303422C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvSwitchTesting", "AvSwitchTesting\AvSwitchTesting.csproj", "{A2694703-F94F-4BEC-93A7-49E4498BDC64}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,13 @@ Global
 		{B2A9F328-236D-4D48-BDFA-B1961BFF15C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2A9F328-236D-4D48-BDFA-B1961BFF15C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2A9F328-236D-4D48-BDFA-B1961BFF15C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5449949C-092C-49F8-8F03-8BB1303422C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5449949C-092C-49F8-8F03-8BB1303422C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5449949C-092C-49F8-8F03-8BB1303422C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5449949C-092C-49F8-8F03-8BB1303422C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2694703-F94F-4BEC-93A7-49E4498BDC64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2694703-F94F-4BEC-93A7-49E4498BDC64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2694703-F94F-4BEC-93A7-49E4498BDC64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2694703-F94F-4BEC-93A7-49E4498BDC64}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
