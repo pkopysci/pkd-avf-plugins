@@ -2,11 +2,7 @@ using pkd_common_utils.GenericEventArgs;
 using pkd_hardware_service.AudioDevices;
 using pkd_hardware_service.BaseDevice;
 using pkd_hardware_service.Routable;
-using System.Timers;
-using Crestron.SimplSharp.CrestronSockets;
 using pkd_common_utils.Logging;
-using pkd_common_utils.NetComs;
-
 
 namespace BiampTesira;
 
@@ -132,13 +128,13 @@ public class BiampTesiraDsp : BaseDevice, IAudioRoutable, IDsp
     }
 
     public void AddInputChannel(string id, string levelTag, string muteTag, int bankIndex, int levelMax, int levelMin,
-        int routerIndex, List<string> tags)
+        int routerIndex)
     {
         throw new NotImplementedException();
     }
 
     public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int routerIndex, int bankIndex,
-        int levelMax, int levelMin, List<string> tags)
+        int levelMax, int levelMin)
     {
         throw new NotImplementedException();
     }

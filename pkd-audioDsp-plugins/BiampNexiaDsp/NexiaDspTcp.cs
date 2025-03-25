@@ -178,8 +178,7 @@
 			int index,
 			int levelMax,
 			int levelMin,
-			int routerIndex,
-			List<string> tags)
+			int asdf)
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "AddInputChannel", "muteTag");
 			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "AddInputChannel", "levelTag");
@@ -218,8 +217,7 @@
 			int routerIndex,
 			int index,
 			int levelMax,
-			int levelMin,
-			List<string> tags)
+			int levelMin)
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "AddInputChannel", "muteTag");
 			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "AddInputChannel", "levelTag");

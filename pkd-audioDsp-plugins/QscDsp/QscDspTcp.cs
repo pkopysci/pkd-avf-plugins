@@ -109,8 +109,7 @@ namespace QscDsp
 			int bankIndex,
 			int levelMax,
 			int levelMin,
-			int routerIndex,
-			List<string> tags)
+			int routerIndex)
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(id, "QscDspTcp.AddInputChannel", nameof(id));
 			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "QscDspTcp.AddInputChannel", nameof(levelTag));
@@ -144,8 +143,7 @@ namespace QscDsp
 			int routerIndex,
 			int bankIndex,
 			int levelMax,
-			int levelMin,
-			List<string> tags)
+			int levelMin)
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(id, "QscDspTcp.AddOutputChannel", nameof(id));
 			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "QscDspTcp.AddOutputChannel", nameof(levelTag));
