@@ -15,6 +15,7 @@ public class ControlSystem : CrestronControlSystem
         CrestronConsole.AddNewConsoleCommand(Connect, "connect", "", ConsoleAccessLevelEnum.AccessOperator);
         CrestronConsole.AddNewConsoleCommand(Disconnect, "disconnect", "", ConsoleAccessLevelEnum.AccessOperator);
         CrestronConsole.AddNewConsoleCommand(Test, "test", "[input],[output]", ConsoleAccessLevelEnum.AccessOperator);
+        CrestronConsole.AddNewConsoleCommand(ClearRoute, "clear", "", ConsoleAccessLevelEnum.AccessOperator);
     }
 
     public override void InitializeSystem()
@@ -24,7 +25,7 @@ public class ControlSystem : CrestronControlSystem
             Logger.SetProgramId("AVR TEST");
             Logger.SetDebugOn();
             _avr.Initialize(
-                "10.16.6.234",
+                "10.16.6.168",
                 7788,
                 "avr01",
                 "Carbonite Ultra");
@@ -73,5 +74,11 @@ public class ControlSystem : CrestronControlSystem
         var source = uint.Parse(args[0]);
         var target = uint.Parse(args[1]);
         _avr.RouteVideo(source, target);
+    }
+
+    private void ClearRoute(string arg)
+    {
+        Logger.Debug($"ControlSystem.ClearRoute({arg})");
+        _avr.ClearVideoRoute(uint.Parse(arg));
     }
 }

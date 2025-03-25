@@ -144,7 +144,24 @@ public class BasicCarboniteUltra : BaseDevice, IAvSwitcher, IDisposable
     public void ClearVideoRoute(uint output)
     {
         if (_client is not { Connected: true } || !CheckInit(nameof(Disconnect))) return;
-        throw new NotImplementedException();
+        if (output < 1 || output > _outputs.Length)
+        {
+            Logger.Error($"Carbonite Ultra {Id} -  ClearVideoRoute() - {output} is is out of bounds.");
+            return;
+        }
+
+        switch (output)
+        {
+            case <= 8:
+                SendRouteToIo(0, output);
+                break;
+            case <= 16:
+                SendRouteToVp(0, output);
+                break;
+            default:
+                SendRouteToBus(0, output);
+                break;
+        }
     }
 
     public void Dispose()
@@ -194,7 +211,7 @@ public class BasicCarboniteUltra : BaseDevice, IAvSwitcher, IDisposable
     {
         Logger.Debug(
             $"Carbonite Ultra {Id}:{_hostname} - Client status changed: {IsOnline}, reason: {_client?.ClientStatusMessage}");
-        if (_client is not { EnableReconnect: true }) return;
+        NotifyOnlineStatus();
     }
 
     private bool CheckInit(string methodName)
@@ -209,12 +226,9 @@ public class BasicCarboniteUltra : BaseDevice, IAvSwitcher, IDisposable
 
     private void SendRouteToIo(uint source, uint output)
     {
-        var cmd = string.Format(
-            "MVBOX IO:{0}:{1}:IN:{2}\n\r",
-            output > 4 ? 2 : 1,
-            output > 4 ? output - 4 : output,
-            source
-        );
+        var cmd = source == 0
+            ? $"MVBOX IO:{(output > 4 ? 2 : 1)}:{(output > 4 ? output - 4 : output)}:BK\n\r"
+            : $"MVBOX IO:{(output > 4 ? 2 : 1)}:{(output > 4 ? output - 4 : output)}:IN:{source}\n\r";
 
         Logger.Debug($"BasicCarboniteUltra {Id} - SendRouteToIo(): {cmd}");
 
@@ -228,12 +242,10 @@ public class BasicCarboniteUltra : BaseDevice, IAvSwitcher, IDisposable
     {
         var vpNumber = output > 12 ? 2 : 1;
         var boxNumber = output > 12 ? output - 12 : output - 8;
-        var cmd = string.Format(
-            "MVBOX VP:{0}:{1}:IN:{2}\n\r",
-            vpNumber,
-            boxNumber,
-            source
-        );
+
+        var cmd = source == 0
+            ? $"MVBOX VP:{vpNumber}:{boxNumber}:BK\n\r"
+            : $"MVBOX VP:{vpNumber}:{boxNumber}:IN:{source}\n\r";
 
         Logger.Debug($"BasicCarboniteUltra {Id} - SendRouteToVp(): {cmd}");
 
