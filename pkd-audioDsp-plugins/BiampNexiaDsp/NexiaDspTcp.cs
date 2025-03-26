@@ -171,10 +171,10 @@
 		}
 
 		/// <inheritdoc/>
-		public void AddInputChannel(string id, string levelTag, string muteTag, int index, int levelMax, int levelMin, int routerIndex)
+		public void AddInputChannel(string id, string levelTag, string muteTag, int index, int levelMax, int levelMin, int routerIndex, List<string> _)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "AddInputChannel", "muteTag");
-			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "AddInputChannel", "levelTag");
+			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "AddInputChannel", nameof(muteTag));
+			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "AddInputChannel", nameof(levelTag));
 
 			var current = _inputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (current != null)
@@ -202,10 +202,10 @@
 		}
 
 		/// <inheritdoc/>
-		public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int routerIndex, int index, int levelMax, int levelMin)
+		public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int routerIndex, int index, int levelMax, int levelMin, List<string> _)
 		{
-			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "AddInputChannel", "muteTag");
-			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "AddInputChannel", "levelTag");
+			ParameterValidator.ThrowIfNullOrEmpty(muteTag, "AddInputChannel", nameof(muteTag));
+			ParameterValidator.ThrowIfNullOrEmpty(levelTag, "AddInputChannel", nameof(levelTag));
 
 			var current = _outputs.Find(x => x.Id.Equals(id, StringComparison.InvariantCulture));
 			if (current != null)

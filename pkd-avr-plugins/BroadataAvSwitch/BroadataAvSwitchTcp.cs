@@ -361,14 +361,14 @@
 		}
 
 		/// <inheritdoc/>
-		public void AddInputChannel(string id, string levelTag, string muteTag, int bankIndex, int levelMax, int levelMin, int routerIndex)
+		public void AddInputChannel(string id, string levelTag, string muteTag, int bankIndex, int levelMax, int levelMin, int routerIndex, List<string> _)
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(id, "AddInputChannel", nameof(id));
 			_input.Id = id;
 		}
 
 		/// <inheritdoc/>
-		public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int bankIndex, int levelMax, int levelMin, int routerIndex)
+		public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int bankIndex, int levelMax, int levelMin, int routerIndex, List<string> _)
 		{
 			ParameterValidator.ThrowIfNullOrEmpty(id, "AddOutputChannel", nameof(id));
 			_output.Id = id;

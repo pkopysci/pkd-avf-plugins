@@ -237,7 +237,7 @@
 			Logger.Debug($"AvSwitchEmulator {Id} - RecallAudioPreset({id})");
 		}
 
-		public void AddInputChannel(string id, string levelTag, string muteTag, int bankIndex, int levelMax, int levelMin, int routerIndex)
+		public void AddInputChannel(string id, string levelTag, string muteTag, int bankIndex, int levelMax, int levelMin, int routerIndex, List<string> tags)
 		{
 			_audioIns.Add(id,
 				new AudioChannel()
@@ -252,7 +252,7 @@
 				});
 		}
 
-		public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int routerIndex, int bankIndex, int levelMax, int levelMin)
+		public void AddOutputChannel(string id, string levelTag, string muteTag, string routerTag, int routerIndex, int bankIndex, int levelMax, int levelMin, List<string> tags)
 		{
 			_audioOuts.Add(id,
 				new AudioChannel()
