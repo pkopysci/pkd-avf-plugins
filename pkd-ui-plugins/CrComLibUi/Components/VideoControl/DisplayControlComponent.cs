@@ -101,6 +101,8 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 		{
 			var display = new Display
 			{
+				Manufacturer = item.Manufacturer,
+				Model = item.Model,
 				Id = item.Id,
 				Label = item.Label,
 				Icon = item.Icon,
@@ -121,6 +123,8 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 					Tags = input.Tags,
 					Selected = false,
 				});
+				
+				Logger.Debug($"DisplayControlComponent.SetDisplayData() - adding display {display.Manufacturer} {display.Model}");
 			}
 
 			_displays.Add(display);
