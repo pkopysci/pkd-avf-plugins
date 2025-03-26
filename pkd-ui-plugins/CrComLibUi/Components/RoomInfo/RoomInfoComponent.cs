@@ -1,4 +1,6 @@
 ﻿
+using Crestron.SimplSharp;
+
 namespace CrComLibUi.Components.RoomInfo;
 
 using Api;
@@ -156,6 +158,7 @@ internal class RoomInfoComponent : BaseComponent
 
 		var config = new RoomConfigData()
 		{
+			Model = UiData.Model,
 			IsInUse = _useState,
 			RoomName = UiData.Label,
 			HelpNumber = UiData.HelpContact,
@@ -165,7 +168,7 @@ internal class RoomInfoComponent : BaseComponent
 			DefaultActivity = UiData.DefaultActivity,
 			MainMenu = menuItems
 		};
-
+		
 		var configResponse = MessageFactory.CreateGetResponseObject();
 		configResponse.Command = GetConfigCommand;
 		configResponse.Data = JObject.FromObject(config);
