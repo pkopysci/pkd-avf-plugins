@@ -325,13 +325,13 @@ namespace QscDsp
 
 		private bool CheckRegistered(string methodName, QsysNamedControl control)
 		{
-			if (!_registered)
+			if (_registered)
 			{
 				return true;
 			}
 		
 			Logger.Error(
-				"QscAudioChannel.{0}() - DSP {2} not yet registered.",
+				"QscAudioChannel.{0}() - DSP {1} not yet registered.",
 				methodName,
 				_coreId);
 		
