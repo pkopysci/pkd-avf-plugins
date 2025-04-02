@@ -262,6 +262,119 @@
             Gets the Third data object supplied when the event was thrown.
             </summary>
         </member>
+        <member name="T:pkd_common_utils.Logging.CrestronTextWriter">
+            <summary>
+            Class for setting Console.Write() and Console.WriteLine() behavior.
+            </summary>
+        </member>
+        <member name="P:pkd_common_utils.Logging.CrestronTextWriter.Encoding">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.Char)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.Char[])">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.Decimal)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.Double)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.Single)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.Int64)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.UInt64)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.String,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.String,System.Object,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.String,System.Object,System.Object,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.String,System.Object[])">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.Write(System.Char[],System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.Char)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.Char[])">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.Decimal)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.Double)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.Single)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.Int64)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.UInt64)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.String,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.String,System.Object,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.String,System.Object,System.Object,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.String,System.Object[])">
+            <inheritdoc />
+        </member>
+        <member name="M:pkd_common_utils.Logging.CrestronTextWriter.WriteLine(System.Char[],System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
         <member name="T:pkd_common_utils.Logging.Logger">
             <summary>
             Logging system for writing messages to the control system error long and console output.
