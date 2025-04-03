@@ -1,32 +1,31 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using pkd_application_service;
-using PkdAvfRestApi.Contracts;
 
 namespace PkdAvfRestApi.Endpoints;
 
 public static class DisplayEndpoints
 {
     private const string GetDisplayEndpointName = "GetDisplay";
+    private static IApplicationService? _appService;
 
-    private static readonly List<DisplayDto> Displays =
-    [
-        new(1, "Projector", "NEC", "ABC-123", true, true, true, []),
-        new(2, "Display 1", "NEC", "FP-55", true, false, true, []),
-        new(3, "Display 2", "NEC", "FP-55", false, false, true, ["station"])
-    ];
-
-    private static ApplicationService? _appService;
-
-    public static RouteGroupBuilder MapDisplayEndpoints(this WebApplication app, ApplicationService service)
+    public static RouteGroupBuilder MapDisplayEndpoints(this WebApplication app, IApplicationService service)
     {
         _appService = service;
-        
+
         var group = app.MapGroup("displays");
-        
-        group.MapGet("/", () => Displays)
+
+        group.MapGet("/", () => _appService.GetAllDisplayInfo())
             .WithName("Displays")
             .WithOpenApi();
+
+        group.MapGet("/{id}", (string id) =>
+            {
+                var found = _appService.GetAllDisplayInfo().FirstOrDefault(x => x.Id == id);
+                return found == null ? Results.NotFound() : Results.Ok(found);
+            })
+            .WithName(GetDisplayEndpointName);
 
         return group;
     }
