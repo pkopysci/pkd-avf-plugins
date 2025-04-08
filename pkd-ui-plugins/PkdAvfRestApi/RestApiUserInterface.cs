@@ -1,7 +1,5 @@
-﻿using System.Net;
-using Crestron.SimplSharpPro;
+﻿using Crestron.SimplSharpPro;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -106,7 +104,13 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUse
         services.AddEndpointsApiExplorer();
 
         _app = builder.Build();
+        _app.MapSystemEndpoints(_applicationService);
         _app.MapDisplayEndpoints(_applicationService);
+        _app.MapGlobalVideoEndpoints(_applicationService);
+        _app.MapVideoRoutingEndpoints(_applicationService);
+        _app.MapVideoWallEndpoints(_applicationService);
+        _app.MapAudioEndpoints(_applicationService);
+        _app.MapLightingEndpoints(_applicationService);
 
         _app.Lifetime.ApplicationStarted.Register(() =>
         {
