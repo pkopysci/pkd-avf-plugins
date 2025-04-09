@@ -878,6 +878,19 @@
             with the interface hardware.
             </summary>
         </member>
+        <member name="T:pkd_ui_service.Interfaces.IUsesApplicationService">
+            <summary>
+            Interface for any UI implementation that requires a direct connection with the application service,
+            such as a REST api server.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.IUsesApplicationService.SetApplicationService(pkd_application_service.IApplicationService)">
+            <summary>
+            Will set internal references for sending state commands and queries to the system application service.
+            </summary>
+            <param name="applicationService">The running application service for the system.</param>
+            <exception cref="T:System.ArgumentNullException">If 'applicationService' is null.</exception>
+        </member>
         <member name="T:pkd_ui_service.Interfaces.IVideoWallUserInterface">
             <summary>
             Required events, methods and properties for implementing a user interface that supports video wall control.

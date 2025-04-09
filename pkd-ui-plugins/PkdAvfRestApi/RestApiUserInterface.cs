@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using pkd_application_service;
 using pkd_application_service.UserInterface;
+using pkd_common_utils.FileOps;
 using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
 using pkd_ui_service.Interfaces;
@@ -16,13 +17,14 @@ using PkdAvfRestApi.Tools;
 
 namespace PkdAvfRestApi;
 
-public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IDisposable
+public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUsesApplicationService, IDisposable
 {
     private static readonly CancellationTokenSource CancellationTokenSource = new();
     private WebApplication? _app;
     private CrestronControlSystem? _controlSystem;
-    private ApplicationService? _applicationService;
+    private IApplicationService? _applicationService;
     private bool _disposed;
+    private string _configPath = string.Empty;
 
     public event EventHandler<GenericSingleEventArgs<bool>>? SystemStateChangeRequest;
     public event EventHandler<GenericSingleEventArgs<string>>? OnlineStatusChanged;
@@ -41,41 +43,50 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IDis
 
     public void SetSystemState(bool state)
     {
-        throw new NotImplementedException();
     }
 
     public void ShowSystemStateChanging(bool state)
     {
-        throw new NotImplementedException();
     }
 
     public void HideSystemStateChanging()
     {
-        throw new NotImplementedException();
     }
 
     public void SetGlobalFreezeState(bool state)
     {
-        throw new NotImplementedException();
     }
 
     public void SetGlobalBlankState(bool state)
     {
-        throw new NotImplementedException();
     }
 
     public void Initialize()
     {
         Logger.Debug("AVF Rest API - Initialize()");
-        
+
         if (_controlSystem == null)
         {
             Logger.Error("AVF Rest API - Initialize() - call SetCrestronControl() first.");
             return;
         }
 
+        if (_applicationService == null)
+        {
+            Logger.Error("AVF Rest API - Initialize() - call SetApplicationService() first.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_configPath))
+        {
+            Logger.Error(
+                "AVF Rest API - Initialize() - either call SetUiData() or confirm that the SgdFile property is not null or empty.");
+            return;
+        }
+
         var builder = WebApplication.CreateBuilder();
-        builder.Configuration.AddJsonFile("ProgramConfig.json", optional: false, reloadOnChange: false);
+        var configPath = DirectoryHelper.NormalizePath($"{DirectoryHelper.GetUserFolder()}/net8-plugins/{_configPath}");
+        builder.Configuration.AddJsonFile(configPath, optional: false, reloadOnChange: false);
 
         var services = builder.Services;
         builder.Configure<HostConfig>("HostConfig");
@@ -93,8 +104,16 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IDis
         services.AddEndpointsApiExplorer();
 
         _app = builder.Build();
-        _app.MapDisplayEndpoints(new ApplicationService());
-        
+        _app.MapSystemEndpoints(_applicationService);
+        _app.MapDisplayEndpoints(_applicationService);
+        _app.MapGlobalVideoEndpoints(_applicationService);
+        _app.MapVideoRoutingEndpoints(_applicationService);
+        _app.MapVideoWallEndpoints(_applicationService);
+        _app.MapAudioEndpoints(_applicationService);
+        _app.MapLightingEndpoints(_applicationService);
+        _app.MapTunerEndpoints(_applicationService);
+        _app.MapCameraEndpoints(_applicationService);
+
         _app.Lifetime.ApplicationStarted.Register(() =>
         {
             foreach (var url in _app.Urls)
@@ -126,6 +145,7 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IDis
     {
         Logger.Debug("AVF Rest API - SetUiData()");
         Id = uiData.Id;
+        _configPath = uiData.SgdFile;
     }
 
     public void SetCrestronControl(CrestronControlSystem parent, int _)
@@ -134,10 +154,12 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IDis
         _controlSystem = parent;
     }
 
-    public void SetApplicationService(ApplicationService service)
+    public void SetApplicationService(IApplicationService applicationService)
     {
         Logger.Debug("AVF Rest API - SetApplicationService()");
-        _applicationService = service;
+
+        ArgumentNullException.ThrowIfNull(applicationService);
+        _applicationService = applicationService;
     }
 
     public void Dispose()

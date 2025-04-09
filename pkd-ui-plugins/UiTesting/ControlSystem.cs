@@ -1,5 +1,6 @@
 ﻿using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
+using pkd_application_service;
 using pkd_common_utils.Logging;
 using PkdAvfRestApi;
 
@@ -44,6 +45,7 @@ public class ControlSystem : CrestronControlSystem
     {
         _server = new RestApiUserInterface();
         _server.SetCrestronControl(this, 8080);
+        _server.SetApplicationService(new ApplicationService());
         _server.Initialize();
         _server.Connect();
     }

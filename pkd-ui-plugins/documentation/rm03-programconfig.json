@@ -1,0 +1,20 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "Kestrel": {
+    "EndPoints": {
+      "Http": {
+        "Url": "http://0.0.0.0:8082"
+      }
+    }
+  },
+  "HostConfig": {
+    "Environment": "Development",
+    "ConfigurationPath": "/user/myapp/app03/configuration.json"
+  }
+}
