@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PkdAvfRestApi.Contracts.Endpoints;
+namespace PkdAvfRestApi.Contracts.Tuners;
 
-public record SetTunerChannelDto(
+internal record SetTunerChannelDto(
     [Required] string Channel
 );

@@ -15,7 +15,7 @@ namespace PkdAvfRestApi.Endpoints;
 internal static class VideoWallEndpoints
 {
     private static IVideoWallApp? _appService;
-    
+
     public static RouteGroupBuilder MapVideoWallEndpoints(this WebApplication app, IApplicationService appService)
     {
         _appService = appService as IVideoWallApp;
@@ -24,11 +24,11 @@ internal static class VideoWallEndpoints
             Logger.Warn(
                 "AVF REST Api - Video Wall Endpoints - provided IApplicationService does not implement IVideoWallApp.");
         }
-        
+
         var group = app.MapGroup("video/videoWalls");
 
         group.MapGet("/supported", () => Results.Ok(new SupportedDto(_appService != null)));
-        
+
         group.MapGet("/", () =>
         {
             if (_appService == null) return Results.BadRequest("Video walls not supported.");
@@ -39,7 +39,7 @@ internal static class VideoWallEndpoints
                 {
                     dtos.Add(CreateVideoWallDto(wall));
                 }
-                
+
                 return Results.Ok(dtos);
             }
             catch (Exception e)
@@ -73,13 +73,13 @@ internal static class VideoWallEndpoints
                 {
                     return Results.BadRequest("Video Wall or Layout is empty or missing.");
                 }
-                
+
                 var wall = _appService.GetAllVideoWalls().FirstOrDefault(vw => vw.Id == data.VideoWall);
                 if (wall == null) return Results.NotFound($"Video Wall with id {data.VideoWall} not found.");
-                
+
                 var layout = wall.Layouts.FirstOrDefault(l => l.Id == data.Layout);
                 if (layout == null) return Results.NotFound($"Layout id {data.Layout} not found for {data.VideoWall}.");
-                
+
                 _appService.SetActiveVideoWallLayout(data.VideoWall, data.Layout);
                 return Results.NoContent();
             }
@@ -95,11 +95,12 @@ internal static class VideoWallEndpoints
             if (_appService == null) return Results.BadRequest("Video Walls not supported.");
             try
             {
-                if (string.IsNullOrEmpty(data.VideoWall) || string.IsNullOrEmpty(data.Cell) || string.IsNullOrEmpty(data.Input))
+                if (string.IsNullOrEmpty(data.VideoWall) || string.IsNullOrEmpty(data.Cell) ||
+                    string.IsNullOrEmpty(data.Input))
                 {
                     return Results.BadRequest("VideoWall, Cell, or Input is empty or missing.");
                 }
-                
+
                 var wall = _appService.GetAllVideoWalls().FirstOrDefault(vw => vw.Id == data.VideoWall);
                 if (wall == null) return Results.NotFound($"VideoWall with id {data.VideoWall} not found.");
 
@@ -107,14 +108,15 @@ internal static class VideoWallEndpoints
                 var layout = wall.Layouts.FirstOrDefault(layout => layout.Id == activeLayout);
                 if (layout?.Cells.FindIndex(x => x.Id == data.Cell) < 0)
                 {
-                    return Results.NotFound($"Video Wall layout {activeLayout} doesn't contain a cell with id {data.Cell}.");
+                    return Results.NotFound(
+                        $"Video Wall layout {activeLayout} doesn't contain a cell with id {data.Cell}.");
                 }
 
                 if (wall.Sources.FirstOrDefault(x => x.Id == data.Input) == null)
                 {
                     return Results.NotFound($"Video Wall Does not have an input source with id {data.Input}.");
                 }
-                
+
                 _appService.SetVideoWallCellRoute(wall.Id, data.Cell, data.Input);
                 return Results.NoContent();
             }
@@ -124,7 +126,7 @@ internal static class VideoWallEndpoints
                 return Results.Problem("Internal Server Error");
             }
         });
-        
+
         return group;
     }
 
@@ -143,7 +145,7 @@ internal static class VideoWallEndpoints
                     SourceId: cell.SourceId
                 ));
             }
-            
+
             layouts.Add(new VideoWallLayoutDto(
                 Id: layout.Id,
                 Label: layout.Label,
@@ -153,7 +155,7 @@ internal static class VideoWallEndpoints
                 Height: layout.Height
             ));
         }
-        
+
         List<VideoInputDto> sources = [];
         foreach (var input in videoWall.Sources)
         {

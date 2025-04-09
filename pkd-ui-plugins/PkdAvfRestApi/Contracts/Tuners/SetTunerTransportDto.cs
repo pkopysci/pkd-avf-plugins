@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PkdAvfRestApi.Contracts.Endpoints;
+namespace PkdAvfRestApi.Contracts.Tuners;
 
-public record TunerTransportDto(
+internal record SetTunerTransportDto(
     [Required] string Transport
 );

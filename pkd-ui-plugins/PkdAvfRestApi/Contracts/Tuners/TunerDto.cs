@@ -1,4 +1,4 @@
-﻿namespace PkdAvfRestApi.Contracts.Endpoints;
+﻿namespace PkdAvfRestApi.Contracts.Tuners;
 
 internal record TunerDto(
     string Id,

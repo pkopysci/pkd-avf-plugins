@@ -111,6 +111,8 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUse
         _app.MapVideoWallEndpoints(_applicationService);
         _app.MapAudioEndpoints(_applicationService);
         _app.MapLightingEndpoints(_applicationService);
+        _app.MapTunerEndpoints(_applicationService);
+        _app.MapCameraEndpoints(_applicationService);
 
         _app.Lifetime.ApplicationStarted.Register(() =>
         {
