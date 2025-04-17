@@ -4,6 +4,17 @@
         <name>pkd-ui-service</name>
     </assembly>
     <members>
+        <member name="T:pkd_ui_service.Fusion.DeviceUse.FusionDeviceUse">
+            <summary>
+            Device use message object for sending data to the fusion server.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Fusion.DeviceUse.FusionDeviceUse.#ctor(Crestron.SimplSharpPro.Fusion.FusionRoom)">
+            <summary>
+            Instantiates a new instance of <see cref="T:pkd_ui_service.Fusion.DeviceUse.FusionDeviceUse"/>.
+            </summary>
+            <param name="fusion">The Crestron fusion connection object that will be used for communication.</param>
+        </member>
         <member name="M:pkd_ui_service.Fusion.DeviceUse.FusionDeviceUse.AddDeviceToUseTracking(System.String,System.String)">
             <inheritdoc/>
         </member>
@@ -190,6 +201,11 @@
         </member>
         <member name="M:pkd_ui_service.Fusion.FusionInterface.Dispose">
             <inheritdoc/>
+        </member>
+        <member name="T:pkd_ui_service.Fusion.IFusionInterface">
+            <summary>
+            Required methods, properties, and events for supporting a fusion connection in the AVF.
+            </summary>
         </member>
         <member name="E:pkd_ui_service.Fusion.IFusionInterface.OnlineStatusChanged">
             <summary>
@@ -954,6 +970,41 @@
             Root presentation implementation.
             </summary>
         </member>
+        <member name="F:pkd_ui_service.PresentationService.Control">
+            <summary>
+            Root control system running the application.
+            </summary>
+        </member>
+        <member name="F:pkd_ui_service.PresentationService.AppService">
+            <summary>
+            Core application service for managing business logic.
+            </summary>
+        </member>
+        <member name="F:pkd_ui_service.PresentationService.UiConnections">
+            <summary>
+            All user interfaces in the system configuration.
+            </summary>
+        </member>
+        <member name="F:pkd_ui_service.PresentationService.Fusion">
+            <summary>
+            a Fusion room connection implementation.
+            </summary>
+        </member>
+        <member name="F:pkd_ui_service.PresentationService.StateChangeTimer">
+            <summary>
+            timer for showing the powering on/off modal for interfaces that don't implement it locally. 
+            </summary>
+        </member>
+        <member name="F:pkd_ui_service.PresentationService.Disposed">
+            <summary>
+            true = object is disposed, false = not disposed.
+            </summary>
+        </member>
+        <member name="F:pkd_ui_service.PresentationService.TransitionTime">
+            <summary>
+            The amount of time to display the state change modal for interfaces that don't implement it locally.
+            </summary>
+        </member>
         <member name="M:pkd_ui_service.PresentationService.#ctor(pkd_application_service.IApplicationService,Crestron.SimplSharpPro.CrestronControlSystem)">
             <param name="appService">The framework application implementation that handles state management.</param>
             <param name="control">the root Crestron control system object.</param>
@@ -970,6 +1021,594 @@
         <member name="M:pkd_ui_service.PresentationService.Dispose(System.Boolean)">
             <summary>
             disposes of all internal component objects if they are disposable.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.BuildInterfaces">
+            <summary>
+            Iterate through all user interface definitions in the application service and create the associated objects
+            and event subscriptions.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.SubscribeToAppService">
+            <summary>
+            Subscribe to all application service events for all implemented application interfaces.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UnsubscribeFromAppService">
+            <summary>
+            Unsubscribe from all application services that were subscribed through <see cref="M:pkd_ui_service.PresentationService.SubscribeToAppService"/>.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.SubscribeToInterface(pkd_ui_service.Interfaces.IUserInterface)">
+            <summary>
+            Subscribe to all user interface events for all implemented plugin interfaces.
+            </summary>
+            <param name="ui"></param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UnsubscribeFromInterfaces">
+            <summary>
+            Unsubscribe from all events handlers added by <see cref="M:pkd_ui_service.PresentationService.BuildInterfaces"/>.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.StateChangeTimerCallback(System.Object)">
+            <summary>
+            Callback action that is triggered once <see cref="F:pkd_ui_service.PresentationService.StateChangeTimer"/> expires.
+            </summary>
+            <param name="obj">The user object provided when the timer is set.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.TriggerStateChangeTimer">
+            <summary>
+            Begin the timer for system state change events.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.CameraAppConnectionChangeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle camera connection change notifications from the application service.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">args.Arg = the id of the camera that updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.CameraAppPowerChangeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle camera power status notifications from the application service.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">args.Arg = the id of the camera that updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.VideoWallAppLayoutChangedHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle video wall layout change notifications from the application service.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">args.Arg = the id of the video wall that updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.VideoWallAppConnectionChangeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle video wall device connection status notifications from the application service.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">args.Arg = the id of the video wall that updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.VideoWallAppRouteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle video wall device connection status notifications from the application service.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">args.Arg1 = the id of the video wall that updated., Arg2 = ID of the cell that updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceTechLockoutHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.Boolean})">
+            <summary>
+            Handle technician "lockout" state notifications from the application service.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">args.Arg = true = all non-tech UIs should lock, false = unlock.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceLightingLoadHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle technician "lockout" state notifications from the application service.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">args.Arg = true = all non-tech UIs should lock, false = unlock.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceLightingSceneHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle lighing scene change notifications from the application service.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = the id of the lighting controller that updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceCustomEventHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle notifications from the application service for changes in event modes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = the id of the event that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceDspConnectionHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle notifications from the application service about an audio DSP changing connection status.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg = the id of the DSP that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceAudioInputLevelHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle notifications from the application service about volume level changes on inputs.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg = the id of the audio channel that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceAudioInputMuteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle notifications from the application service about mute state changes on inputs.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg = the id of the audio channel that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceAudioOutputLevelHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle notifications from the application service about volume level changes on outputs.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg = the id of the audio channel that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceAudioOutputMuteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle notifications from the application service about mute state changes on outputs.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg = the id of the audio channel that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceAudioOutputRouteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle notifications from the application service about audio route changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg = the id of the audio output channel that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceAudioZoneEnableHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle notifications from the application service about zone enable/disable changes for microphones.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = the id of the audio channel being updated, Arg2 = the id of the zone that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceDisplayConnectionHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
+            <summary>
+            Handle notifications from the application service about video display/projector connection status changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = the id of the display that changed. Arg2 = true is online, false is offline.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceDisplayBlankHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
+            <summary>
+            Handle notifications from the application service about video display/projector video blank status changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = the id of the display that changed. Arg2 = true is blanked, false is showing video.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceDisplayFreezeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
+            <summary>
+            Handle notifications from the application service about video display/projector video freeze status changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = the id of the display that changed. Arg2 = true is frozen, false is not frozen.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceDisplayPowerHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
+            <summary>
+            Handle notifications from the application service about video display/projector power status changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = the id of the display that changed. Arg2 = true is on, false is off.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceDisplayInputChangedHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle notifications from the application service about video display/projector input selection changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = the id of the display that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceEndpointConnectionHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
+            <summary>
+            Handle notifications from the application service about relay or control expander endpoint connection status changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = the id of the endpoint device that changed. Arg2 = true is online, false is offline.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceEndpointChangedHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Int32})">
+            <summary>
+            Handle notifications from the application service about endpoint state changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = the id of the endpoint that changed. Arg2 = the index on the endpoint device that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceRouteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle notifications from the application service about video routing events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg = the id of the destination that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceRouterConnectionHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle notifications from the application service about AVR connection status changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg = the id of the AVR that updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceLightingConnectionHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
+            <summary>
+            Handle notifications from the application service about lighting controller connection status changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = the id of the lighting controller that updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceGlobalFreezeHandler(System.Object,System.EventArgs)">
+            <summary>
+            Handle notifications from the application service about global/AVR video freeze changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = the id of the lighting controller that updated.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceGlobalBlankHandler(System.Object,System.EventArgs)">
+            <summary>
+            Handle notifications from the application service about global/AVR video blank events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Generic empty event args.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AppServiceStateChangeHandler(System.Object,System.EventArgs)">
+            <summary>
+            Handle notifications from the application service about global/AVR video blank events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Generic empty event args.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.CameraPresetRecallHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle user interface triggered camera preset recall events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = camera id, Arg2 = preset id</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.CameraPresetSaveHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle user interface triggered camera preset save events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = camera id, Arg2 = preset id</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.CameraUiPanTiltHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,pkd_common_utils.DataObjects.Vector2D})">
+            <summary>
+            Handle user interface triggered camera pan/tilt events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = camera id, Arg2 = the direction to move the camera</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.CameraUiZoomHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Int32})">
+            <summary>
+            Handle user interface triggered camera zoom events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = camera id, Arg2 = negative values for wide, positive for telephoto, 0 to stop.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.CameraUiPowerHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
+            <summary>
+            Handle user interface triggered camera power change events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = camera id, Arg2 = true is on, false is off </param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.VideoWallUiLayoutHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle user interface triggered layout selection events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = controller id, Arg2 = layout id</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.VideoWallRouteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs{System.String,System.String,System.String})">
+            <summary>
+            Handle user interface triggered video wall cell routing events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = control id, Arg2 = cell id, Arg3 = source id</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiConnectionHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user interface connection changes.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = The id of the user interface that changed.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UpdateCustomEventUi(pkd_ui_service.Interfaces.ICustomEventUserInterface)">
+            <summary>
+            update a user interface with the current state of all event modes, if the ui supports event control.
+            </summary>
+            <param name="ui">the user interface to update.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiStatusChangeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.Boolean})">
+            <summary>
+            Handle user-interface triggers for changing the use state of the system.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg = true to set state active, false to set state standby.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiRouteChangeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle user-interface triggers for video routing.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="args">Arg1 = input id, Arg2 = output id.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiDisplayPowerHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
+            <summary>
+            Handle user-interface triggers for changing display/projector power state.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = id of the display to change, Arg2 = true for on, false for off.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiDisplayFreezeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for changing display freeze state.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = id of the display to change, Arg2 = true for freeze, false for disable freeze.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiDisplayBlankHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for changing display video blank state.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = id of the display to change, Arg2 = true for blank, false for show video.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiGlobalBlankHandler(System.Object,System.EventArgs)">
+            <summary>
+            Handle user-interface triggers for changing global/AVR video blank.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = id of the display to change, Arg2 = true for blank, false for show video.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiGlobalFreezeHandler(System.Object,System.EventArgs)">
+            <summary>
+            Handle user-interface triggers for changing global/AVR freeze state.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = id of the display to change, Arg2 = true for freeze, false for disable freeze.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiDisplayScreenUpHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for raising a screen associated with a projector.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = id of the display associated with the screen to raise.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiDisplayScreenDownHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for lowering a screen associated with a projector.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = id of the display associated with the screen to lower.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiAudioOutputMuteRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for muting an audio output channel.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = id of the channel to mute.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiAudioOutputLevelUpRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for increasing an audio output channel level.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the channel to increase.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiAudioOutputLevelDownRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for decreasing an audio output channel level.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the channel to decrease.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiAudioOutputRouteRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle user-interface triggers for audio routing events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = id of the input channel, Arg2 = id of the output channel.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiAudioInputMuteRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for input mute events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the input to mute.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiAudioInputLevelDownRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for decreasing an audio input channel level.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the channel to decrease.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiAudioInputLevelUpRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for increasing an audio input channel level.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the channel to increase.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiAudioZoneToggleHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle user-interface triggers for toggling the input channel mix for a given output.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = id of the input channel. Arg2 = id of the output zone to toggle</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.DiscreteAudioOutputUiHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Int32})">
+            <summary>
+            Handle user-interface triggers for setting a level value for an audio output.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the channel to adjust, Arg2 = the 0-100 value to set.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.DiscreteAudioInputUiHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Int32})">
+            <summary>
+            Handle user-interface triggers for setting a level value for an audio input.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the channel to adjust, Arg2 = the 0-100 value to set.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.LightingUiLoadHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs{System.String,System.String,System.Int32})">
+            <summary>
+            Handle user-interface triggers for setting a load level for a lighting zone.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the controller to adjust, Arg2 = id of the lighting zone, Arg3 = the 0-100 value to set.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.LightingUiSceneHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle user-interface triggers for setting a lighting scene on a given controller.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the device to adjust, Arg2 = id of the scene to set.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.AddErrorToUi(System.String,System.String)">
+            <summary>
+            Update all user interfaces that support error reporting.
+            </summary>
+            <param name="id">The id of the error, used when referencing the specific error.</param>
+            <param name="label">The information to display on the user interface for the error.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.RemoveErrorFromUi(System.String)">
+            <summary>
+            Remove an existing error from all user interfaces.
+            </summary>
+            <param name="id">The id of the error that was added with <see cref="M:pkd_ui_service.PresentationService.AddErrorToUi(System.String,System.String)"/>.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiSetStationLecternHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for selecting the "station" input on a display.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the display.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UiSetStationLocalHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle user-interface triggers for selecting the "lectern" input on a display.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = id of the display.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.TransportUi_TransportDialRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle user interface requests to set a channel on a transport-controlled device (cable TV, DVR).
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = the id of the device to control, Arg2 = the channel to dial.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.TransportUi_TransportDialFavoriteRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+            <summary>
+            Handle user interface requests to dial a saved favorite on a transport-controlled device (cable TV, DVR).
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = the id of the device to control, Arg2 = the id of the channel to dial.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.TransportUi_TransportControlRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,pkd_ui_service.Utility.TransportTypes})">
+            <summary>
+            Handle user interface requests to send a transport/navigation to a device (cable TV, DVR).
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = the id of the device to control, Arg2 = transport control to trigger.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.EventUi_CustomEventStateChanged(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
+            <summary>
+            Handle user interface requests to set a custom event state.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg1 = the id of the event, Arg2 = true to set active, false to set inactive.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.FusionRouteSourceHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle route requests from a <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> ui.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = the id of the source to route to all video destinations</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.FusionAudioLevelHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.UInt32})">
+            <summary>
+            Handle route requests from a <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> ui.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = the id of the source to route to all video destinations</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.FusionAudioMuteHandler(System.Object,System.EventArgs)">
+            <summary>
+            Handle program audio mute state change requests from a <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> ui.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Empty args package.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.FusionDisplayFreezeHandler(System.Object,System.EventArgs)">
+            <summary>
+            Handle global video freeze change requests from a <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> ui.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Empty args package.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.FusionDisplayBlankHandler(System.Object,System.EventArgs)">
+            <summary>
+            Handle global video blank change requests from a <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> ui.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Empty args package.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.FusionDisplayPowerHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.Boolean})">
+            <summary>
+            Handle display power change requests from a <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> ui.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = true for on, false for off.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.FusionPowerHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.Boolean})">
+            <summary>
+            Handle system use state change requests from a <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> ui.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = true for set active, false for set standby.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.FusionMicMuteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Handle mic mute change requests from a <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> ui.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Arg = the id of the microphone to toggle.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.FusionConnectionHandler(System.Object,System.EventArgs)">
+            <summary>
+            Handle <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> device online/offline state change events.
+            </summary>
+            <param name="sender">The object that triggered the event.</param>
+            <param name="e">Empy args package.</param>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UpdateFusionDisplayPowerFeedback">
+            <summary>
+            update all <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> devices with the current system use state.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UpdateFusionAudioFeedback">
+            <summary>
+            Update all <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> devices with the current state of program audio level and mute.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UpdateFusionRoutingFeedback">
+            <summary>
+            Update all <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> devices with the current video route status.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.PresentationService.UpdateFusionFeedback">
+            <summary>
+            Update all <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> devices with all supported feedback.
             </summary>
         </member>
         <member name="T:pkd_ui_service.PresentationServiceFactory">
