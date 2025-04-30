@@ -290,6 +290,9 @@
         <member name="M:pkd_application_service.ApplicationService.ToggleAudioZoneState(System.String,System.String)">
             <inheritdoc/>
         </member>
+        <member name="M:pkd_application_service.ApplicationService.SetAudioZoneState(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
         <member name="M:pkd_application_service.ApplicationService.QueryRouterConnectionStatus(System.String)">
             <inheritdoc/>
         </member>
@@ -584,6 +587,9 @@
         <member name="M:pkd_application_service.AudioControl.AudioControlApp.ToggleAudioZoneState(System.String,System.String)">
             <inheritdoc/>
         </member>
+        <member name="M:pkd_application_service.AudioControl.AudioControlApp.SetAudioZoneState(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
         <member name="M:pkd_application_service.AudioControl.AudioControlApp.QueryDspAudioPresets(System.String)">
             <inheritdoc/>
         </member>
@@ -747,6 +753,14 @@
             </summary>
             <param name="channelId">The unique ID of the audio channel to modify.</param>
             <param name="zoneId">The unique ID of the zone toggle to change.</param>
+        </member>
+        <member name="M:pkd_application_service.AudioControl.IAudioControlApp.SetAudioZoneState(System.String,System.String,System.Boolean)">
+            <summary>
+            Send a command to the hardware service to discretely set an output zone mix state.
+            </summary>
+            <param name="channelId">The unique ID of the audio channel to modify.</param>
+            <param name="zoneId">The unique ID of the zone toggle to change.</param>
+            <param name="state">true = enable the channel mix, false = disable/mute the channel mix.</param>
         </member>
         <member name="T:pkd_application_service.AudioControl.IAudioPresetApp">
             <summary>
@@ -1133,6 +1147,16 @@
         <member name="P:pkd_application_service.Base.RoomInfoContainer.SystemType">
             <summary>
             Gets the system type for this room that was set in the configuration file.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.RoomInfoContainer.PresentationServiceLibrary">
+            <summary>
+            the custom presentation service plugin library that will be loaded at system boot.
+            </summary>
+        </member>
+        <member name="P:pkd_application_service.Base.RoomInfoContainer.PresentationServiceClass">
+            <summary>
+            class name of the custom presentation service plugin that will be instantiated from <see cref="P:pkd_application_service.Base.RoomInfoContainer.PresentationServiceLibrary"/>.
             </summary>
         </member>
         <member name="T:pkd_application_service.Base.TransportInfoContainer">

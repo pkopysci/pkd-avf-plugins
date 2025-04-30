@@ -280,6 +280,16 @@ namespace QscDsp
 		}
 
 		/// <summary>
+		/// Send a command to the control object to discretely set the zone enable state.
+		/// </summary>
+		/// <param name="zoneId">The unique ID of the zone enable control to adjust.</param>
+		/// <param name="state">true = enable zone, false = disable zone.</param>
+		public void SetZoneEnableState(string zoneId, bool state)
+		{
+			_zoneEnables.SetZone(zoneId, state);
+		}
+
+		/// <summary>
 		/// Query the DSP device for the current state of the zone enable control object.
 		/// </summary>
 		/// <param name="zoneId">The unique ID of the zone to query.</param>

@@ -436,6 +436,19 @@ namespace QscDsp
 		}
 
 		/// <inheritdoc/>
+		public void SetAudioZoneEnable(string channelId, string zoneId, bool enable)
+		{
+			if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(zoneId))
+			{
+				Logger.Error("QscDspTcp {0} - SetAudioZoneEnable() - no argument can be null or empty.", Id);
+				return;
+			}
+			
+			var channel = TryFindChannel(channelId, nameof(SetAudioZoneEnable));
+			channel?.SetZoneEnableState(zoneId, enable);
+		}
+
+		/// <inheritdoc/>
 		public bool QueryAudioZoneEnable(string channelId, string zoneId)
 		{
 			if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(zoneId))

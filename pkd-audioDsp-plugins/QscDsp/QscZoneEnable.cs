@@ -81,6 +81,21 @@
 		}
 
 		/// <summary>
+		/// Send a request to the target control object to discretely set the enable state.
+		/// Does nothing if no control with a matching ID is found.
+		/// </summary>
+		/// <param name="zoneId">The unique ID of the zone control object to change.</param>
+		/// <param name="state">true = enable zone, false = disable zone.</param>
+		public void SetZone(string zoneId, bool state)
+		{
+			if (_zoneToggles.TryGetValue(zoneId, out var target))
+			{
+				var newState = (ushort)(state ? 1 : 0);
+				target.SetBoolean(newState);
+			}
+		}
+
+		/// <summary>
 		/// Gets the current state of the zone enable control object.
 		/// </summary>
 		/// <param name="zoneId">The unique ID of the control object to query.</param>
