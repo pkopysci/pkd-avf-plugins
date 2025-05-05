@@ -80,7 +80,7 @@ namespace QscDsp
         /// <returns>True if the recall was successful, false otherwise.</returns>
         public bool RecallPreset(string presetId)
 		{
-			if (_presets.TryGetValue(presetId, out int found))
+			if (_presets.TryGetValue(presetId, out var found))
 			{
 				_snapshot.LoadSnapshot((ushort)found);
 				return true;

@@ -1,4 +1,5 @@
 ﻿using pkd_hardware_service.Redundancy;
+#pragma warning disable CS8601 // Possible null reference assignment.
 
 namespace QscDsp
 {
@@ -314,10 +315,10 @@ namespace QscDsp
 		/// <inheritdoc/>
 		public void RecallAudioPreset(string id)
 		{
+			Logger.Debug("QscDspTcp.RecallAudioPreset({0})", id);
+			
 			foreach (var bank in _snapshots)
 			{
-				Logger.Debug("QscDspTcp.RecallAudioPreset({0})", id);
-				
 				if (!bank.HasPreset(id)) continue;
 				bank.RecallPreset(id);
 				break;
