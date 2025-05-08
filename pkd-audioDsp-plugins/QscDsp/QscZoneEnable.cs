@@ -124,8 +124,6 @@
 
 		private void ZoneControlChangeHandler(string zoneId, short shortData, SimplSharpString stringData)
 		{
-			Logger.Debug("QscZoneEnable.ZoneControlChangeHandler({0}, {1}. {2})", zoneId, shortData, stringData);
-
 			if (_zoneToggles.TryGetValue(zoneId, out var target))
 			{
 				target.CurrentState = shortData == 0;

@@ -2435,14 +2435,15 @@
         </member>
         <member name="E:pkd_application_service.VideoWallControl.IVideoWallApp.VideoWallLayoutChanged">
             <summary>
-            Args package must be the id of the new layout id.
+            Args package must be: Arg1 = controller id, Arg2 = canvas id.
             </summary>
         </member>
         <member name="E:pkd_application_service.VideoWallControl.IVideoWallApp.VideoWallCellRouteChanged">
             <summary>
             Args package must be:<br/>
             Arg1 - the id of the video wall controller that changed.<br/>
-            Arg2 - the id of the cell in the active layout that changed.
+            Arg2 - the id of the canvas on the controller that changed.<br/>
+            Arg3 - the id of the cell in the active layout that changed.
             </summary>
         </member>
         <member name="E:pkd_application_service.VideoWallControl.IVideoWallApp.VideoWallConnectionStatusChanged">
@@ -2457,24 +2458,28 @@
             <param name="controlId">the id of the video wall controller to query.</param>
             <returns>true = device is online, false = device is offline.</returns>
         </member>
-        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.QueryActiveVideoWallLayout(System.String)">
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.QueryActiveVideoWallLayout(System.String,System.String)">
             <param name="controlId">the id of the video wall controller to query.</param>
+            <param name="canvasId">The id of the canvas controlled by the video wall to query.</param>
             <returns>the id of the layout that is currently selected on the controller.</returns>
         </member>
-        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.QueryVideoWallCellSource(System.String,System.String)">
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.QueryVideoWallCellSource(System.String,System.String,System.String)">
             <param name="controlId">the id of the video wall controller to query.</param>
+            <param name="canvasId">The id of the canvas controlled by the video wall to query.</param>
             <param name="cellId">the id of the cell that is part of the active layout.</param>
             <returns>the id of the source currently routed to the cell/window.</returns>
         </member>
-        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.SetActiveVideoWallLayout(System.String,System.String)">
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.SetActiveVideoWallLayout(System.String,System.String,System.String)">
             <summary>
             Send a request to the hardware service to select a new layout.
             </summary>
             <param name="controlId">the id of the video wall controller to change.</param>
+            <param name="canvasId">The id of the canvas controlled by the video wall to change.</param>
             <param name="layoutId">the id of the new layout to set as active.</param>
         </member>
-        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.SetVideoWallCellRoute(System.String,System.String,System.String)">
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.SetVideoWallCellRoute(System.String,System.String,System.String,System.String)">
             <param name="controlId">the id of the video wall controller to change.</param>
+            <param name="canvasId">The id of the canvas controlled by the video wall to change.</param>
             <param name="cellId">The id of the cell/window in the active layout to change.</param>
             <param name="sourceId">the id of the video source to route to the cell/window.</param>
         </member>
