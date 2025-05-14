@@ -748,6 +748,69 @@
             Removes the tech-only lock if it is currently active.
             </summary>
         </member>
+        <member name="T:pkd_ui_service.Interfaces.ISupportsGlobalVideoBlank">
+            <summary>
+            required events, methods, and properties for an interface that supports system-wide video blank controls.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ISupportsGlobalVideoBlank.GlobalBlankToggleRequest">
+            <summary>
+            Triggered when the user requests to change the global video blank state.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ISupportsGlobalVideoBlank.SetGlobalBlankState(System.Boolean)">
+            <summary>
+            Update the user interface with the current status of the global video blank.
+            </summary>
+            <param name="state">true = blank is active, false = normal video operation.</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.ISupportsGlobalVideoFreeze">
+            <summary>
+            required events, methods, and properties for an interface that supports system-wide video freeze controls.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ISupportsGlobalVideoFreeze.GlobalFreezeToggleRequest">
+            <summary>
+            Triggered when the user requests to change the global video freeze state.
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ISupportsGlobalVideoFreeze.SetGlobalFreezeState(System.Boolean)">
+            <summary>
+            Update the user interface with the current status of the global video freeze.
+            </summary>
+            <param name="state">true = freeze active, false = normal video streaming.</param>
+        </member>
+        <member name="T:pkd_ui_service.Interfaces.ISupportsStateChangeControls">
+            <summary>
+            required events, methods, and properties for an interface that supports system-wide state changes.
+            </summary>
+        </member>
+        <member name="E:pkd_ui_service.Interfaces.ISupportsStateChangeControls.SystemStateChangeRequest">
+            <summary>
+            Triggered when the user requests to start or end the current session.
+            True = set system to in-use/on, false = set system to standby/off
+            </summary>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ISupportsStateChangeControls.SetSystemState(System.Boolean)">
+            <summary>
+            Update the UI to show either the in-use/active pages or the standby pages.
+            </summary>
+            <param name="state">true = the system is currently being used.
+            false = the system is currently in standby mode.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ISupportsStateChangeControls.ShowSystemStateChanging(System.Boolean)">
+            <summary>
+            Display a notice on the UI indicating that the system is transitioning
+            from standby to active or active to standby.
+            </summary>
+            <param name="state">True = show changing to active, false = show changing to standby.</param>
+        </member>
+        <member name="M:pkd_ui_service.Interfaces.ISupportsStateChangeControls.HideSystemStateChanging">
+            <summary>
+            Hide any notifications that indicate the system is changing state and notify the user that
+            the change is complete.
+            </summary>
+        </member>
         <member name="T:pkd_ui_service.Interfaces.ITransportControlUserInterface">
             <summary>
             Required events, methods and properties for implementing a user interface that supports transport device controls.
@@ -802,25 +865,9 @@
             required events, methods, and properties for implementing any user interface.
             </summary>
         </member>
-        <member name="E:pkd_ui_service.Interfaces.IUserInterface.SystemStateChangeRequest">
-            <summary>
-            Triggered when the user requests to start or end the current session.
-            True = set system to in-use/on, false = set system to standby/off
-            </summary>
-        </member>
         <member name="E:pkd_ui_service.Interfaces.IUserInterface.OnlineStatusChanged">
             <summary>
             Triggered whenever the connection to the underlying device has changed.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IUserInterface.GlobalFreezeToggleRequest">
-            <summary>
-            Triggered when the user requests to change the global video freeze state.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IUserInterface.GlobalBlankToggleRequest">
-            <summary>
-            Triggered when the user requests to change the global video blank state.
             </summary>
         </member>
         <member name="P:pkd_ui_service.Interfaces.IUserInterface.IsInitialized">
@@ -844,38 +891,6 @@
             <summary>
             The unique identifier used when searching for or referencing this device.
             </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IUserInterface.SetSystemState(System.Boolean)">
-            <summary>
-            Update the UI to show either the in-use/active pages or the standby pages.
-            </summary>
-            <param name="state">true = the system is currently being used.
-            false = the system is currently in standby mode.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IUserInterface.ShowSystemStateChanging(System.Boolean)">
-            <summary>
-            Display a notice on the UI indicating that the system is transitioning
-            from standby to active or active to standby.
-            </summary>
-            <param name="state">True = show changing to active, false = show changing to standby.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IUserInterface.HideSystemStateChanging">
-            <summary>
-            Hide any notifications that indicate the system is changing state and notify the user that
-            the change is complete.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IUserInterface.SetGlobalFreezeState(System.Boolean)">
-            <summary>
-            Update the user interface with the current status of the global video freeze.
-            </summary>
-            <param name="state">true = freeze active, false = normal video streaming.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IUserInterface.SetGlobalBlankState(System.Boolean)">
-            <summary>
-            Update the user interface with the current status of the global video blank.
-            </summary>
-            <param name="state">true = blank is active, false = normal video operation.</param>
         </member>
         <member name="M:pkd_ui_service.Interfaces.IUserInterface.SetUiData(pkd_application_service.UserInterface.UserInterfaceDataContainer)">
             <summary>
@@ -1075,7 +1090,7 @@
             <param name="sender">The object that triggered the event.</param>
             <param name="args">args.Arg = the id of the camera that updated.</param>
         </member>
-        <member name="M:pkd_ui_service.PresentationService.VideoWallAppLayoutChangedHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+        <member name="M:pkd_ui_service.PresentationService.VideoWallAppLayoutChangedHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
             <summary>
             Handle video wall layout change notifications from the application service.
             </summary>
@@ -1089,7 +1104,7 @@
             <param name="sender">The object that triggered the event.</param>
             <param name="args">args.Arg = the id of the video wall that updated.</param>
         </member>
-        <member name="M:pkd_ui_service.PresentationService.VideoWallAppRouteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+        <member name="M:pkd_ui_service.PresentationService.VideoWallAppRouteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs{System.String,System.String,System.String})">
             <summary>
             Handle video wall device connection status notifications from the application service.
             </summary>
@@ -1112,7 +1127,7 @@
         </member>
         <member name="M:pkd_ui_service.PresentationService.AppServiceLightingSceneHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
             <summary>
-            Handle lighing scene change notifications from the application service.
+            Handle lighting scene change notifications from the application service.
             </summary>
             <param name="sender">The object that triggered the event.</param>
             <param name="e">Arg = the id of the lighting controller that updated.</param>
@@ -1589,7 +1604,7 @@
             Handle <see cref="T:pkd_ui_service.Fusion.IFusionInterface"/> device online/offline state change events.
             </summary>
             <param name="sender">The object that triggered the event.</param>
-            <param name="e">Empy args package.</param>
+            <param name="e">Empty args package.</param>
         </member>
         <member name="M:pkd_ui_service.PresentationService.UpdateFusionDisplayPowerFeedback">
             <summary>

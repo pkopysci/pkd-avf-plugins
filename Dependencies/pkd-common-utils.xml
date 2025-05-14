@@ -102,7 +102,18 @@
             <param name="className">The class to search for in the assembly dll.</param>
             <param name="interfaceName">The interface to search for in the assembly dll.</param>
             <returns>The target T object, if found in the assembly, or T default if no matching driver is found.</returns>
-            <exception cref="T:System.Exception">Will propagate exceptions from System.Reflection.</exception>
+        </member>
+        <member name="M:pkd_common_utils.FileOps.DriverLoader.LoadClassByInterface``1(System.String,System.String,System.String,System.Object[])">
+            <summary>
+            Return an instance of a class based on the defined interface name. This version of the method allows for
+            constructor arguments.
+            </summary>
+            <typeparam name="T">The expected return type.</typeparam>
+            <param name="assemblyName">The full directory and file name with extension of the target assembly.</param>
+            <param name="className">The class to search for in the assembly dll.</param>
+            <param name="interfaceName">The interface to search for in the assembly dll.</param>
+            <param name="constructorArgs">The constructor arguments to pass when creating the object.</param>
+            <returns>The target T object, if found in the assembly, or T default if no matching driver is found.</returns>
         </member>
         <member name="M:pkd_common_utils.FileOps.DriverLoader.GetTransportType(System.String)">
             <summary>
@@ -500,7 +511,7 @@
         </member>
         <member name="E:pkd_common_utils.NetComs.BasicFtpClient.ErrorOccurred">
             <summary>
-            Triggered whenever there is an error querying, downloading, or connected to the the SFTP server.
+            Triggered whenever there is an error querying, downloading, or connected to the SFTP server.
             Error information will be stored in the LastErrorMessage property.
             </summary>
         </member>

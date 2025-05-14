@@ -2454,6 +2454,13 @@
         <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.GetAllVideoWalls">
             <returns>Get a collection of data objects representing all controllable video wall devices.</returns>
         </member>
+        <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.QueryAllVideoWallSources(System.String)">
+            <param name="controlId">the id of the video wall controller to query.</param>
+            <returns>
+            a collection of all source data available to the target video wall controller.
+            Returns an empty list if no wall is found with a matching id.
+            </returns>
+        </member>
         <member name="M:pkd_application_service.VideoWallControl.IVideoWallApp.QueryVideoWallConnectionStatus(System.String)">
             <param name="controlId">the id of the video wall controller to query.</param>
             <returns>true = device is online, false = device is offline.</returns>

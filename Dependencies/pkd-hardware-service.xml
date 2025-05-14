@@ -1351,38 +1351,25 @@
         </member>
         <member name="E:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.VideoWallLayoutChanged">
             <summary>
-            Triggered whenever the device reports that the active layout has changed.
+            Triggered whenever the device reports that the active layout has changed.<br/>
             </summary>
+            <remarks>Args.Arg1 = canvas id that changed</remarks>
         </member>
         <member name="E:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.VideoWallCellSourceChanged">
             <summary>
             Event args:<br/>
-            Arg1 - the id of the cell in the active layout that changed.<br/>
+            args.Arg1 - the id of the canvas that changed.
+            args.Arg2 - the id of the cell in the active layout that changed.<br/>
             </summary>
         </member>
-        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.Layouts">
+        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.Canvases">
             <summary>
-            A collection of all <see cref="T:pkd_hardware_service.VideoWallDevices.VideoWallLayout"/>s that are selectable by this controller.
+            A collection of all <see cref="T:pkd_hardware_service.VideoWallDevices.VideoWallCanvas"/>s that are selectable by this controller.
             </summary>
         </member>
         <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.Sources">
             <summary>
             A collection of all <see cref="T:pkd_domain_service.Data.RoutingData.Source"/> objects that are routable. 
-            </summary>
-        </member>
-        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.StartupLayoutId">
-            <summary>
-            The id of the layout that should be selected on system startup or boot.
-            </summary>
-        </member>
-        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.MaxHeight">
-            <summary>
-            The total height of physical video wall displays.
-            </summary>
-        </member>
-        <member name="P:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.MaxWidth">
-            <summary>
-            The total width of physical video wall displays.
             </summary>
         </member>
         <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.Initialize(System.String,System.Int32,System.String,System.String,System.String,System.String)">
@@ -1396,31 +1383,75 @@
             <param name="username">the authentication username used to connect to the device.</param>
             <param name="password">The authentication password used to connect to the evice</param>
         </member>
-        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.SetActiveLayout(System.String)">
+        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.SetActiveLayout(System.String,System.String)">
             <summary>
-            Send a layout change command to the video wall controller.
+            Send a layout change command to a canvas on the video wall controller.
             </summary>
-            <param name="id">The unique id of the layout to select.</param>
+            <param name="canvasId">The unique id of the canvas to change.</param>
+            <param name="layoutId">The unique id of the layout to select.</param>
         </member>
-        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.GetActiveLayoutId">
+        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.GetActiveLayoutId(System.String)">
             <summary>
             Get the id of the currently selected layout.
             </summary>
+            <param name="canvasId">The unique id of the canvas to query.</param>
             <returns>the id of the currently selected layout.</returns>
         </member>
-        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.SetCellSource(System.String,System.String)">
+        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.SetCellSource(System.String,System.String,System.String)">
             <summary>
             Route a video source to a cell in the currently selected layout.
             </summary>
+            <param name="canvasId">The unique id of the canvas on which to change the route.</param>
             <param name="cellId">The unique id of the cell to route to.</param>
             <param name="sourceId">The unique id of the source being routed.</param>
         </member>
-        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.GetCellSourceId(System.String)">
+        <member name="M:pkd_hardware_service.VideoWallDevices.IVideoWallDevice.GetCellSourceId(System.String,System.String)">
             <summary>
             Query the controller for the currently routed source.
             </summary>
+            <param name="canvasId">The unique ID of the canvas to query.</param>
             <param name="cellId">the unique id of the cell in the currently active layout being queried</param>
             <returns>the unique id of the source routed to the queried cell.</returns>
+        </member>
+        <member name="T:pkd_hardware_service.VideoWallDevices.VideoWallCanvas">
+            <summary>
+            Data object representing a single video wall canvas that contains multiple layouts.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCanvas.Id">
+            <summary>
+            the unique id of the canvas, used for runtime referencing
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCanvas.Label">
+            <summary>
+            A human-friendly name of the canvas.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCanvas.StartupLayoutId">
+            <summary>
+            The unique id of the layout that should be triggered on startup.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCanvas.Layouts">
+            <summary>
+            A collection of selectable <see cref="T:pkd_hardware_service.VideoWallDevices.VideoWallLayout"/>s associated with this canvas.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCanvas.MaxHeight">
+            <summary>
+            The total number of possible cells in the X axis.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCanvas.MaxWidth">
+            <summary>
+            The total number of possible cells in the Y axis.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCanvas.Tags">
+            <summary>
+            A collection of tags used internally for additional behavior.
+            </summary>
         </member>
         <member name="T:pkd_hardware_service.VideoWallDevices.VideoWallCell">
             <summary>
@@ -1430,6 +1461,16 @@
         <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.Id">
             <summary>
             The unique id of this cell used for internal referencing.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.Label">
+            <summary>
+            A human-friendly name of the cell.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.Icon">
+            <summary>
+            an icon tag used for displaying an image on a UI.
             </summary>
         </member>
         <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.SourceId">
@@ -1451,6 +1492,11 @@
         <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.YPosition">
             <summary>
             The vertical location of this cell/window.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallCell.Tags">
+            <summary>
+            A collection of tags used internally for additional behavior.
             </summary>
         </member>
         <member name="T:pkd_hardware_service.VideoWallDevices.VideoWallFactory">
@@ -1479,6 +1525,11 @@
             The human-friendly name of this layout.
             </summary>
         </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallLayout.Icon">
+            <summary>
+            An icon tag used to display an associated image on the ui.
+            </summary>
+        </member>
         <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallLayout.Width">
             <summary>
             The number of cells in the layout on the x-axis.
@@ -1492,6 +1543,11 @@
         <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallLayout.Cells">
             <summary>
             A collection of all video cells and their positions within this layout.
+            </summary>
+        </member>
+        <member name="P:pkd_hardware_service.VideoWallDevices.VideoWallLayout.Tags">
+            <summary>
+            A collection of tags used internally for additional behavior.
             </summary>
         </member>
     </members>
