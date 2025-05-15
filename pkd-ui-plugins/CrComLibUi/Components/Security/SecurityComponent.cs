@@ -1,55 +1,36 @@
-﻿namespace CrComLibUi.Components.Security;
+﻿
 
+namespace CrComLibUi.Components.Security;
+
+using System;
+using System.Linq;
+using Api;
 using Crestron.SimplSharpPro.DeviceSupport;
 using pkd_application_service.UserInterface;
 using pkd_common_utils.Logging;
-using pkd_ui_service.Interfaces;
-using Api;
-using System;
-using System.Linq;
+using pkd_application_service;
+using pkd_common_utils.GenericEventArgs;
 
-internal class SecurityComponent : BaseComponent, ISecurityUserInterface
+internal class SecurityComponent(
+	BasicTriListWithSmartObject ui,
+	UserInterfaceDataContainer uiData,
+	ITechAuthGroupAppService appService)
+	: BaseComponent(ui, uiData)
 {
 	private const string CheckPassword = "CODE";
 	private const string TechLock = "TECHLOCK";
 	private const string SetSecure = "SETSECURE";
 	private string _passcode = string.Empty;
 
-	public SecurityComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-		: base(ui, uiData)
-	{
-		PostHandlers.Add(CheckPassword, HandleUnlockRequest);
-	}
-
-	/// <inheritdoc />
 	public void EnableSecurityPasscodeLock()
 	{
+		if (string.IsNullOrEmpty(_passcode)) return;
 		var cmd = MessageFactory.CreateGetResponseObject();
 		cmd.Command = SetSecure;
 		cmd.Data["State"] = true;
 		Send(cmd, ApiHooks.Security);
 	}
-
-	/// <inheritdoc />
-	public void DisableTechOnlyLock()
-	{
-		var cmd = MessageFactory.CreateGetResponseObject();
-		cmd.Command = TechLock;
-		cmd.Data["Code"] = string.Empty;
-		cmd.Data["Result"] = false;
-		Send(cmd, ApiHooks.Security);
-	}
-
-	/// <inheritdoc />
-	public void EnableTechOnlyLock()
-	{
-		var cmd = MessageFactory.CreateGetResponseObject();
-		cmd.Command = TechLock;
-		cmd.Data["Code"] = string.Empty;
-		cmd.Data["Result"] = true;
-		Send(cmd, ApiHooks.Security);
-	}
-
+	
 	/// <inheritdoc />
 	public override void HandleSerialResponse(string response)
 	{
@@ -90,8 +71,46 @@ internal class SecurityComponent : BaseComponent, ISecurityUserInterface
 	/// <inheritdoc />
 	public override void Initialize()
 	{
+		PostHandlers.Add(CheckPassword, HandleUnlockRequest);
 		ParsePasscode();
+		
+		appService.NonTechLockoutStateChangeRequest += AppServiceOnNonTechLockoutStateChangeRequest;
 		Initialized = true;
+	}
+
+	private void DisableTechOnlyLock()
+	{
+		var cmd = MessageFactory.CreateGetResponseObject();
+		cmd.Command = TechLock;
+		cmd.Data["Code"] = string.Empty;
+		cmd.Data["Result"] = false;
+		Send(cmd, ApiHooks.Security);
+	}
+
+	private void EnableTechOnlyLock()
+	{
+		var cmd = MessageFactory.CreateGetResponseObject();
+		cmd.Command = TechLock;
+		cmd.Data["Code"] = string.Empty;
+		cmd.Data["Result"] = true;
+		Send(cmd, ApiHooks.Security);
+	}
+	
+	private void AppServiceOnNonTechLockoutStateChangeRequest(object? sender, GenericSingleEventArgs<bool> e)
+	{
+		if (e.Arg)
+		{
+			EnableTechOnlyLock();
+		}
+		else
+		{
+			DisableTechOnlyLock();
+		}
+	}
+
+	public override void SendConfig()
+	{
+		// todo
 	}
 
 	private void HandleUnlockRequest(ResponseBase response)

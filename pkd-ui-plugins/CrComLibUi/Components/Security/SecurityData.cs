@@ -1,7 +1,7 @@
 ﻿namespace CrComLibUi.Components.Security;
 
-using Newtonsoft.Json;
 using System.ComponentModel;
+using Newtonsoft.Json;
 
 internal class SecurityData
 {

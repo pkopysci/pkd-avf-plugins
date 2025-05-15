@@ -334,531 +334,36 @@
             Registers internal Fusion server objects and attempts to establish a connection.
             </summary>
         </member>
-        <member name="T:pkd_ui_service.Interfaces.IAudioDiscreteLevelUserInterface">
-            <summary>
-            Interface that should be implemented if the user interface allows touch-settable audio level controls.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IAudioDiscreteLevelUserInterface.SetAudioInputLevelRequest">
-            <summary>
-            Triggered when the UI sends a command to set an input channel to a specific audio level.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IAudioDiscreteLevelUserInterface.SetAudioOutputLevelRequest">
-            <summary>
-            Triggered when the UI sends a command to set an output channel to a specific audio level.
-            </summary>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.IAudioUserInterface">
-            <summary>
-            Required events, methods, and parameters for creating a user interface that supports audio controls.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioOutputLevelUpRequest">
-            <summary>
-            Triggered when the user requests to increase the target output volume.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioOutputLevelDownRequest">
-            <summary>
-            Triggered when the user requests to lower the target output volume.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioOutputMuteChangeRequest">
-            <summary>
-            Triggered when the user requests to toggle the output mute state.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioInputLevelUpRequest">
-            <summary>
-            Triggered when the user requests to increase the target input volume.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioInputLevelDownRequest">
-            <summary>
-            Triggered when the user requests to lower the target input volume.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioInputMuteChangeRequest">
-            <summary>
-            Triggered when the user requests to toggle the input mute state.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioOutputRouteRequest">
-            <summary>
-            Triggered when the user requests to change an audio route. 
-            args.Arg1 = source id, args.Agr2 = destination id.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IAudioUserInterface.AudioZoneEnableToggleRequest">
-            <summary>
-            Triggered when the user requests to toggle the status of a zone audio enable/disable control.
-            Args package: arg1 = channel ID, arg2 = zone ID.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.SetAudioData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AudioControl.AudioChannelInfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AudioControl.AudioChannelInfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.Base.InfoContainer})">
-            <param name="inputs">Collection of input/microphone data that the user can control.</param>
-            <param name="outputs">Collection of output data that the user can control.</param>
-            <param name="audioDevices">Collection of audio controllers in the system configuration.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioInputLevel(System.String,System.Int32)">
-            <summary>
-            Update the UI with the audio channels current audio level.
-            </summary>
-            <param name="id">The unique ID of the input channel to update.</param>
-            <param name="newLevel">The new level to display on the UI.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioInputMute(System.String,System.Boolean)">
-            <summary>
-            Update the UI with the current mute state of the audio input.
-            </summary>
-            <param name="id">The unique ID of the channel to update.</param>
-            <param name="muteState">true = mute is active (no audio), false = mute is inactive (audio passing).</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioOutputLevel(System.String,System.Int32)">
-            <summary>
-            Update the UI with the audio channels current audio level.
-            </summary>
-            <param name="id">The unique ID of the output channel to update.</param>
-            <param name="newLevel">The new level to display on the UI.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioOutputMute(System.String,System.Boolean)">
-            <summary>
-            Update the UI with the current mute state of the audio output.
-            </summary>
-            <param name="id">The unique ID of the channel to update.</param>
-            <param name="muteState">true = mute is active (no audio), false = mute is inactive (audio passing).</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioOutputRoute(System.String,System.String)">
-            <summary>
-            Update the connected user interface with the new routing state.
-            </summary>
-            <param name="srcId">The unique ID of the audio input that was routed.</param>
-            <param name="destId">The unique ID of the audio output that is being updated.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioZoneState(System.String,System.String,System.Boolean)">
-            <summary>
-            Update the user interface with the current state of the target channel/zone enable.
-            </summary>
-            <param name="channelId">The unique ID of the audio channel that will be updated.</param>
-            <param name="zoneId">The unique ID of the zone that was changed.</param>
-            <param name="newState">True = audio for that channel is active in the zone, false = audio disabled for that channel/zone.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IAudioUserInterface.UpdateAudioDeviceConnectionStatus(System.String,System.Boolean)">
-            <param name="deviceId">The id of the audio controller being updated.</param>
-            <param name="isOnline">true = device is online, false = device is offline.</param>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.ICameraUserInterface">
-            <summary>
-            Events, properties, and methods for a user interface that supports camera control.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ICameraUserInterface.CameraPanTiltRequest">
-            <summary>
-            Trigger when requesting a Pan/tilt control of a camera.
-            </summary>
-            <remarks>Arg1 = camera id, arg2 = direction</remarks>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ICameraUserInterface.CameraZoomRequest">
-            <summary>
-            Trigger when requesting zoom control of a camera. negative speed values are zoom wide, positive values are zoom telephoto.
-            </summary>
-            <remarks>Arg1 = camera id, Arg2 = speed.</remarks>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ICameraUserInterface.CameraPresetRecallRequest">
-            <summary>
-            Args.Arg1 = id of the camera to adjust.
-            Args.Arg2 = id of the preset to recall
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ICameraUserInterface.CameraPresetSaveRequest">
-            <summary>
-            Args.Arg1 = id of the camera to adjust.
-            Args.Arg2 = id of the preset to save.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ICameraUserInterface.CameraPowerChangeRequest">
-            <summary>
-            Args.Arg1 = id of the camera to adjust.
-            Args.Arg2 = true = turn power on, false = turn power off.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ICameraUserInterface.SetCameraData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.CameraControl.CameraInfoContainer})">
-            <param name="cameras">A collection of all controllable cameras in the system.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ICameraUserInterface.SetCameraPowerState(System.String,System.Boolean)">
-            <param name="id">The id of the camera being updated.</param>
-            <param name="newState">true = device power is now on, false = device power is now off.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ICameraUserInterface.SetCameraConnectionStatus(System.String,System.Boolean)">
-            <param name="id">The id of the camera being updated.</param>
-            <param name="newState">true = device is online, false = device is offline.</param>
-        </member>
         <member name="T:pkd_ui_service.Interfaces.ICrestronUserInterface">
             <summary>
-            Required events, methods, and properties for any Crestron-based interface, such as a TSW-xx70.
+            Events, methods, and properties for an user interface that requires access to the root control system and connection
+            IP-ID.
             </summary>
         </member>
-        <member name="M:pkd_ui_service.Interfaces.ICrestronUserInterface.SetCrestronControl(Crestron.SimplSharpPro.CrestronControlSystem,System.Int32)">
+        <member name="M:pkd_ui_service.Interfaces.ICrestronUserInterface.SetCrestronControl(Crestron.SimplSharpPro.CrestronControlSystem)">
             <summary>
-             assign the root control system and IP-ID used when connecting to the interface hardware.
-             </summary>
-             <param name="parent">the root control system object.</param>
-             <param name="ipId">The Crestron IP-ID assigned to the interface connection.</param>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.ICustomEventUserInterface">
-            <summary>
-            required events, methods, and properties for implementing a user interface that supports custom events.
+            Sets the plugin connection information.
             </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ICustomEventUserInterface.CustomEventChangeRequest">
-            <summary>
-            Triggered when the UI sends a command to change an event state.
-            Args package is [event tag], [new state].
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ICustomEventUserInterface.UpdateCustomEvent(System.String,System.Boolean)">
-            <summary>
-            Update the internal collection of custom events. This will either add the event to the collection
-            or update an existing event state. In either case, an update command is sent to the user interface project.
-            </summary>
-            <param name="eventTag">The unique tag of the event being added or updated.</param>
-            <param name="state">The new or current state of the custom event.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ICustomEventUserInterface.AddCustomEvent(System.String,System.String,System.Boolean)">
-            <summary>
-            Add a new event to the existing collection.
-            </summary>
-            <param name="eventTag">The unique ID of the event. Used for internal referencing</param>
-            <param name="eventLabel">The user-friendly name of the event</param>
-            <param name="currentState">true = event is active, false = event is not active</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ICustomEventUserInterface.RemoveCustomEvent(System.String)">
-            <summary>
-            Removes the target custom event from the internal collection if it exists.
-            </summary>
-            <param name="eventTag">The unique tag of the custom event to remove.</param>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.IDisplayUserInterface">
-            <summary>
-            Required methods, events, and properties for implementing a user interface that supports display control.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.DisplayPowerChangeRequest">
-            <summary>
-            Triggered when the user requests to change the current power status of a display.
-            arg = display ID.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.DisplayFreezeChangeRequest">
-            <summary>
-            Triggered when the user requests to change the current video freeze status of a display.
-            arg = display ID.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.DisplayBlankChangeRequest">
-            <summary>
-            Triggered when the user requests to change the current video blank/mute status of a display.
-            arg = display ID.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.DisplayScreenUpRequest">
-            <summary>
-            Triggered when the user requests to raise the screen associated with a display.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.DisplayScreenDownRequest">
-            <summary>
-            Triggered when the user requests to lower the screen associated with a display.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.StationLocalInputRequest">
-            <summary>
-            Triggered when the user requests to change a student workstation to the local input.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IDisplayUserInterface.StationLecternInputRequest">
-            <summary>
-            Triggered when the user requests to change a student workstation to the lectern input.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.UpdateDisplayPower(System.String,System.Boolean)">
-            <summary>
-            Update the UI with the current power status of the display.
-            </summary>
-            <param name="id">The unique ID of the display to update.</param>
-            <param name="newState">true = display on, false = display off</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.UpdateDisplayBlank(System.String,System.Boolean)">
-            <summary>
-            Update the UI with the current video blank status.
-            </summary>
-            <param name="id">The unique ID of the display to update.</param>
-            <param name="newState">true = blank on (no video), false = blank of (show video).</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.UpdateDisplayFreeze(System.String,System.Boolean)">
-            <summary>
-            Update the UI wth the current video freeze status.
-            </summary>
-            <param name="id">The unique ID of the display to update.</param>
-            <param name="newState">True = freeze on (no motion), false = freeze off (show motion).</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.UpdateDisplayConnectionStatus(System.String,System.Boolean)">
-            <summary>
-            Update the UI with the current connection status of the target display/projector.
-            </summary>
-            <param name="id">The id of the displays being updated.</param>
-            <param name="isOnline">True = device is connected, false = device is disconnected.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.SetDisplayData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.DisplayControl.DisplayInfoContainer})">
-            <summary>
-            Updates the user interface to display the new collection of controllable video outputs.
-            </summary>
-            <param name="displayData">The collection of data objects for all displays in the configuration.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.SetStationLocalInput(System.String)">
-            <summary>
-            Update the UI to indicated that the target student workstation is on the "Local" input.
-            </summary>
-            <param name="id">The ID if the station display to update.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IDisplayUserInterface.SetStationLecternInput(System.String)">
-            <summary>
-            Update the Ui to indicate that the target student workstation is on the "Lectern" input.
-            </summary>
-            <param name="id">The ID of the station display to update.</param>
+            <param name="control">the root entry point object that is used to establish a control connection.</param>
         </member>
         <member name="T:pkd_ui_service.Interfaces.IErrorInterface">
             <summary>
-            Required events, methods, and properties for implementing a user interface that supports device error reporting.
+            required events, methods, and properties for implementing a user interface that supports adding errors externally.
             </summary>
         </member>
         <member name="M:pkd_ui_service.Interfaces.IErrorInterface.AddDeviceError(System.String,System.String)">
             <summary>
-            Add a notice to the UI display indicating that the target device is offline.
+            Add an external error to the user interface. This is used when adding error notices that are thrown by the Presentation Service
+            of the framework and not the Application Service.
             </summary>
-            <param name="id">The unique ID of the device to add.</param>
-            <param name="label">The user-friendly label that will be displayed on the UI.</param>
+            <param name="id">the unique id of the error to add.</param>
+            <param name="message">The error message to display on the UI.</param>
         </member>
         <member name="M:pkd_ui_service.Interfaces.IErrorInterface.ClearDeviceError(System.String)">
             <summary>
-            Remove the target device from the offline list.
+            Removes an existing error from the ui.
             </summary>
-            <param name="id">The unique ID of the device to remove.</param>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.IHtmlUserInterface">
-            <summary>
-            required methods for implementing a user interface that is html-based.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IHtmlUserInterface.SetSystemType(System.String)">
-            <summary>
-            Send the general system type flag to the interface hardware.
-            </summary>
-            <param name="systemType">"baseline", "restaurant", or "flex".</param>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.ILightingUserInterface">
-            <summary>
-            Required events, methods and properties for implementing a user interface that supports lighting control.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ILightingUserInterface.LightingSceneRecallRequest">
-            <summary>
-            Triggered when the user requests to change the selected lighting scene on the target controller.
-            Arg1 = controller id, arg2 = scene id.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ILightingUserInterface.LightingLoadChangeRequest">
-            <summary>
-            Triggered when the user requests to change the load level of a target lighting zone.
-            arg1 = controller id, arg2 = zone id, arg3 = level to set.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ILightingUserInterface.SetLightingData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.LightingControl.LightingControlInfoContainer})">
-            <summary>
-            Update the UI with a new collection of lighting controllers and their associated zones/scenes.
-            </summary>
-            <param name="lightingData">The collection of all controllable lighting devices.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ILightingUserInterface.UpdateActiveLightingScene(System.String,System.String)">
-            <summary>
-            Update the UI with the currently selected scene for a target lighting controller.
-            </summary>
-            <param name="controlId">the unique ID of the controller being updated.</param>
-            <param name="sceneId">The unique ID of the scene that is active.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ILightingUserInterface.UpdateLightingZoneLoad(System.String,System.String,System.Int32)">
-            <summary>
-            Update the UI with the current load level of the zone on the target controller.
-            </summary>
-            <param name="controlId">The unique ID of the lighting controller.</param>
-            <param name="zoneId">The unique ID of the zone being updated.</param>
-            <param name="level">The new load level of the target zone.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ILightingUserInterface.UpdateLightingControlConnectionStatus(System.String,System.Boolean)">
-            <param name="controlId">The id of the lighting controller that changed.</param>
-            <param name="isOnline">true = device is connected, false = device is disconnected.</param>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.IRoutingUserInterface">
-            <summary>
-            Required events, methods and properties for implementing a user interface that supports AV routing.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IRoutingUserInterface.AvRouteChangeRequest">
-            <summary>
-            Triggered when the user requests to route an AV input to an AV output.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IRoutingUserInterface.UpdateAvRoute(pkd_application_service.AvRouting.AvSourceInfoContainer,System.String)">
-            <summary>
-            Update the user interface with the routing status of the target output.
-            </summary>
-            <param name="inputInfo">The input information for updating the UI routing status.</param>
-            <param name="outputId">The unique ID of the output being updated.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IRoutingUserInterface.SetRoutingData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.AvRouting.AvSourceInfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.Base.InfoContainer},System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.Base.InfoContainer})">
-            <summary>
-            Configure the interface with the routing source and destination information.
-            </summary>
-            <param name="sources">Collection of all source data in the system configuration.</param>
-            <param name="destinations">Collection of all destinations in the system configuration.</param>
-            <param name="avRouters">Collection of all AVR devices in the system configuration.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IRoutingUserInterface.UpdateAvRouterConnectionStatus(System.String,System.Boolean)">
-            <param name="avrId">the id of the AV router that is being updated.</param>
-            <param name="isOnline">true = device is online, false = device is offline.</param>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.ISecurityUserInterface">
-            <summary>
-            Required events, methods and properties for implementing a user interface that supports UI security features.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ISecurityUserInterface.EnableSecurityPasscodeLock">
-            <summary>
-            Send a notice to the UI to block user interaction unless a valid passcode is entered.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ISecurityUserInterface.EnableTechOnlyLock">
-            <summary>
-            Prevent any user interacting with the interface if it is not tagged as 'tech'.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ISecurityUserInterface.DisableTechOnlyLock">
-            <summary>
-            Removes the tech-only lock if it is currently active.
-            </summary>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.ISupportsGlobalVideoBlank">
-            <summary>
-            required events, methods, and properties for an interface that supports system-wide video blank controls.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ISupportsGlobalVideoBlank.GlobalBlankToggleRequest">
-            <summary>
-            Triggered when the user requests to change the global video blank state.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ISupportsGlobalVideoBlank.SetGlobalBlankState(System.Boolean)">
-            <summary>
-            Update the user interface with the current status of the global video blank.
-            </summary>
-            <param name="state">true = blank is active, false = normal video operation.</param>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.ISupportsGlobalVideoFreeze">
-            <summary>
-            required events, methods, and properties for an interface that supports system-wide video freeze controls.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ISupportsGlobalVideoFreeze.GlobalFreezeToggleRequest">
-            <summary>
-            Triggered when the user requests to change the global video freeze state.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ISupportsGlobalVideoFreeze.SetGlobalFreezeState(System.Boolean)">
-            <summary>
-            Update the user interface with the current status of the global video freeze.
-            </summary>
-            <param name="state">true = freeze active, false = normal video streaming.</param>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.ISupportsStateChangeControls">
-            <summary>
-            required events, methods, and properties for an interface that supports system-wide state changes.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ISupportsStateChangeControls.SystemStateChangeRequest">
-            <summary>
-            Triggered when the user requests to start or end the current session.
-            True = set system to in-use/on, false = set system to standby/off
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ISupportsStateChangeControls.SetSystemState(System.Boolean)">
-            <summary>
-            Update the UI to show either the in-use/active pages or the standby pages.
-            </summary>
-            <param name="state">true = the system is currently being used.
-            false = the system is currently in standby mode.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ISupportsStateChangeControls.ShowSystemStateChanging(System.Boolean)">
-            <summary>
-            Display a notice on the UI indicating that the system is transitioning
-            from standby to active or active to standby.
-            </summary>
-            <param name="state">True = show changing to active, false = show changing to standby.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ISupportsStateChangeControls.HideSystemStateChanging">
-            <summary>
-            Hide any notifications that indicate the system is changing state and notify the user that
-            the change is complete.
-            </summary>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.ITransportControlUserInterface">
-            <summary>
-            Required events, methods and properties for implementing a user interface that supports transport device controls.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ITransportControlUserInterface.TransportControlRequest">
-            <summary>
-            Trigger when the user requests a generic transport command (play, pause, up, down, etc.)
-            args package: Arg1 = the id of the device to control, Arg2 = the enum of the transport triggered.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ITransportControlUserInterface.TransportDialRequest">
-            <summary>
-            Trigger when the user requests to dial a specific channel.
-            Args package: Arg1 = id of the device to control, Arg2 = the channel to dial.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.ITransportControlUserInterface.TransportDialFavoriteRequest">
-            <summary>
-            Trigger when the user requests to dial a stored favorite.
-            Arg1 = the id of the device to control, Arg2 = the id of the preset to recall.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.ITransportControlUserInterface.SetCableBoxData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.Base.TransportInfoContainer})">
-            <summary>
-            Provide data on all devices in the configuration.
-            </summary>
-            <param name="data">A collection containg data objects for all controllable transport devices.</param>
-        </member>
-        <member name="T:pkd_ui_service.Interfaces.IUiComponent">
-            <summary>
-            Required methods when implementing a basic user interface component.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IUiComponent.Initialize">
-            <summary>
-            subscribes to UI hooks and initializes any data helpers.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IUiComponent.SetActiveDefaults">
-            <summary>
-            Set any UI configuration items that are necessary when the system is powered on.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IUiComponent.SetStandbyDefaults">
-            <summary>
-            Set any UI configuration items that are necessary when system is set to standby.
-            </summary>
+            <param name="id">the unique id of the error to remove.</param>
         </member>
         <member name="T:pkd_ui_service.Interfaces.IUserInterface">
             <summary>
@@ -922,57 +427,6 @@
             <param name="applicationService">The running application service for the system.</param>
             <exception cref="T:System.ArgumentNullException">If 'applicationService' is null.</exception>
         </member>
-        <member name="T:pkd_ui_service.Interfaces.IVideoWallUserInterface">
-            <summary>
-            Required events, methods and properties for implementing a user interface that supports video wall control.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IVideoWallUserInterface.VideoWallLayoutChangeRequest">
-            <summary>
-            Args package must be:<br/>
-            Arg1 - id of the video wall controller<br/>
-            Arg2 - id of the canvas being updated.
-            Arg3 - id of the new layout to set as active.
-            </summary>
-        </member>
-        <member name="E:pkd_ui_service.Interfaces.IVideoWallUserInterface.VideoWallRouteRequest">
-            <summary>
-            Args package must be:<br/>
-            Arg1 - id of the video wall controller.<br/>
-            Arg2 - id of the cell in the active layout being changed.<br/>
-            Arg3 - id of the source to route.
-            </summary>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.SetVideoWallData(System.Collections.ObjectModel.ReadOnlyCollection{pkd_application_service.VideoWallControl.VideoWallInfoContainer})">
-            <summary>
-            Provide the user interface with the video wall system configuration.
-            </summary>
-            <param name="videoWalls">Collection of device data for all video wall controllers in the system.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateActiveVideoWallLayout(System.String,System.String,System.String)">
-            <summary>
-            Update the active layout on a target controller
-            </summary>
-            <param name="controlId">The id of the video wall controller getting updated.</param>
-            <param name="canvasId">The id of the canvas that was updated.</param>
-            <param name="layoutId">The id of the new active layout.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateCellRoutedSource(System.String,System.String,System.String,System.String)">
-            <summary>
-            update the currently routed source on a video wall layout cell/window.
-            </summary>
-            <param name="controlId">The id of the controller being updated.</param>
-            <param name="canvasId">The id of the canvas being updated.</param>
-            <param name="cellId">The id of the cell/window being updated.</param>
-            <param name="sourceId">The id of the source that has been routed.</param>
-        </member>
-        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateVideoWallConnectionStatus(System.String,System.Boolean)">
-            <summary>
-            Update the user interface with the online status of a video wall controller.
-            </summary>
-            <param name="controlId">The id of the video wall controller that changed.</param>
-            <param name="onlineStatus">the current online status (true = online, false = offline).</param>
-        </member>
         <member name="T:pkd_ui_service.IPresentationService">
             <summary>
             minimum features of any presentation service implementation.
@@ -1008,19 +462,9 @@
             a Fusion room connection implementation.
             </summary>
         </member>
-        <member name="F:pkd_ui_service.PresentationService.StateChangeTimer">
-            <summary>
-            timer for showing the powering on/off modal for interfaces that don't implement it locally. 
-            </summary>
-        </member>
         <member name="F:pkd_ui_service.PresentationService.Disposed">
             <summary>
             true = object is disposed, false = not disposed.
-            </summary>
-        </member>
-        <member name="F:pkd_ui_service.PresentationService.TransitionTime">
-            <summary>
-            The amount of time to display the state change modal for interfaces that don't implement it locally.
             </summary>
         </member>
         <member name="M:pkd_ui_service.PresentationService.#ctor(pkd_application_service.IApplicationService,Crestron.SimplSharpPro.CrestronControlSystem)">
@@ -1068,37 +512,12 @@
             Unsubscribe from all events handlers added by <see cref="M:pkd_ui_service.PresentationService.BuildInterfaces"/>.
             </summary>
         </member>
-        <member name="M:pkd_ui_service.PresentationService.StateChangeTimerCallback(System.Object)">
-            <summary>
-            Callback action that is triggered once <see cref="F:pkd_ui_service.PresentationService.StateChangeTimer"/> expires.
-            </summary>
-            <param name="obj">The user object provided when the timer is set.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.TriggerStateChangeTimer">
-            <summary>
-            Begin the timer for system state change events.
-            </summary>
-        </member>
         <member name="M:pkd_ui_service.PresentationService.CameraAppConnectionChangeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
             <summary>
             Handle camera connection change notifications from the application service.
             </summary>
             <param name="sender">The object that triggered the event.</param>
             <param name="args">args.Arg = the id of the camera that updated.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.CameraAppPowerChangeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle camera power status notifications from the application service.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">args.Arg = the id of the camera that updated.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.VideoWallAppLayoutChangedHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle video wall layout change notifications from the application service.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">args.Arg = the id of the video wall that updated.</param>
         </member>
         <member name="M:pkd_ui_service.PresentationService.VideoWallAppConnectionChangeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
             <summary>
@@ -1107,54 +526,12 @@
             <param name="sender">The object that triggered the event.</param>
             <param name="args">args.Arg = the id of the video wall that updated.</param>
         </member>
-        <member name="M:pkd_ui_service.PresentationService.VideoWallAppRouteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs{System.String,System.String,System.String})">
-            <summary>
-            Handle video wall device connection status notifications from the application service.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">args.Arg1 = the id of the video wall that updated., Arg2 = ID of the cell that updated.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceTechLockoutHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.Boolean})">
-            <summary>
-            Handle technician "lockout" state notifications from the application service.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">args.Arg = true = all non-tech UIs should lock, false = unlock.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceLightingLoadHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle technician "lockout" state notifications from the application service.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">args.Arg = true = all non-tech UIs should lock, false = unlock.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceLightingSceneHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle lighting scene change notifications from the application service.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = the id of the lighting controller that updated.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceCustomEventHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle notifications from the application service for changes in event modes.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = the id of the event that changed.</param>
-        </member>
         <member name="M:pkd_ui_service.PresentationService.AppServiceDspConnectionHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
             <summary>
             Handle notifications from the application service about an audio DSP changing connection status.
             </summary>
             <param name="sender">The object that triggered the event.</param>
             <param name="args">Arg = the id of the DSP that changed.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceAudioInputLevelHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle notifications from the application service about volume level changes on inputs.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg = the id of the audio channel that changed.</param>
         </member>
         <member name="M:pkd_ui_service.PresentationService.AppServiceAudioInputMuteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
             <summary>
@@ -1177,40 +554,12 @@
             <param name="sender">The object that triggered the event.</param>
             <param name="args">Arg = the id of the audio channel that changed.</param>
         </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceAudioOutputRouteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle notifications from the application service about audio route changes.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg = the id of the audio output channel that changed.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceAudioZoneEnableHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle notifications from the application service about zone enable/disable changes for microphones.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = the id of the audio channel being updated, Arg2 = the id of the zone that changed.</param>
-        </member>
         <member name="M:pkd_ui_service.PresentationService.AppServiceDisplayConnectionHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
             <summary>
             Handle notifications from the application service about video display/projector connection status changes.
             </summary>
             <param name="sender">The object that triggered the event.</param>
             <param name="args">Arg1 = the id of the display that changed. Arg2 = true is online, false is offline.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceDisplayBlankHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
-            <summary>
-            Handle notifications from the application service about video display/projector video blank status changes.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = the id of the display that changed. Arg2 = true is blanked, false is showing video.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceDisplayFreezeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
-            <summary>
-            Handle notifications from the application service about video display/projector video freeze status changes.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = the id of the display that changed. Arg2 = true is frozen, false is not frozen.</param>
         </member>
         <member name="M:pkd_ui_service.PresentationService.AppServiceDisplayPowerHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
             <summary>
@@ -1219,26 +568,12 @@
             <param name="sender">The object that triggered the event.</param>
             <param name="e">Arg1 = the id of the display that changed. Arg2 = true is on, false is off.</param>
         </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceDisplayInputChangedHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle notifications from the application service about video display/projector input selection changes.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = the id of the display that changed.</param>
-        </member>
         <member name="M:pkd_ui_service.PresentationService.AppServiceEndpointConnectionHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
             <summary>
             Handle notifications from the application service about relay or control expander endpoint connection status changes.
             </summary>
             <param name="sender">The object that triggered the event.</param>
             <param name="args">Arg1 = the id of the endpoint device that changed. Arg2 = true is online, false is offline.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.AppServiceEndpointChangedHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Int32})">
-            <summary>
-            Handle notifications from the application service about endpoint state changes.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = the id of the endpoint that changed. Arg2 = the index on the endpoint device that changed.</param>
         </member>
         <member name="M:pkd_ui_service.PresentationService.AppServiceRouteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
             <summary>
@@ -1282,269 +617,12 @@
             <param name="sender">The object that triggered the event.</param>
             <param name="args">Generic empty event args.</param>
         </member>
-        <member name="M:pkd_ui_service.PresentationService.CameraPresetRecallHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle user interface triggered camera preset recall events.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = camera id, Arg2 = preset id</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.CameraPresetSaveHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle user interface triggered camera preset save events.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = camera id, Arg2 = preset id</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.CameraUiPanTiltHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,pkd_common_utils.DataObjects.Vector2D})">
-            <summary>
-            Handle user interface triggered camera pan/tilt events.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = camera id, Arg2 = the direction to move the camera</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.CameraUiZoomHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Int32})">
-            <summary>
-            Handle user interface triggered camera zoom events.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = camera id, Arg2 = negative values for wide, positive for telephoto, 0 to stop.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.CameraUiPowerHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
-            <summary>
-            Handle user interface triggered camera power change events.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = camera id, Arg2 = true is on, false is off </param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.VideoWallUiLayoutHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs{System.String,System.String,System.String})">
-            <summary>
-            Handle user interface triggered layout selection events.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = controller id, Arg2 = layout id</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.VideoWallRouteHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs{System.String,System.String,System.String})">
-            <summary>
-            Handle user interface triggered video wall cell routing events.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = control id, Arg2 = cell id, Arg3 = source id</param>
-        </member>
         <member name="M:pkd_ui_service.PresentationService.UiConnectionHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
             <summary>
             Handle user interface connection changes.
             </summary>
             <param name="sender">The object that triggered the event.</param>
             <param name="args">Arg1 = The id of the user interface that changed.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UpdateCustomEventUi(pkd_ui_service.Interfaces.ICustomEventUserInterface)">
-            <summary>
-            update a user interface with the current state of all event modes, if the ui supports event control.
-            </summary>
-            <param name="ui">the user interface to update.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiStatusChangeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.Boolean})">
-            <summary>
-            Handle user-interface triggers for changing the use state of the system.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg = true to set state active, false to set state standby.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiRouteChangeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle user-interface triggers for video routing.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="args">Arg1 = input id, Arg2 = output id.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiDisplayPowerHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
-            <summary>
-            Handle user-interface triggers for changing display/projector power state.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = id of the display to change, Arg2 = true for on, false for off.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiDisplayFreezeHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for changing display freeze state.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = id of the display to change, Arg2 = true for freeze, false for disable freeze.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiDisplayBlankHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for changing display video blank state.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = id of the display to change, Arg2 = true for blank, false for show video.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiGlobalBlankHandler(System.Object,System.EventArgs)">
-            <summary>
-            Handle user-interface triggers for changing global/AVR video blank.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = id of the display to change, Arg2 = true for blank, false for show video.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiGlobalFreezeHandler(System.Object,System.EventArgs)">
-            <summary>
-            Handle user-interface triggers for changing global/AVR freeze state.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = id of the display to change, Arg2 = true for freeze, false for disable freeze.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiDisplayScreenUpHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for raising a screen associated with a projector.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = id of the display associated with the screen to raise.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiDisplayScreenDownHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for lowering a screen associated with a projector.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = id of the display associated with the screen to lower.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiAudioOutputMuteRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for muting an audio output channel.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = id of the channel to mute.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiAudioOutputLevelUpRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for increasing an audio output channel level.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the channel to increase.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiAudioOutputLevelDownRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for decreasing an audio output channel level.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the channel to decrease.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiAudioOutputRouteRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle user-interface triggers for audio routing events.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = id of the input channel, Arg2 = id of the output channel.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiAudioInputMuteRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for input mute events.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the input to mute.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiAudioInputLevelDownRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for decreasing an audio input channel level.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the channel to decrease.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiAudioInputLevelUpRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for increasing an audio input channel level.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the channel to increase.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiAudioZoneToggleHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle user-interface triggers for toggling the input channel mix for a given output.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = id of the input channel. Arg2 = id of the output zone to toggle</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.DiscreteAudioOutputUiHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Int32})">
-            <summary>
-            Handle user-interface triggers for setting a level value for an audio output.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the channel to adjust, Arg2 = the 0-100 value to set.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.DiscreteAudioInputUiHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Int32})">
-            <summary>
-            Handle user-interface triggers for setting a level value for an audio input.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the channel to adjust, Arg2 = the 0-100 value to set.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.LightingUiLoadHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs{System.String,System.String,System.Int32})">
-            <summary>
-            Handle user-interface triggers for setting a load level for a lighting zone.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the controller to adjust, Arg2 = id of the lighting zone, Arg3 = the 0-100 value to set.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.LightingUiSceneHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle user-interface triggers for setting a lighting scene on a given controller.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the device to adjust, Arg2 = id of the scene to set.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.AddErrorToUi(System.String,System.String)">
-            <summary>
-            Update all user interfaces that support error reporting.
-            </summary>
-            <param name="id">The id of the error, used when referencing the specific error.</param>
-            <param name="label">The information to display on the user interface for the error.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.RemoveErrorFromUi(System.String)">
-            <summary>
-            Remove an existing error from all user interfaces.
-            </summary>
-            <param name="id">The id of the error that was added with <see cref="M:pkd_ui_service.PresentationService.AddErrorToUi(System.String,System.String)"/>.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiSetStationLecternHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for selecting the "station" input on a display.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the display.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.UiSetStationLocalHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
-            <summary>
-            Handle user-interface triggers for selecting the "lectern" input on a display.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg = id of the display.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.TransportUi_TransportDialRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle user interface requests to set a channel on a transport-controlled device (cable TV, DVR).
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = the id of the device to control, Arg2 = the channel to dial.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.TransportUi_TransportDialFavoriteRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
-            <summary>
-            Handle user interface requests to dial a saved favorite on a transport-controlled device (cable TV, DVR).
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = the id of the device to control, Arg2 = the id of the channel to dial.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.TransportUi_TransportControlRequest(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,pkd_ui_service.Utility.TransportTypes})">
-            <summary>
-            Handle user interface requests to send a transport/navigation to a device (cable TV, DVR).
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = the id of the device to control, Arg2 = transport control to trigger.</param>
-        </member>
-        <member name="M:pkd_ui_service.PresentationService.EventUi_CustomEventStateChanged(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.Boolean})">
-            <summary>
-            Handle user interface requests to set a custom event state.
-            </summary>
-            <param name="sender">The object that triggered the event.</param>
-            <param name="e">Arg1 = the id of the event, Arg2 = true to set active, false to set inactive.</param>
         </member>
         <member name="M:pkd_ui_service.PresentationService.FusionRouteSourceHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
             <summary>

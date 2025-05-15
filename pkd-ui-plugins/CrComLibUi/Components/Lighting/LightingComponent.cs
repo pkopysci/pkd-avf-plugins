@@ -1,43 +1,29 @@
 ﻿namespace CrComLibUi.Components.Lighting;
 
-using Crestron.SimplSharpPro.DeviceSupport;
-using pkd_application_service.LightingControl;
-using pkd_application_service.UserInterface;
-using pkd_common_utils.GenericEventArgs;
-using pkd_common_utils.Logging;
-using pkd_ui_service.Interfaces;
-using Api;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Api;
+using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json.Linq;
+using pkd_application_service.LightingControl;
+using pkd_application_service.UserInterface;
+using pkd_common_utils.GenericEventArgs;
+using pkd_common_utils.Logging;
 
 
-internal class LightingComponent : BaseComponent, ILightingUserInterface
+internal class LightingComponent(
+	BasicTriListWithSmartObject ui,
+	UserInterfaceDataContainer uiData,
+	ILightingControlApp appService)
+	: BaseComponent(ui, uiData)
 {
 	private const string CommandConfig = "CONFIG";
 	private const string CommandZone = "LOAD";
 	private const string CommandScene = "SCENE";
 	private const string CommandStatus = "STATUS";
-	private List<LightingData> _lights;
-
-	public LightingComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-		: base(ui, uiData)
-	{
-		GetHandlers.Add(CommandConfig, GetConfigHandler);
-		GetHandlers.Add(CommandScene, GetSceneHandler);
-		GetHandlers.Add(CommandZone, GetZoneHandler);
-		PostHandlers.Add(CommandZone, PostZoneHandler);
-		PostHandlers.Add(CommandScene, PostSceneHandler);
-		_lights = [];
-	}
-
-
-	/// <inheritdoc/>
-	public event EventHandler<GenericDualEventArgs<string, string>>? LightingSceneRecallRequest;
-	/// <inheritdoc/>
-	public event EventHandler<GenericTrippleEventArgs<string, string, int>>? LightingLoadChangeRequest;
+	private readonly List<LightingData> _lights = [];
 
 	/// <inheritdoc/>
 	public override void HandleSerialResponse(string response)
@@ -79,18 +65,32 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 	/// <inheritdoc/>
 	public override void Initialize()
 	{
-		Logger.Debug("CrComLibUI.LightingComponent.Initialize()");
-			
 		Initialized = false;
-		if (_lights.Count == 0)
-			Logger.Warn("CrComLibUI.LightingComponent.Initialize() - No lighting data has been added.");
+		
+		GetHandlers.Add(CommandConfig, GetConfigHandler);
+		GetHandlers.Add(CommandScene, GetSceneHandler);
+		GetHandlers.Add(CommandZone, GetZoneHandler);
+		PostHandlers.Add(CommandZone, PostZoneHandler);
+		PostHandlers.Add(CommandScene, PostSceneHandler);
+		
+		SetLightingData(appService.GetAllLightingDeviceInfo());
+		appService.LightingControlConnectionChanged += AppServiceOnLightingControlConnectionChanged;
+		appService.LightingLoadLevelChanged += AppServiceOnLightingLoadLevelChanged;
+		appService.LightingSceneChanged += AppServiceOnLightingSceneChanged;
+
 		Initialized = true;
 	}
 
-	/// <inheritdoc/>
-	public void SetLightingData(ReadOnlyCollection<LightingControlInfoContainer> lightingData)
+	public override void SendConfig()
 	{
-		_lights = [];
+		var response = MessageFactory.CreateGetResponseObject();
+		response.Command =  CommandConfig;
+		GetConfigHandler(response);
+	}
+	
+	private void SetLightingData(ReadOnlyCollection<LightingControlInfoContainer> lightingData)
+	{
+		_lights.Clear();
 		foreach (var controller in lightingData)
 		{
 			List<LightingSceneData> scenes = [];
@@ -127,17 +127,17 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 			_lights.Add(data);
 		}
 	}
-
-	/// <inheritdoc/>
-	public void UpdateActiveLightingScene(string controlId, string sceneId)
+	
+	private void AppServiceOnLightingSceneChanged(object? sender, GenericSingleEventArgs<string> e)
 	{
-		var control = _lights.FirstOrDefault(x => x.Id == controlId);
+		var control = _lights.FirstOrDefault(x => x.Id == e.Arg);
 		if (control == null)
 		{
-			Logger.Error("CrComLibUi.LightingComponent.UpdateActiveLightingScene() - No controller with ID {0}", controlId);
+			Logger.Error("CrComLibUi.LightingComponent.UpdateActiveLightingScene() - No controller with ID {0}", e.Arg);
 			return;
 		}
 
+		var sceneId = appService.GetActiveScene(e.Arg);
 		foreach (var scene in control.Scenes)
 		{
 			scene.Set = scene.Id.Equals(sceneId);
@@ -149,42 +149,40 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 			Send(message, ApiHooks.LightingControl);
 		}
 	}
-	
-	/// <inheritdoc/>
-	public void UpdateLightingControlConnectionStatus(string controlId, bool isOnline)
+
+	private void AppServiceOnLightingLoadLevelChanged(object? sender, GenericDualEventArgs<string, string> e)
 	{
-		var control = _lights.FirstOrDefault(x => x.Id == controlId);
+		var control = _lights.FirstOrDefault(x => x.Id == e.Arg1);
 		if (control == null)
 		{
-			Logger.Error($"CrComLibUi.LightingComponent.UpdateLightingControlConnectionStatus() - no controller with id {controlId}");
+			Logger.Error("CrComLibUI.LightingComponent.UpdateActiveLightingScene() - No controller with ID {0}", e.Arg1);
 			return;
 		}
-
-		var message = MessageFactory.CreateGetResponseObject();
-		message.Command = CommandStatus;
-		message.Data["ControlId"] = controlId;
-		message.Data["IsOnline"] = isOnline;
-		Send(message, ApiHooks.LightingControl);
-	}
-
-	/// <inheritdoc/>
-	public void UpdateLightingZoneLoad(string controlId, string zoneId, int level)
-	{
-		var control = _lights.FirstOrDefault(x => x.Id == controlId);
-		if (control == null)
-		{
-			Logger.Error("CrComLibUI.LightingComponent.UpdateActiveLightingScene() - No controller with ID {0}", controlId);
-			return;
-		}
-
+		
 		foreach (var zone in control.Zones)
 		{
-			if (!zone.Id.Equals(zoneId)) continue;
-			zone.Load = level;
+			if (!zone.Id.Equals(e.Arg2)) continue;
+			zone.Load = appService.GetZoneLoad(e.Arg1, e.Arg2);
 			var message = MessageFactory.CreateGetResponseObject();
 			message.Command = CommandZone;
 			break;
 		}
+	}
+
+	private void AppServiceOnLightingControlConnectionChanged(object? sender, GenericDualEventArgs<string, bool> e)
+	{
+		var control = _lights.FirstOrDefault(x => x.Id == e.Arg1);
+		if (control == null)
+		{
+			Logger.Error($"CrComLibUi.LightingComponent.UpdateLightingControlConnectionStatus() - no controller with id {e.Arg2}");
+			return;
+		}
+		
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandStatus;
+		message.Data["ControlId"] = e.Arg1;
+		message.Data["IsOnline"] = e.Arg2;
+		Send(message, ApiHooks.LightingControl);
 	}
 	
 	private void HandleGetRequests(ResponseBase response)
@@ -320,9 +318,8 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 					ApiHooks.LightingControl);
 				return;
 			}
-
-			var temp = LightingLoadChangeRequest;
-			temp?.Invoke(this, new GenericTrippleEventArgs<string, string, int>(control.Id, zoneId, load));
+			
+			appService.SetLightingLoad(controlId, zoneId, load);
 		}
 		catch (Exception e)
 		{
@@ -352,8 +349,7 @@ internal class LightingComponent : BaseComponent, ILightingUserInterface
 				return;
 			}
 
-			var temp = LightingSceneRecallRequest;
-			temp?.Invoke(this, new GenericDualEventArgs<string, string>(control.Id, sceneId));
+			appService.RecallLightingScene(controlId, sceneId);
 		}
 		catch (Exception e)
 		{

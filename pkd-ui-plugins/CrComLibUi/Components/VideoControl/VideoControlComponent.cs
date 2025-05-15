@@ -2,6 +2,11 @@
 
 namespace CrComLibUi.Components.VideoControl;
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Dynamic;
+using System.Linq;
 using Api;
 using Crestron.SimplSharpPro.DeviceSupport;
 using pkd_application_service.AvRouting;
@@ -10,11 +15,6 @@ using pkd_application_service.UserInterface;
 using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
 using pkd_ui_service.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Dynamic;
-using System.Linq;
 
 internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 {

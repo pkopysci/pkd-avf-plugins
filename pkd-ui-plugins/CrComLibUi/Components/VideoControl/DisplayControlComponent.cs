@@ -1,17 +1,17 @@
 ﻿namespace CrComLibUi.Components.VideoControl;
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using Api;
 using Crestron.SimplSharpPro.DeviceSupport;
+using Newtonsoft.Json.Linq;
 using pkd_application_service.DisplayControl;
 using pkd_application_service.UserInterface;
 using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
 using pkd_ui_service.Interfaces;
-using Api;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using Newtonsoft.Json.Linq;
 
 internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 {

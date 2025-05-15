@@ -125,7 +125,7 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUse
         _configPath = uiData.SgdFile;
     }
 
-    public void SetCrestronControl(CrestronControlSystem parent, int _)
+    public void SetCrestronControl(CrestronControlSystem parent)
     {
         Logger.Debug("AVF Rest API - SetCrestronControl()");
         _controlSystem = parent;

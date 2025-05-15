@@ -44,7 +44,7 @@ public class ControlSystem : CrestronControlSystem
     private void RunTest(string cmd)
     {
         _server = new RestApiUserInterface();
-        _server.SetCrestronControl(this, 8080);
+        _server.SetCrestronControl(this);
         _server.SetApplicationService(new ApplicationService());
         _server.Initialize();
         _server.Connect();

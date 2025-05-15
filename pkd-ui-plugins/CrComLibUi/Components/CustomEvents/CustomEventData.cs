@@ -1,7 +1,7 @@
 ﻿namespace CrComLibUi.Components.CustomEvents;
 
-using Newtonsoft.Json;
 using System.ComponentModel;
+using Newtonsoft.Json;
 
 internal class CustomEventData
 {

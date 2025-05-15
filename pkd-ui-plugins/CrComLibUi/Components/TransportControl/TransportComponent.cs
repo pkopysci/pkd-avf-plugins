@@ -1,43 +1,28 @@
-﻿namespace CrComLibUi.Components.TransportControl;
+﻿using pkd_application_service.TransportControl;
 
-using Crestron.SimplSharpPro.DeviceSupport;
-using pkd_application_service.Base;
-using pkd_application_service.UserInterface;
-using pkd_common_utils.GenericEventArgs;
-using pkd_common_utils.Logging;
-using pkd_ui_service.Interfaces;
-using pkd_ui_service.Utility;
-using Api;
+namespace CrComLibUi.Components.TransportControl;
+
 using System;
 using System.Collections.ObjectModel;
+using Api;
+using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json.Linq;
+using pkd_application_service.Base;
+using pkd_application_service.UserInterface;
+using pkd_common_utils.Logging;
+using pkd_ui_service.Utility;
 
-internal class TransportComponent : BaseComponent, ITransportControlUserInterface
+internal class TransportComponent(
+	BasicTriListWithSmartObject ui,
+	UserInterfaceDataContainer uiData,
+	ITransportControlApp appService)
+	: BaseComponent(ui, uiData)
 {
 	private const string CommandConfig = "CONFIG";
 	private const string CommandTransport = "TRANSPORT";
 	private const string CommandFavorite = "FAVORITE";
 	private const string CommandChannel = "CHANNEL";
-	private ReadOnlyCollection<TransportInfoContainer> _devices;
-
-	public TransportComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-		: base(ui, uiData)
-	{
-		GetHandlers.Add(CommandConfig, HandleGetConfigRequest);
-		PostHandlers.Add(CommandFavorite, HandlePostFavoriteRequest);
-		PostHandlers.Add(CommandTransport, HandlePostTransportRequest);
-		PostHandlers.Add(CommandChannel, HandlePostChannelRequest);
-		_devices = new ReadOnlyCollection<TransportInfoContainer>([]);
-	}
-
-	/// <inheritdoc/>
-	public event EventHandler<GenericDualEventArgs<string, TransportTypes>>? TransportControlRequest;
-		
-	/// <inheritdoc/>
-	public event EventHandler<GenericDualEventArgs<string, string>>? TransportDialRequest;
-		
-	/// <inheritdoc/>
-	public event EventHandler<GenericDualEventArgs<string, string>>? TransportDialFavoriteRequest;
+	private ReadOnlyCollection<TransportInfoContainer> _devices = new([]);
 
 	/// <inheritdoc/>
 	public override void HandleSerialResponse(string response)
@@ -79,20 +64,20 @@ internal class TransportComponent : BaseComponent, ITransportControlUserInterfac
 	/// <inheritdoc/>
 	public override void Initialize()
 	{
-		if(_devices.Count == 0)
-			Logger.Debug("CrComLibUi.TransportComponent.Initialize() - no device data set.");
+		GetHandlers.Add(CommandConfig, HandleGetConfigRequest);
+		PostHandlers.Add(CommandFavorite, HandlePostFavoriteRequest);
+		PostHandlers.Add(CommandTransport, HandlePostTransportRequest);
+		PostHandlers.Add(CommandChannel, HandlePostChannelRequest);
+
+		_devices = appService.GetAllCableBoxes();
 		Initialized = true;
 	}
 
-	/// <inheritdoc/>
-	public void SetCableBoxData(ReadOnlyCollection<TransportInfoContainer> data)
+	public override void SendConfig()
 	{
-		_devices = data;
-		if (!Initialized) return;
-		var rx = MessageFactory.CreateGetResponseObject();
-		rx.Command = CommandConfig;
-		rx.Data["Devices"] = JToken.FromObject(_devices);
-		Send(rx, ApiHooks.DeviceControl);
+		var response = MessageFactory.CreateGetResponseObject();
+		response.Command = CommandConfig;
+		HandleGetConfigRequest(response);
 	}
 
 	private void HandleGetRequest(ResponseBase message)
@@ -158,8 +143,7 @@ internal class TransportComponent : BaseComponent, ITransportControlUserInterfac
 				return;
 			}
 
-			var temp = TransportDialFavoriteRequest;
-			temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, favoriteId));
+			appService.TransportDialFavorite(deviceId, favoriteId);
 		}
 		catch (Exception e)
 		{
@@ -195,8 +179,7 @@ internal class TransportComponent : BaseComponent, ITransportControlUserInterfac
 				return;
 			}
 
-			var temp = TransportControlRequest;
-			temp?.Invoke(this, new GenericDualEventArgs<string, TransportTypes>(deviceId, transport));
+			TransportUtilities.SendCommand(appService, deviceId, transport);
 		}
 		catch (Exception e)
 		{
@@ -223,9 +206,8 @@ internal class TransportComponent : BaseComponent, ITransportControlUserInterfac
 				SendError($"Invalid POST channel request - no device with id {deviceId}", ApiHooks.DeviceControl);
 				return;
 			}
-
-			var temp = TransportDialRequest;
-			temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, channel));
+			
+			appService.TransportDial(deviceId, channel);
 		}
 		catch (Exception e)
 		{
