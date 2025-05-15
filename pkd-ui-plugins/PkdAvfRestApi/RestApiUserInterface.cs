@@ -25,11 +25,8 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUse
     private IApplicationService? _applicationService;
     private bool _disposed;
     private string _configPath = string.Empty;
-
-    public event EventHandler<GenericSingleEventArgs<bool>>? SystemStateChangeRequest;
+    
     public event EventHandler<GenericSingleEventArgs<string>>? OnlineStatusChanged;
-    public event EventHandler? GlobalFreezeToggleRequest;
-    public event EventHandler? GlobalBlankToggleRequest;
 
     public bool IsInitialized { get; private set; }
     public bool IsOnline { get; private set; }
@@ -39,26 +36,6 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUse
     ~RestApiUserInterface()
     {
         Dispose(false);
-    }
-
-    public void SetSystemState(bool state)
-    {
-    }
-
-    public void ShowSystemStateChanging(bool state)
-    {
-    }
-
-    public void HideSystemStateChanging()
-    {
-    }
-
-    public void SetGlobalFreezeState(bool state)
-    {
-    }
-
-    public void SetGlobalBlankState(bool state)
-    {
     }
 
     public void Initialize()

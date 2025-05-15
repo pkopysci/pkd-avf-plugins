@@ -931,7 +931,8 @@
             <summary>
             Args package must be:<br/>
             Arg1 - id of the video wall controller<br/>
-            Arg2 - id of the new layout to set as active.
+            Arg2 - id of the canvas being updated.
+            Arg3 - id of the new layout to set as active.
             </summary>
         </member>
         <member name="E:pkd_ui_service.Interfaces.IVideoWallUserInterface.VideoWallRouteRequest">
@@ -948,18 +949,20 @@
             </summary>
             <param name="videoWalls">Collection of device data for all video wall controllers in the system.</param>
         </member>
-        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateActiveVideoWallLayout(System.String,System.String)">
+        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateActiveVideoWallLayout(System.String,System.String,System.String)">
             <summary>
             Update the active layout on a target controller
             </summary>
             <param name="controlId">The id of the video wall controller getting updated.</param>
+            <param name="canvasId">The id of the canvas that was updated.</param>
             <param name="layoutId">The id of the new active layout.</param>
         </member>
-        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateCellRoutedSource(System.String,System.String,System.String)">
+        <member name="M:pkd_ui_service.Interfaces.IVideoWallUserInterface.UpdateCellRoutedSource(System.String,System.String,System.String,System.String)">
             <summary>
             update the currently routed source on a video wall layout cell/window.
             </summary>
             <param name="controlId">The id of the controller being updated.</param>
+            <param name="canvasId">The id of the canvas being updated.</param>
             <param name="cellId">The id of the cell/window being updated.</param>
             <param name="sourceId">The id of the source that has been routed.</param>
         </member>
@@ -1314,7 +1317,7 @@
             <param name="sender">The object that triggered the event.</param>
             <param name="args">Arg1 = camera id, Arg2 = true is on, false is off </param>
         </member>
-        <member name="M:pkd_ui_service.PresentationService.VideoWallUiLayoutHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericDualEventArgs{System.String,System.String})">
+        <member name="M:pkd_ui_service.PresentationService.VideoWallUiLayoutHandler(System.Object,pkd_common_utils.GenericEventArgs.GenericTrippleEventArgs{System.String,System.String,System.String})">
             <summary>
             Handle user interface triggered layout selection events.
             </summary>

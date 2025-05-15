@@ -5,7 +5,7 @@ namespace VideoWallEmulation;
 
 public static class WallData
 {
-    public static List<VideoWallLayout> CreateLayouts()
+    public static List<EmulatedVideoWallCanvas> CreateCanvases()
     {
         List<VideoWallLayout> layouts =
         [
@@ -60,8 +60,22 @@ public static class WallData
                 Cells = [ new VideoWallCell { Id = "vw04c01", XPosition = 1, YPosition = 1, DefaultSourceId = "vws01"} ]
             }
         ];
+
+        List<EmulatedVideoWallCanvas> canvases =
+        [
+            new ()
+            {
+                Id = "canv01",
+                Label = "Canvas 1",
+                Layouts = layouts,
+                MaxHeight = 2,
+                MaxWidth = 4,
+                StartupLayoutId = "vw01",
+                Tags = []
+            }
+        ];
         
-        return layouts;
+        return canvases;
     }
 
     public static List<Source> CreateSources()

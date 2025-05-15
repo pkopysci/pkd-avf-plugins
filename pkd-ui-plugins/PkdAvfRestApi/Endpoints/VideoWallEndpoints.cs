@@ -77,10 +77,13 @@ internal static class VideoWallEndpoints
                 var wall = _appService.GetAllVideoWalls().FirstOrDefault(vw => vw.Id == data.VideoWall);
                 if (wall == null) return Results.NotFound($"Video Wall with id {data.VideoWall} not found.");
 
-                var layout = wall.Layouts.FirstOrDefault(l => l.Id == data.Layout);
-                if (layout == null) return Results.NotFound($"Layout id {data.Layout} not found for {data.VideoWall}.");
+                var canvas = wall.Canvases.FirstOrDefault(c => c.Id.Equals(data.Canvas));
+                if (canvas == null) return Results.NotFound($"Video Wall with id {data.VideoWall} - canvas {data.Canvas} not found.");
+                
+                var layout = canvas.Layouts.FirstOrDefault(l => l.Id == data.Layout);
+                if (layout == null) return Results.NotFound($"Layout id {data.Layout} not found for {data.VideoWall} - canvas {data.Canvas}.");
 
-                _appService.SetActiveVideoWallLayout(data.VideoWall, data.Layout);
+                _appService.SetActiveVideoWallLayout(data.VideoWall, data.Canvas, data.Layout);
                 return Results.NoContent();
             }
             catch (Exception e)
@@ -104,8 +107,11 @@ internal static class VideoWallEndpoints
                 var wall = _appService.GetAllVideoWalls().FirstOrDefault(vw => vw.Id == data.VideoWall);
                 if (wall == null) return Results.NotFound($"VideoWall with id {data.VideoWall} not found.");
 
-                var activeLayout = _appService.QueryActiveVideoWallLayout(wall.Id);
-                var layout = wall.Layouts.FirstOrDefault(layout => layout.Id == activeLayout);
+                var canvas = wall.Canvases.FirstOrDefault(c => c.Id.Equals(data.Canvas));
+                if (canvas == null) return Results.NotFound($"Video Wall {data.VideoWall} - canvas {data.Canvas} not found.");
+                
+                var activeLayout = _appService.QueryActiveVideoWallLayout(wall.Id, canvas.Id);
+                var layout = canvas.Layouts.FirstOrDefault(layout => layout.Id == activeLayout);
                 if (layout?.Cells.FindIndex(x => x.Id == data.Cell) < 0)
                 {
                     return Results.NotFound(
@@ -117,7 +123,7 @@ internal static class VideoWallEndpoints
                     return Results.NotFound($"Video Wall Does not have an input source with id {data.Input}.");
                 }
 
-                _appService.SetVideoWallCellRoute(wall.Id, data.Cell, data.Input);
+                _appService.SetVideoWallCellRoute(wall.Id, canvas.Id, data.Cell, data.Input);
                 return Results.NoContent();
             }
             catch (Exception e)
@@ -132,28 +138,39 @@ internal static class VideoWallEndpoints
 
     private static VideoWallDto CreateVideoWallDto(VideoWallInfoContainer videoWall)
     {
-        List<VideoWallLayoutDto> layouts = [];
-        foreach (var layout in videoWall.Layouts)
+        List<VideoWallCanvasDto> canvases = [];
+        foreach (var canvas in videoWall.Canvases)
         {
-            List<VideoWallCellDto> cells = [];
-            foreach (var cell in layout.Cells)
+            List<VideoWallLayoutDto> layouts = [];
+            foreach (var layout in canvas.Layouts)
             {
-                cells.Add(new VideoWallCellDto(
-                    Id: cell.Id,
-                    XPosition: cell.XPosition,
-                    YPosition: cell.YPosition,
-                    SourceId: cell.SourceId
+                List<VideoWallCellDto> cells = [];
+                foreach (var cell in layout.Cells)
+                {
+                    cells.Add(new VideoWallCellDto(
+                        Id: cell.Id,
+                        XPosition: cell.XPosition,
+                        YPosition: cell.YPosition,
+                        SourceId: cell.SourceId
+                    ));
+                }
+
+                layouts.Add(new VideoWallLayoutDto(
+                    Id: layout.Id,
+                    Label: layout.Label,
+                    Cells: cells,
+                    VideoWallControlId: layout.VideoWallControlId,
+                    Width: layout.Width,
+                    Height: layout.Height
                 ));
             }
 
-            layouts.Add(new VideoWallLayoutDto(
-                Id: layout.Id,
-                Label: layout.Label,
-                Cells: cells,
-                VideoWallControlId: layout.VideoWallControlId,
-                Width: layout.Width,
-                Height: layout.Height
-            ));
+            canvases.Add(new VideoWallCanvasDto(
+                canvas.Id,
+                canvas.Label,
+                _appService?.QueryActiveVideoWallLayout(videoWall.Id, canvas.Id) ?? string.Empty,
+                [],
+                layouts));
         }
 
         List<VideoInputDto> sources = [];
@@ -173,8 +190,7 @@ internal static class VideoWallEndpoints
             Label: videoWall.Label,
             Manufacturer: videoWall.Manufacturer,
             Model: videoWall.Model,
-            ActiveLayout: _appService == null ? string.Empty : _appService.QueryActiveVideoWallLayout(videoWall.Id),
-            Layouts: layouts,
+            Canvases: canvases,
             Tags: videoWall.Tags,
             IsOnline: videoWall.IsOnline,
             Sources: sources

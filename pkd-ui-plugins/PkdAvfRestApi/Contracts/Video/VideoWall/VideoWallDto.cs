@@ -7,9 +7,8 @@ internal record VideoWallDto(
     string Label,
     string Manufacturer,
     string Model,
-    string ActiveLayout,
     bool IsOnline,
     List<string> Tags,
-    List<VideoWallLayoutDto> Layouts,
+    List<VideoWallCanvasDto> Canvases,
     List<VideoInputDto> Sources
 );

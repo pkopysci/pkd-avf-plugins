@@ -21,18 +21,41 @@ public class VideoWallLayoutData
     public string Label { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public List<VideoWallCellData> Cells { get; set; } = [];
+
+    public void SetCellSource(string cellId, string sourceId)
+    {
+        var cell = Cells.FirstOrDefault(x => x.Id.Equals(cellId));
+        if (cell != null) cell.SourceId = sourceId;
+    }
+}
+
+public class VideoWallCanvasData
+{
+    public string Id { get; init; } = string.Empty;
+    public string Label { get; init; } = string.Empty;
+    public string StartupLayoutId { get; init; } = string.Empty;
+    
+    public string ActiveLayoutId { get; set; } = string.Empty;
+    public int MaxWidth { get; init; }
+    public int MaxHeight { get; init; }
+    public List<VideoWallLayoutData> Layouts { get; init; } = [];
+
+    public VideoWallLayoutData? GetActiveLayout()
+    {
+        return Layouts.FirstOrDefault(x => x.Id.Equals(ActiveLayoutId));
+    }
 }
 
 public class VideoWallControlData
 {
-    public string Id { get; set; } = string.Empty;
-    public string Label { get; set; } = string.Empty;
-    public string Icon { get; set; } = string.Empty;
+    public string Id { get; init; } = string.Empty;
+    public string Label { get; init; } = string.Empty;
+    public string Icon { get; init; } = string.Empty;
     public bool IsOnline { get; set; }
     public List<string> Tags { get; set; } = [];
-    public List<VideoWallLayoutData> Layouts { get; set; } = [];
+    public List<VideoWallCanvasData> Canvases { get; set; } = [];
     
-    public List<AvSourceInfoContainer> Sources { get; set; } = [];
+    public List<AvSourceInfoContainer> Sources { get; init; } = [];
 }
 
 public static class ConfigDataFactory
@@ -41,6 +64,7 @@ public static class ConfigDataFactory
         ReadOnlyCollection<VideoWallInfoContainer> videoWalls)
     {
         List<VideoWallControlData> controllerCollection = [];
+        
         foreach (var wall in videoWalls)
         {
             controllerCollection.Add(new VideoWallControlData()
@@ -49,13 +73,34 @@ public static class ConfigDataFactory
                 Label = wall.Label,
                 Icon = wall.Icon,
                 Tags = wall.Tags,
-                Layouts = CreateVideoWallLayoutData(wall.Layouts),
+                Canvases = CreateVideoWallCanvasInfos(wall),
                 IsOnline = wall.IsOnline,
                 Sources = wall.Sources.ToList(),
             });
         }
         
         return controllerCollection;
+    }
+
+    private static List<VideoWallCanvasData> CreateVideoWallCanvasInfos(
+        VideoWallInfoContainer videoWall)
+    {
+        List<VideoWallCanvasData> canvases = [];
+
+        foreach (var canvas in videoWall.Canvases)
+        {
+            canvases.Add(new()
+            {
+                Id = canvas.Id,
+                Label = canvas.Label,
+                StartupLayoutId = canvas.StartupLayoutId,
+                MaxWidth = canvas.MaxWidth,
+                MaxHeight = canvas.MaxHeight,
+                Layouts = CreateVideoWallLayoutData(canvas.Layouts)
+            });
+        }
+        
+        return canvases;
     }
 
     private static List<VideoWallCellData> CreateVideoWallCellData(List<VideoWallCellInfo> cells)
@@ -76,7 +121,7 @@ public static class ConfigDataFactory
         return cellData;
     }
 
-    private static List<VideoWallLayoutData> CreateVideoWallLayoutData(ReadOnlyCollection<VideoWallLayoutInfo> layouts)
+    private static List<VideoWallLayoutData> CreateVideoWallLayoutData(List<VideoWallLayoutInfo> layouts)
     {
         List<VideoWallLayoutData> layoutData = [];
 

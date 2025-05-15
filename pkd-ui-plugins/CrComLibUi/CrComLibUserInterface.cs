@@ -39,6 +39,9 @@ using System.Collections.ObjectModel;
 /// </summary>
 public class CrComLibUserInterface :
 	IUserInterface,
+	ISupportsGlobalVideoBlank,
+	ISupportsGlobalVideoFreeze,
+	ISupportsStateChangeControls,
 	ICrestronUserInterface,
 	IHtmlUserInterface,
 	IRoutingUserInterface,
@@ -175,7 +178,7 @@ public class CrComLibUserInterface :
 	public event EventHandler<GenericDualEventArgs<string, bool>>? CustomEventChangeRequest;
 
 	/// <inheritdoc/>
-	public event EventHandler<GenericDualEventArgs<string, string>>? VideoWallLayoutChangeRequest;
+	public event EventHandler<GenericTrippleEventArgs<string, string, string>>? VideoWallLayoutChangeRequest;
 	
 	/// <inheritdoc/>
 	public event EventHandler<GenericTrippleEventArgs<string, string, string>>? VideoWallRouteRequest;
@@ -332,12 +335,12 @@ public class CrComLibUserInterface :
 	public void SetVideoWallData(ReadOnlyCollection<VideoWallInfoContainer> videoWalls) =>
 		FindComponent<IVideoWallUserInterface>()?.SetVideoWallData(videoWalls);
 
-	public void UpdateActiveVideoWallLayout(string controlId, string layoutId) =>
-		FindComponent<IVideoWallUserInterface>()?.UpdateActiveVideoWallLayout(controlId, layoutId);
+	public void UpdateActiveVideoWallLayout(string controlId, string canvasId, string layoutId) =>
+		FindComponent<IVideoWallUserInterface>()?.UpdateActiveVideoWallLayout(controlId, canvasId, layoutId);
 
-	public void UpdateCellRoutedSource(string controlId, string cellId, string sourceId)
+	public void UpdateCellRoutedSource(string controlId, string canvasId, string cellId, string sourceId)
 	{
-		FindComponent<IVideoWallUserInterface>()?.UpdateCellRoutedSource(controlId, cellId, sourceId);
+		FindComponent<IVideoWallUserInterface>()?.UpdateCellRoutedSource(controlId, canvasId, cellId, sourceId);
 	}
 
 	public void UpdateVideoWallConnectionStatus(string controlId, bool onlineStatus) =>
@@ -780,7 +783,7 @@ public class CrComLibUserInterface :
 		temp?.Invoke(this, args);
 	}
 
-	private void VideoWallLayoutHandler(object? sender, GenericDualEventArgs<string, string> args)
+	private void VideoWallLayoutHandler(object? sender, GenericTrippleEventArgs<string, string, string> args)
 	{
 		var temp = VideoWallLayoutChangeRequest;
 		temp?.Invoke(this, args);

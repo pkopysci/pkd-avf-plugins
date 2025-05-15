@@ -7,23 +7,37 @@ namespace VideoWallEmulation;
 
 public class VideoWallEmulator : IVideoWallDevice
 {
-    private VideoWallLayout? _activeLayout;
+    private List<EmulatedVideoWallCanvas> _internalCanvases = [];
     
-    public event EventHandler? VideoWallLayoutChanged;
-    public event EventHandler<GenericSingleEventArgs<string>>? VideoWallCellSourceChanged;
+    public event EventHandler<GenericSingleEventArgs<string>>? VideoWallLayoutChanged;
+    public event EventHandler<GenericDualEventArgs<string, string>>? VideoWallCellSourceChanged;
     public event EventHandler<GenericSingleEventArgs<string>>? ConnectionChanged;
 
     public string Id { get; private set; } = "DefaultId";
     public string Label { get; private set; } = string.Empty;
     public string Manufacturer { get; set; } = "Emulation Inc.";
     public string Model { get; set; } = "VW Emulator 9001";
-    public string StartupLayoutId { get; } = "vw01";
+    
     public bool IsOnline { get; private set; }
     public bool IsInitialized { get; private set; }
-    public List<VideoWallLayout> Layouts { get; private set; } = [];
+
     public List<Source> Sources { get; private set; } = [];
-    public int MaxHeight { get; } = 2;
-    public int MaxWidth { get; } = 4;
+    
+    public List<VideoWallCanvas> Canvases
+    {
+        get
+        {
+            var canvases = new List<VideoWallCanvas>();
+            foreach (var internalCanvas in _internalCanvases)
+            {
+                canvases.Add(internalCanvas);
+            }
+            
+            return canvases;
+        }    
+    }
+    
+    
     
     
     public void Connect()
@@ -44,70 +58,85 @@ public class VideoWallEmulator : IVideoWallDevice
     {
         Id = id;
         Label = label;
-        Layouts = WallData.CreateLayouts();
+        _internalCanvases = WallData.CreateCanvases();
         Sources = WallData.CreateSources();
         IsInitialized = true;
     }
 
-    public void SetActiveLayout(string id)
+    public void SetActiveLayout(string canvasId, string layoutId)
     {
-        var found = Layouts.Find(x => x.Id == id);
-        if (found == null)
+        var canvas = _internalCanvases.Find(x => x.Id == canvasId);
+        if (canvas == null)
         {
-            Logger.Error($"VideoWallEmulator {Id} - SetActiveLayout() - Layout {id} not found.");
+            Logger.Error($"VideoWallEmulator {Id} - SetActiveLayout() - canvas {canvasId} not found.");
+            return;
+        }
+
+        var layout = canvas.Layouts.FirstOrDefault(y => y.Id.Equals(layoutId));
+        if (layout == null)
+        {
+            Logger.Error($"VideoWallEmulator {Id} - SetActiveLayout() - canvas {canvasId} does not have a layout with id {layoutId}.");
             return;
         }
         
-        _activeLayout = found;
+        canvas.ActiveLayoutId = layoutId;
+
         var temp = VideoWallLayoutChanged;
-        temp?.Invoke(this, new GenericSingleEventArgs<string>(Id));
+        temp?.Invoke(this, new GenericSingleEventArgs<string>(canvas.Id));
 
-        foreach (var cell in _activeLayout.Cells)
+        foreach (var cell in layout.Cells)
         {
-            SetCellSource(cell.Id, cell.DefaultSourceId);
+            SetCellSource(canvasId, cell.Id, cell.DefaultSourceId);
         }
     }
 
-    public string GetActiveLayoutId()
+    public string GetActiveLayoutId(string canvasId)
     {
-        return _activeLayout?.Id ?? string.Empty;
+        var canvas = _internalCanvases.FirstOrDefault(x => x.Id.Equals(canvasId));
+        if (canvas == null)
+        {
+            Logger.Error($"VideoWallEmulator {Id} - GetActiveLayoutId() - canvas {canvasId} not found.");
+            return string.Empty;
+        }
+        
+        return canvas.ActiveLayoutId;
     }
 
-    public void SetCellSource(string cellId, string sourceId)
+    public void SetCellSource(string canvasId, string cellId, string sourceId)
     {
-        if (_activeLayout == null)
+        var canvas = _internalCanvases.FirstOrDefault(x => x.Id.Equals(canvasId));
+        if (canvas == null)
         {
-            Logger.Error($"VideoWallEmulator {Id} - SetCellSource() - No active layout.");
+            Logger.Error($"VideoWallEmulator {Id} - SetCellSource() - canvas {canvasId} not found.");
+            return;
+        }
+
+        if (!canvas.TryGetVideoWallCell(cellId, out var cell))
+        {
+            Logger.Error($"VideoWallEmulator {Id} - SetCellSource() - active layout for {canvasId} does not have a cell with id {cellId}.");
             return;
         }
         
-        var cell = _activeLayout.Cells.Find(x => x.Id == cellId);
-        if (cell == null)
-        {
-            Logger.Error($"VideoWallEmulator {Id} - SetCellSource() - Layout {_activeLayout.Id} does not have a cell with id {cellId}.");
-            return;
-        }
-        
-        cell.SourceId = sourceId;
+        if (cell != null) cell.SourceId = sourceId;
         var temp = VideoWallCellSourceChanged;
-        temp?.Invoke(this, new GenericSingleEventArgs<string>(cell.Id));
+        temp?.Invoke(this, new GenericDualEventArgs<string,string>(canvasId, cell?.Id ?? string.Empty));
     }
 
-    public string GetCellSourceId(string cellId)
+    public string GetCellSourceId(string canvasId, string cellId)
     {
-        if (_activeLayout == null)
+        var canvas = _internalCanvases.FirstOrDefault(x => x.Id.Equals(canvasId));
+        if (canvas == null)
         {
-            Logger.Error($"VideoWallEmulator {Id} - GetCellSourceId() - No active layout.");
+            Logger.Error($"VideoWallEmulator {Id} - GetCellSourceId() - canvas {canvasId} not found.");
             return string.Empty;
         }
         
-        var cell = _activeLayout.Cells.Find(x => x.Id == cellId);
-        if (cell == null)
+        if (!canvas.TryGetVideoWallCell(cellId, out var cell))
         {
-            Logger.Error($"VideoWallEmulator {Id} - GetCellSourceId() - Layout {_activeLayout.Id} does not have a cell with id {cellId}.");
+            Logger.Error($"VideoWallEmulator {Id} - GetCellSourceId() - active layout for {canvasId} does not have a cell with id {cellId}.");
             return string.Empty;
         }
         
-        return cell.SourceId;
+        return (cell == null) ? string.Empty : cell.SourceId;
     }
 }
