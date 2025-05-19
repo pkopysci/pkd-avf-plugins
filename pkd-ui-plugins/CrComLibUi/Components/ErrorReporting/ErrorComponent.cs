@@ -13,6 +13,8 @@ internal class ErrorComponent(BasicTriListWithSmartObject ui, UserInterfaceDataC
     : BaseComponent(ui, uiData), IErrorInterface
 {
     private const string Command = "ERRLIST";
+    private const string AddCommand = "ADDERROR";
+    private const string RemoveCommand = "REMOVEERROR";
     private readonly Dictionary<string, ErrorData> _errors = [];
 
     /// <inheritdoc/>
@@ -23,21 +25,27 @@ internal class ErrorComponent(BasicTriListWithSmartObject ui, UserInterfaceDataC
             return;
         }
 
-        var data = new ErrorData()
+        var data = new ErrorData
         {
             Id = id,
             Message = label
         };
 
         _errors.Add(id, data);
-        SendErrors();
+        var command = MessageFactory.CreateGetResponseObject();
+        command.Command = AddCommand;
+        command.Data = JObject.FromObject(data);
+        Send(command, ApiHooks.Errors);
     }
 
     /// <inheritdoc/>
     public void ClearDeviceError(string id)
     {
-        _errors.Remove(id);
-        SendErrors();
+        if (!_errors.Remove(id)) return;
+        var command = MessageFactory.CreateGetResponseObject();
+        command.Command = RemoveCommand;
+        command.Data = JObject.FromObject(new ErrorData { Id = id });
+        Send(command, ApiHooks.Errors);
     }
 
     /// <inheritdoc/>
@@ -88,7 +96,7 @@ internal class ErrorComponent(BasicTriListWithSmartObject ui, UserInterfaceDataC
     {
         var message = MessageFactory.CreateGetResponseObject();
         message.Command = Command;
-        message.Data = JObject.FromObject(_errors);
+        message.Data["Errors"] = JToken.FromObject(_errors.Count == 0 ? Array.Empty<ErrorData>() : _errors.Values);
         Send(message, ApiHooks.Errors);
     }
 }
