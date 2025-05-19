@@ -6,10 +6,10 @@ using System;
 using System.Linq;
 using Api;
 using Crestron.SimplSharpPro.DeviceSupport;
-using pkd_application_service.UserInterface;
-using pkd_common_utils.Logging;
 using pkd_application_service;
+using pkd_application_service.UserInterface;
 using pkd_common_utils.GenericEventArgs;
+using pkd_common_utils.Logging;
 
 internal class SecurityComponent(
 	BasicTriListWithSmartObject ui,

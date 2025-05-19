@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using pkd_application_service;
 
 namespace CrComLibUi.Components.VideoControl;
 
@@ -14,36 +15,23 @@ using pkd_application_service.Base;
 using pkd_application_service.UserInterface;
 using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
-using pkd_ui_service.Interfaces;
 
-internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
+internal class VideoControlComponent(
+	BasicTriListWithSmartObject ui,
+	UserInterfaceDataContainer uiData,
+	IAvRoutingApp appService)
+	: BaseComponent(ui, uiData)
 {
 	private const string CommandConfig = "CONFIG";
 	private const string CommandRoute = "ROUTE";
 	private const string CommandFreeze = "GLOBALFREEZE";
 	private const string CommandBlank = "GLOBALBLANK";
 	private const string CommandStatus = "STATUS";
-	private readonly List<VideoDestinationInfo> _destinations;
-	private ReadOnlyCollection<AvSourceInfoContainer> _sources;
-	private ReadOnlyCollection<InfoContainer> _routers;
+	private readonly List<VideoDestinationInfo> _destinations = [];
+	private ReadOnlyCollection<AvSourceInfoContainer> _sources = new([]);
+	private ReadOnlyCollection<InfoContainer> _routers = new([]);
 	private bool _globalBlankState;
 	private bool _globalFreezeState;
-
-	public VideoControlComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-		: base(ui, uiData)
-	{
-		GetHandlers.Add(CommandConfig, HandleGetConfigRequest);
-		PostHandlers.Add(CommandRoute, HandlePostRouteRequest);
-		PostHandlers.Add(CommandBlank, HandlePostBlankRequest);
-		PostHandlers.Add(CommandFreeze, HandlePostFreezeRequest);
-		_sources = new ReadOnlyCollection<AvSourceInfoContainer>([]);
-		_routers = new ReadOnlyCollection<InfoContainer>([]);
-		_destinations = [];
-	}
-
-	public event EventHandler<GenericDualEventArgs<string, string>>? AvRouteChangeRequest;
-	public event EventHandler? GlobalFreezeToggleRequest;
-	public event EventHandler? GlobalBlankToggleRequest;
 		
 	/// <inheritdoc/>
 	public override void HandleSerialResponse(string response)
@@ -90,6 +78,22 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 	public override void Initialize()
 	{
 		Initialized = false;
+		
+		SetRoutingData(appService.GetAllAvSources(), appService.GetAllAvDestinations(), appService.GetAllAvRouters());
+		
+		GetHandlers.Add(CommandConfig, HandleGetConfigRequest);
+		PostHandlers.Add(CommandRoute, HandlePostRouteRequest);
+		PostHandlers.Add(CommandBlank, HandlePostBlankRequest);
+		PostHandlers.Add(CommandFreeze, HandlePostFreezeRequest);
+		
+		appService.RouteChanged += AppServiceOnRouteChanged;
+		appService.RouterConnectChange += AppServiceOnRouterConnectChange;
+		if (appService is IApplicationService genericApp)
+		{
+			genericApp.GlobalVideoBlankChanged += GenericAppOnGlobalVideoBlankChanged;
+			genericApp.GlobalVideoFreezeChanged += GenericAppOnGlobalVideoFreezeChanged;
+		}
+		
 		if (_sources.Count == 0 || _destinations.Count == 0)
 		{
 			Logger.Debug("CrComLibUi.VideoControlComponent.Initialize() - sources or destinations are empty.");
@@ -103,8 +107,64 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 		HandleGetConfigRequest(MessageFactory.CreateGetResponseObject());
 	}
 
-	/// <inheritdoc/>
-	public void SetRoutingData(
+	private void GenericAppOnGlobalVideoFreezeChanged(object? sender, EventArgs e)
+	{
+		if (appService is not IApplicationService genericApp) return;
+		_globalFreezeState = genericApp.QueryGlobalVideoFreeze();
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandFreeze;
+		message.Data.Add(new JProperty("State", _globalFreezeState));
+		Send (message, ApiHooks.VideoControl);
+	}
+
+	private void GenericAppOnGlobalVideoBlankChanged(object? sender, EventArgs e)
+	{
+		if (appService is not IApplicationService genericApp) return;
+		_globalBlankState = genericApp.QueryGlobalVideoBlank();
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandBlank;
+		message.Data.Add(new JProperty("State", _globalBlankState));
+		Send(message, ApiHooks.VideoControl);
+	}
+
+	private void AppServiceOnRouterConnectChange(object? sender, GenericSingleEventArgs<string> e)
+	{
+		var found = _routers.FirstOrDefault(x => x.Id == e.Arg);
+		if (found == null)
+		{
+			Logger.Error($"CrComLibUi.VideoControlComponent.UpdateAvRouterConnectionStatus() - {e.Arg} not found.");
+			return;
+		}
+		
+		found.IsOnline = appService.QueryRouterConnectionStatus(e.Arg);
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandStatus;
+		message.Data["Avr"] = JObject.FromObject(found);
+		Send(message, ApiHooks.VideoControl);
+	}
+
+	private void AppServiceOnRouteChanged(object? sender, GenericSingleEventArgs<string> e)
+	{
+		var dest = _destinations.FirstOrDefault(x => x.Id == e.Arg);
+		if (dest == null)
+		{
+			Logger.Error("CrComLibUi.VideoControlComponent.UpdateAvRoute() - No destination with id {0}", e.Arg);
+			return;
+		}
+
+		var currentSource = appService.QueryCurrentRoute(e.Arg);
+		dest.CurrentSourceId = currentSource.Id;
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandRoute;
+
+		dynamic dataObj = new ExpandoObject();
+		dataObj.DestId = dest.Id;
+		dataObj.SrcId = currentSource.Id;
+		message.Data = JObject.FromObject(dataObj);
+		Send(message, ApiHooks.VideoControl);
+	}
+	
+	private void SetRoutingData(
 		ReadOnlyCollection<AvSourceInfoContainer> sources,
 		ReadOnlyCollection<InfoContainer> destinations,
 		ReadOnlyCollection<InfoContainer> avRouters)
@@ -120,64 +180,7 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 			});
 		}
 	}
-
-	public void SetGlobalBlankState(bool state)
-	{
-		_globalBlankState = state;
-		var message = MessageFactory.CreateGetResponseObject();
-		message.Command = CommandBlank;
-		message.Data.Add(new JProperty("State", _globalBlankState));
-		Send(message, ApiHooks.VideoControl);
-	}
-
-	public void SetGlobalFreezeState(bool state)
-	{
-		_globalFreezeState = state;
-		var message = MessageFactory.CreateGetResponseObject();
-		message.Command = CommandFreeze;
-		message.Data.Add(new JProperty("State", _globalFreezeState));
-		Send (message, ApiHooks.VideoControl);
-	}
-
-	public void UpdateAvRouterConnectionStatus(string avrId, bool isOnline)
-	{
-		var found = _routers.FirstOrDefault(x => x.Id == avrId);
-		if (found == null)
-		{
-			Logger.Error($"CrComLibUi.VideoControlComponent.UpdateAvRouterConnectionStatus() - {avrId} not found.");
-			return;
-		}
-
-		found.IsOnline = isOnline;
-		var message = MessageFactory.CreateGetResponseObject();
-		message.Command = CommandStatus;
-		message.Data["Avr"] = JObject.FromObject(found);
-		Send(message, ApiHooks.VideoControl);
-	}
-
-	/// <inheritdoc/>
-	public void UpdateAvRoute(AvSourceInfoContainer inputInfo, string outputId)
-	{
-		if (!CheckInitialized("VideoControlComponent", nameof(UpdateAvRoute))) return;
-
-		var dest = _destinations.FirstOrDefault(x => x.Id == outputId);
-		if (dest == null)
-		{
-			Logger.Error("CrComLibUi.VideoControlComponent.UpdateAvRoute() - No destination with id {0}", outputId);
-			return;
-		}
-
-		dest.CurrentSourceId = inputInfo.Id;
-		var message = MessageFactory.CreateGetResponseObject();
-		message.Command = CommandRoute;
-
-		dynamic dataObj = new ExpandoObject();
-		dataObj.DestId = dest.Id;
-		dataObj.SrcId = inputInfo.Id;
-		message.Data = JObject.FromObject(dataObj);
-		Send(message, ApiHooks.VideoControl);
-	}
-
+	
 	private void HandleGetRequest(ResponseBase response)
 	{
 		if (GetHandlers.TryGetValue(response.Command, out var handler))
@@ -222,9 +225,6 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 
 	private void HandlePostRouteRequest(ResponseBase response)
 	{
-		var temp = AvRouteChangeRequest;
-		if (temp == null) return;
-		
 		try
 		{
 			var srcId = response.Data.Value<string>("SrcId");
@@ -237,7 +237,7 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 				return;
 			}
 			
-			temp.Invoke(this, new GenericDualEventArgs<string, string>(srcId, destId));
+			appService.MakeRoute(srcId, destId);
 		}
 		catch (Exception ex)
 		{
@@ -248,14 +248,16 @@ internal class VideoControlComponent : BaseComponent, IRoutingUserInterface
 
 	private void HandlePostFreezeRequest(ResponseBase response)
 	{
-		var temp = GlobalFreezeToggleRequest;
-		temp?.Invoke(this, EventArgs.Empty);
+		if (appService is not IApplicationService genericApp) return;
+		var currentState = genericApp.QueryGlobalVideoFreeze();
+		genericApp.SetGlobalVideoFreeze(!currentState);
 	}
 
 	private void HandlePostBlankRequest(ResponseBase response)
 	{
-		var temp = GlobalBlankToggleRequest;
-		temp?.Invoke(this, EventArgs.Empty);
+		if (appService is not IApplicationService genericApp) return;
+		var currentState = genericApp.QueryGlobalVideoBlank();
+		genericApp.SetGlobalVideoBlank(!currentState);
 	}
 
 	private VideoConfigData CreateConfigData()

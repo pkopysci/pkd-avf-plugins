@@ -160,15 +160,24 @@ internal class RoomInfoComponent(
 
     private void HandleRequestGetUseState(ResponseBase rxObj)
     {
+        
+        Logger.Debug($"{nameof(RoomInfoComponent)}.{nameof(HandleRequestGetConfig)}()");
+        
         rxObj.Data.Add(new JProperty("UseState", appService.CurrentSystemState));
         Send(rxObj, ApiHooks.RoomConfig);
     }
 
     private void HandleRequestPostUseState(ResponseBase rxObj)
     {
+        
+        Logger.Debug($"{nameof(RoomInfoComponent)}.{nameof(HandleRequestPostUseState)}()");
+        
         try
         {
             var state = rxObj.Data.Value<bool>("State");
+            
+            Logger.Debug($"{nameof(RoomInfoComponent)}.{nameof(HandleRequestPostUseState)}() - requested change: {state}");
+            
             if (state == appService.CurrentSystemState) return;
             if (state)
             {

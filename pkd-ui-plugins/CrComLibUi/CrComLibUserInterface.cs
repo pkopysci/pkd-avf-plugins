@@ -1,9 +1,6 @@
-﻿using pkd_application_service.CameraControl;
-using pkd_application_service.CustomEvents;
-using pkd_application_service.LightingControl;
-using pkd_application_service.TransportControl;
+﻿// ReSharper disable SuspiciousTypeConversion.Global
 
-// ReSharper disable SuspiciousTypeConversion.Global
+using CrComLibUi.Api;
 
 namespace CrComLibUi;
 
@@ -23,7 +20,14 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.UI;
 using pkd_application_service;
+using pkd_application_service.AvRouting;
+using pkd_application_service.CameraControl;
+using pkd_application_service.CustomEvents;
+using pkd_application_service.DisplayControl;
+using pkd_application_service.LightingControl;
+using pkd_application_service.TransportControl;
 using pkd_application_service.UserInterface;
+using pkd_application_service.VideoWallControl;
 using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
 using pkd_ui_service.Interfaces;
@@ -41,6 +45,7 @@ public class CrComLibUserInterface :
     IDisposable
 {
     private readonly List<IVueUiComponent> _uiComponents = [];
+    private readonly Dictionary<uint, Action<string>> _apiHandlerActions = [];
     private BasicTriListWithSmartObject? _ui;
     private CrestronControlSystem? _parent;
     private UserInterfaceDataContainer? _uiData;
@@ -200,9 +205,16 @@ public class CrComLibUserInterface :
         _ui.OnlineStatusChange += UiOnOnlineStatusChange;
     }
 
-    private static void UiOnSigChange(BasicTriList currentDevice, SigEventArgs args)
+    private void UiOnSigChange(BasicTriList currentDevice, SigEventArgs args)
     {
-        (args.Sig.UserObject as Action<bool>)?.Invoke(args.Sig.BoolValue);
+        if (args.Sig.Type != eSigType.String) return;
+        
+        Logger.Debug(args.Sig.StringValue);
+        
+        if (_apiHandlerActions.TryGetValue(args.Sig.Number, out var handler))
+        {
+            handler.Invoke(args.Sig.StringValue);
+        }
     }
 
     private void UiOnOnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
@@ -240,27 +252,76 @@ public class CrComLibUserInterface :
             
             SecurityComponent? securityComponent = null;
             if (_appService is ITechAuthGroupAppService techApp)
+            {
                 securityComponent = new SecurityComponent(_ui, _uiData, techApp);
-            
-            _uiComponents.Add(new RoomInfoComponent(_ui, _uiData, _appService, securityComponent));
-            _uiComponents.Add(new AudioControlComponent(_ui, _uiData, _appService));
-            _uiComponents.Add(new ErrorComponent(_ui, _uiData));
-            
+                _apiHandlerActions.Add((uint)ApiHooks.Security, securityComponent.HandleSerialResponse);
+            }
+
+            var roomInfoComponent = new RoomInfoComponent(_ui, _uiData, _appService, securityComponent);
+            _uiComponents.Add(roomInfoComponent);
+            _apiHandlerActions.Add((uint)ApiHooks.RoomConfig, roomInfoComponent.HandleSerialResponse);
+
+            var audioComponent = new AudioControlComponent(_ui, _uiData, _appService);
+            _uiComponents.Add(audioComponent);
+            _apiHandlerActions.Add((uint)ApiHooks.AudioControl, audioComponent.HandleSerialResponse);
+
+            var errorComponent = new ErrorComponent(_ui, _uiData);
+            _uiComponents.Add(errorComponent);
+            _apiHandlerActions.Add((uint)ApiHooks.Errors, errorComponent.HandleSerialResponse);
+
             if (_appService is ICameraControlApp camApp)
-                _uiComponents.Add(new CameraControlComponent(_ui, _uiData, camApp));
-            
+            {
+                var cameraComponent = new CameraControlComponent(_ui, _uiData, camApp);
+                _uiComponents.Add(cameraComponent);
+                _apiHandlerActions.Add((uint)ApiHooks.Camera, cameraComponent.HandleSerialResponse);
+                                
+            }
+
             if (_appService is ICustomEventAppService eventApp)
-                _uiComponents.Add(new CustomEventComponent(_ui, _uiData, eventApp));
-            
+            {
+                var customEventComponent = new CustomEventComponent(_ui, _uiData, eventApp);
+                _uiComponents.Add(customEventComponent);
+                _apiHandlerActions.Add((uint)ApiHooks.Event, customEventComponent.HandleSerialResponse);
+                
+            }
+
             if (_appService is ILightingControlApp lightingApp)
-                _uiComponents.Add(new LightingComponent(_ui, _uiData, lightingApp));
-            
+            {
+                var lightingComponent = new LightingComponent(_ui, _uiData, lightingApp);
+                _uiComponents.Add(lightingComponent);
+                _apiHandlerActions.Add((uint)ApiHooks.LightingControl, lightingComponent.HandleSerialResponse);
+                
+            }
+
             if (_appService is ITransportControlApp transportApp)
-                _uiComponents.Add(new TransportComponent(_ui, _uiData, transportApp));
-            
-            _uiComponents.Add(new VideoWallComponent(_ui, _uiData));
-            _uiComponents.Add(new VideoControlComponent(_ui, _uiData));
-            _uiComponents.Add(new DisplayControlComponent(_ui, _uiData));
+            {
+                var transportComponent = new TransportComponent(_ui, _uiData, transportApp);
+                _uiComponents.Add(transportComponent);
+                _apiHandlerActions.Add((uint)ApiHooks.DeviceControl, transportComponent.HandleSerialResponse);
+            }
+
+            if (_appService is IVideoWallApp videoWallApp)
+            {
+                var videoWallComponent = new VideoWallComponent(_ui, _uiData, videoWallApp);
+                _uiComponents.Add(videoWallComponent);
+                _apiHandlerActions.Add((uint)ApiHooks.VideoWall, videoWallComponent.HandleSerialResponse);
+            }
+
+            if (_appService is IAvRoutingApp routingApp)
+            {
+                var avComponent = new VideoControlComponent(_ui, _uiData, routingApp);
+                _uiComponents.Add(avComponent);
+                _apiHandlerActions.Add((uint)ApiHooks.VideoControl, avComponent.HandleSerialResponse);
+                
+            }
+
+            if (_appService is IDisplayControlApp displayApp)
+            {
+                var displayComponent = new DisplayControlComponent(_ui, _uiData, displayApp);
+                _uiComponents.Add(displayComponent);
+                _apiHandlerActions.Add((uint)ApiHooks.DisplayChange, displayComponent.HandleSerialResponse);
+                
+            }
         }
         catch (Exception e)
         {
