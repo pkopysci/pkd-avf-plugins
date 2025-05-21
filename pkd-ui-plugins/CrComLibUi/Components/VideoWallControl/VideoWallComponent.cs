@@ -141,10 +141,10 @@ internal class VideoWallComponent(
 
         var message = MessageFactory.CreateGetResponseObject();
         message.Command = RouteCommand;
-        message.Data["ControlId"] = e.Arg1;
-        message.Data["CanvasId"] = e.Arg2;
-        message.Data["CellId"] = e.Arg3;
-        message.Data["SourceId"] = currentSource;
+        message.Data["CtId"] = e.Arg1;
+        message.Data["CaId"] = e.Arg2;
+        message.Data["CeId"] = e.Arg3;
+        message.Data["ScId"] = currentSource;
         Send(message, ApiHooks.VideoWall);
     }
     
@@ -251,14 +251,14 @@ internal class VideoWallComponent(
 
     private void HandlePostRouteRequest(ResponseBase rxObj)
     {
-        var controlId = rxObj.Data.Value<string>("ControlId");
-        var canvasId = rxObj.Data.Value<string>("CanvasId");
-        var cellId = rxObj.Data.Value<string>("CellId");
-        var sourceId = rxObj.Data.Value<string>("SourceId");
+        var controlId = rxObj.Data.Value<string>("CtId");
+        var canvasId = rxObj.Data.Value<string>("CaId");
+        var cellId = rxObj.Data.Value<string>("CeId");
+        var sourceId = rxObj.Data.Value<string>("ScId");
         if (string.IsNullOrEmpty(controlId) || string.IsNullOrEmpty(cellId) || string.IsNullOrEmpty(sourceId) ||
             string.IsNullOrEmpty(canvasId))
         {
-            SendError("Invalid route POST request: missing ControlId, CellId, or SourceId.", ApiHooks.VideoWall);
+            SendError("Invalid route POST request: missing CtId, CaId, CeId, or ScId.", ApiHooks.VideoWall);
             return;
         }
 
