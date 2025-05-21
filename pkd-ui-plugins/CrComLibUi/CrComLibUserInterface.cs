@@ -208,9 +208,6 @@ public class CrComLibUserInterface :
     private void UiOnSigChange(BasicTriList currentDevice, SigEventArgs args)
     {
         if (args.Sig.Type != eSigType.String) return;
-        
-        Logger.Debug(args.Sig.StringValue);
-        
         if (_apiHandlerActions.TryGetValue(args.Sig.Number, out var handler))
         {
             handler.Invoke(args.Sig.StringValue);

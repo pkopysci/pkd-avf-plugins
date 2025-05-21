@@ -89,7 +89,7 @@ internal class VideoWallComponent(
             return;
         }
 
-        canvas.ActiveLayoutId = appService.QueryActiveVideoWallLayout(e.Arg2, e.Arg2);
+        canvas.ActiveLayoutId = appService.QueryActiveVideoWallLayout(e.Arg1, e.Arg2);
 
         var message = MessageFactory.CreateGetResponseObject();
         message.Command = LayoutCommand;
@@ -238,14 +238,14 @@ internal class VideoWallComponent(
             return;
         }
 
-        if (!canvas.Layouts.Exists(x => x.Id == canvasId))
+        if (!canvas.Layouts.Exists(x => x.Id == layoutId))
         {
             SendError(
-                $"Invalid layout POST request: canvas {canvasId} does not contain a canvas with id {layoutId}.",
+                $"Invalid layout POST request: canvas {canvasId} does not contain a layout with id {layoutId}.",
                 ApiHooks.VideoWall);
             return;
         }
-
+        
         appService.SetActiveVideoWallLayout(controlId, canvasId, layoutId);
     }
 

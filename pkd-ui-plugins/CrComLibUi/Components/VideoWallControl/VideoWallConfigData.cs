@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using pkd_application_service.AvRouting;
 using pkd_application_service.VideoWallControl;
+using pkd_common_utils.Logging;
 
 namespace CrComLibUi.Components.VideoWallControl;
 
@@ -67,6 +68,14 @@ public static class ConfigDataFactory
         
         foreach (var wall in videoWalls)
         {
+
+            Logger.Debug("CrComLibUI.VideoWallControl.ConfigDataFactory.CreateControllerCollection()");
+            Logger.Debug($"Number of sources for controller {wall.Id}: {wall.Sources.Count}");
+            foreach (var sources in wall.Sources)
+            {
+                Logger.Debug($"{sources.Id} - {sources.Label}");
+            }
+            
             controllerCollection.Add(new VideoWallControlData()
             {
                 Id = wall.Id,
