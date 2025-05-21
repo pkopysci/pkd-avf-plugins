@@ -1,11 +1,11 @@
 ﻿namespace CrComLibUi.Components;
 
+using System;
+using System.Collections.Generic;
+using Api;
 using Crestron.SimplSharpPro.DeviceSupport;
 using pkd_application_service.UserInterface;
 using pkd_common_utils.Logging;
-using Api;
-using System;
-using System.Collections.Generic;
 
 internal abstract class BaseComponent(
 	BasicTriListWithSmartObject ui,
@@ -15,9 +15,8 @@ internal abstract class BaseComponent(
 	protected readonly Dictionary<string, Action<ResponseBase>> GetHandlers = new();
 	protected readonly Dictionary<string, Action<ResponseBase>> PostHandlers = new();
 	protected readonly UserInterfaceDataContainer UiData = uiData;
-	protected readonly BasicTriListWithSmartObject Ui = ui;
 
-	public bool Initialized { get; protected set; }
+	protected bool Initialized { get; set; }
 
 	/// <inheritdoc/>
 	public abstract void HandleSerialResponse(string response);
@@ -26,26 +25,20 @@ internal abstract class BaseComponent(
 	public abstract void Initialize();
 
 	/// <inheritdoc/>
-	public virtual void SetActiveDefaults() { }
-
-	/// <inheritdoc/>
-	public virtual void SetStandbyDefaults() { }
-
-	/// <inheritdoc/>
-	public virtual void SendConfig() { }
+	public abstract void SendConfig();
 
 	protected void Send(ResponseBase data, ApiHooks hook)
 	{
 		// serialize and send if successful
 		var rxMessage = MessageFactory.SerializeMessage(data);
 		if (string.IsNullOrEmpty(rxMessage)) return;
-		Ui.StringInput[(uint)hook].StringValue = rxMessage;
-		Ui.StringInput[(uint)hook].StringValue = string.Empty;
+		ui.StringInput[(uint)hook].StringValue = rxMessage;
+		ui.StringInput[(uint)hook].StringValue = string.Empty;
 	}
 
 	protected void Send(string data, ApiHooks hook)
 	{
-		Ui.StringInput[(uint)hook].StringValue = data;
+		ui.StringInput[(uint)hook].StringValue = data;
 	}
 
 	protected void SendServerError(ApiHooks hook)
@@ -62,7 +55,7 @@ internal abstract class BaseComponent(
 	
 	protected void FlushJoinData(ApiHooks hook)
 	{
-		Ui.StringInput[(uint)hook].StringValue = string.Empty;
+		ui.StringInput[(uint)hook].StringValue = string.Empty;
 	}
 
 	protected bool CheckInitialized(string className, string methodName)

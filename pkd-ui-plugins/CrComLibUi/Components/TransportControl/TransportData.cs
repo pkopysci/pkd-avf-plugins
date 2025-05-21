@@ -1,26 +1,9 @@
-﻿namespace CrComLibUi.Components.TransportControl;
+﻿
+namespace CrComLibUi.Components.TransportControl;
 
-using pkd_ui_service.Utility;
 using System.Collections.Generic;
-
-internal class Favorite
-{
-	public string Id { get; set; } = string.Empty;
-	public string Label { get; set; } = string.Empty;
-}
-
-internal class TransportData
-{
-	public string Id { get; set; } = string.Empty;
-	public string Label { get; set; } = string.Empty;
-	public string Icon { get; set; } = string.Empty;
-	public bool SupportsOnOff { get; set; }
-	public bool SupportsColor { get; set; }
-	public bool SupportsVideo { get; set; }
-	public bool SupportsDvr { get; set; }
-	public List<Favorite> Favorites { get; set; } = [];
-	public List<string> Tags { get; set; } = [];
-}
+using pkd_application_service.TransportControl;
+using pkd_ui_service.Utility;
 
 internal static class TransportUtilities
 {
@@ -64,6 +47,48 @@ internal static class TransportUtilities
 		{ "REPLAY", TransportTypes.Replay },
 		{ "DISHNET", TransportTypes.DishNet },
 	};
+	
+	private static readonly Dictionary<TransportTypes, Action<ITransportControlApp, string>> Actions = new ()
+	{
+		{ TransportTypes.PowerOn, (app, devId) => { app.TransportPowerOn(devId); } },
+		{ TransportTypes.PowerOff, (app, devId) => { app.TransportPowerOff(devId); } },
+		{ TransportTypes.PowerToggle, (app, devId) => { app.TransportPowerToggle(devId); } },
+		{ TransportTypes.Dash, (app, devId) => { app.TransportDash(devId); } },
+		{ TransportTypes.ChannelUp, (app, devId) => { app.TransportChannelUp(devId); } },
+		{ TransportTypes.ChannelDown, (app, devId) => { app.TransportChannelDown(devId); } },
+		{ TransportTypes.PageUp, (app, devId) => { app.TransportPageUp(devId); } },
+		{ TransportTypes.PageDown, (app, devId) => { app.TransportPageDown(devId); } },
+		{ TransportTypes.Guide, (app, devId) => { app.TransportGuide(devId); } },
+		{ TransportTypes.Menu, (app, devId) => { app.TransportMenu(devId); } },
+		{ TransportTypes.Info, (app, devId) => { app.TransportInfo(devId); } },
+		{ TransportTypes.Exit, (app, devId) => { app.TransportExit(devId); } },
+		{ TransportTypes.Back, (app, devId) => { app.TransportBack(devId); } },
+		{ TransportTypes.Play, (app, devId) => { app.TransportPlay(devId); } },
+		{ TransportTypes.Pause, (app, devId) => { app.TransportPause(devId); } },
+		{ TransportTypes.Stop, (app, devId) => { app.TransportStop(devId); } },
+		{ TransportTypes.Record, (app, devId) => { app.TransportRecord(devId); } },
+		{ TransportTypes.ScanForward, (app, devId) => { app.TransportScanForward(devId); } },
+		{ TransportTypes.ScanReverse, (app, devId) => { app.TransportScanReverse(devId); } },
+		{ TransportTypes.SkipForward, (app, devId) => { app.TransportSkipForward(devId); } },
+		{ TransportTypes.SkipReverse, (app, devId) => { app.TransportSkipReverse(devId); } },
+		{ TransportTypes.NavUp, (app, devId) => { app.TransportNavUp(devId); } },
+		{ TransportTypes.NavDown, (app, devId) => { app.TransportNavDown(devId); } },
+		{ TransportTypes.NavLeft, (app, devId) => { app.TransportNavLeft(devId); } },
+		{ TransportTypes.NavRight, (app, devId) => { app.TransportNavRight(devId); } },
+		{ TransportTypes.Red, (app, devId) => { app.TransportRed(devId); } },
+		{ TransportTypes.Green, (app, devId) => { app.TransportGreen(devId); } },
+		{ TransportTypes.Yellow, (app, devId) => { app.TransportYellow(devId); } },
+		{ TransportTypes.Blue, (app, devId) => { app.TransportBlue(devId); } },
+		{ TransportTypes.Select, (app, devId) => {app.TransportSelect(devId); } },
+	};
+
+	public static void SendCommand(ITransportControlApp appService, string id, TransportTypes transportType)
+	{
+		if (Actions.TryGetValue(transportType, out var act))
+		{
+			act.Invoke(appService, id);
+		}
+	}
 
 	public static TransportTypes FindTransport(string data)
 	{

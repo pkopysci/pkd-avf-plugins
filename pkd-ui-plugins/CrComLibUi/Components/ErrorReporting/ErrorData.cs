@@ -1,7 +1,7 @@
 ﻿namespace CrComLibUi.Components.ErrorReporting;
 
-using Newtonsoft.Json;
 using System.ComponentModel;
+using Newtonsoft.Json;
 
 [JsonObject(MemberSerialization.OptIn)]
 internal class ErrorData

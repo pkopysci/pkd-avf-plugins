@@ -1,10 +1,10 @@
 ﻿
 namespace CrComLibUi.Api;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Dynamic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 [JsonObject(MemberSerialization.OptIn)]
 internal class ResponseBase

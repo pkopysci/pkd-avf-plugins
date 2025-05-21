@@ -1,8 +1,8 @@
 ﻿namespace CrComLibUi.Components.AudioControl;
 
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Newtonsoft.Json;
 
 [JsonObject(MemberSerialization.OptIn)]
 internal class Dsp

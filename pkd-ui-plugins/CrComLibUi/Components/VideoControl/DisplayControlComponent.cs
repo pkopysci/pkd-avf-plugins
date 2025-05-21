@@ -1,19 +1,23 @@
-﻿namespace CrComLibUi.Components.VideoControl;
+﻿using pkd_common_utils.GenericEventArgs;
 
-using Crestron.SimplSharpPro.DeviceSupport;
-using pkd_application_service.DisplayControl;
-using pkd_application_service.UserInterface;
-using pkd_common_utils.GenericEventArgs;
-using pkd_common_utils.Logging;
-using pkd_ui_service.Interfaces;
-using Api;
+namespace CrComLibUi.Components.VideoControl;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Api;
+using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json.Linq;
+using pkd_application_service.DisplayControl;
+using pkd_application_service.UserInterface;
+using pkd_common_utils.Logging;
 
-internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
+internal class DisplayControlComponent(
+	BasicTriListWithSmartObject ui,
+	UserInterfaceDataContainer uiData,
+	IDisplayControlApp appService)
+	: BaseComponent(ui, uiData)
 {
 	private const string CommandPower = "POWER";
 	private const string CommandScreen = "SCREEN";
@@ -23,28 +27,7 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 	private const string CommandFreeze = "FREEZE";
 	private const string CommandBlank = "BLANK";
 
-	private readonly List<Display> _displays;
-
-	public DisplayControlComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-		: base(ui, uiData)
-	{
-		GetHandlers.Add(CommandConfig, HandleGetConfigRequest);
-		GetHandlers.Add(CommandState, HandleGetStateRequest);
-		PostHandlers.Add(CommandInput, HandlePostInputResponse);
-		PostHandlers.Add(CommandScreen, HandlePostScreenResponse);
-		PostHandlers.Add(CommandPower, HandlePostPowerResponse);
-		PostHandlers.Add(CommandBlank, HandlePostBlankResponse);
-		PostHandlers.Add(CommandFreeze, HandlePostFreezeResponse);
-		_displays = [];
-	}
-
-	public event EventHandler<GenericDualEventArgs<string, bool>>? DisplayPowerChangeRequest;
-	public event EventHandler<GenericSingleEventArgs<string>>? DisplayFreezeChangeRequest;
-	public event EventHandler<GenericSingleEventArgs<string>>? DisplayBlankChangeRequest;
-	public event EventHandler<GenericSingleEventArgs<string>>? DisplayScreenUpRequest;
-	public event EventHandler<GenericSingleEventArgs<string>>? DisplayScreenDownRequest;
-	public event EventHandler<GenericSingleEventArgs<string>>? StationLocalInputRequest;
-	public event EventHandler<GenericSingleEventArgs<string>>? StationLecternInputRequest;
+	private readonly List<Display> _displays = [];
 
 	public override void HandleSerialResponse(string response)
 	{
@@ -79,14 +62,30 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 	public override void Initialize()
 	{
 		Initialized = false;
+		SetDisplayData(appService.GetAllDisplayInfo());
+		
+		GetHandlers.Add(CommandConfig, HandleGetConfigRequest);
+		GetHandlers.Add(CommandState, HandleGetStateRequest);
+		PostHandlers.Add(CommandInput, HandlePostInputResponse);
+		PostHandlers.Add(CommandScreen, HandlePostScreenResponse);
+		PostHandlers.Add(CommandPower, HandlePostPowerResponse);
+		PostHandlers.Add(CommandBlank, HandlePostBlankResponse);
+		PostHandlers.Add(CommandFreeze, HandlePostFreezeResponse);
+		
 		if (_displays.Count == 0)
 		{
 			Logger.Debug("CrComLibUi.DisplayControlComponent.Initialize() - No displays have been added for control.");
 			return;
 		}
+		
+		appService.DisplayBlankChange += AppServiceOnDisplayBlankChange;
+		appService.DisplayFreezeChange += AppServiceOnDisplayFreezeChange;
+		appService.DisplayInputChanged += AppServiceOnDisplayInputChanged;
+		appService.DisplayPowerChange += AppServiceOnDisplayPowerChange;
+		appService.DisplayConnectChange += AppServiceOnDisplayConnectChange;
 		Initialized = true;
 	}
-
+	
 	public override void SendConfig()
 	{
 		Logger.Debug("CrComLibUserInterface - DisplayControlComponent.SendConfig()");
@@ -94,7 +93,39 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 		HandleGetConfigRequest(MessageFactory.CreateGetResponseObject());
 	}
 
-	public void SetDisplayData(ReadOnlyCollection<DisplayInfoContainer> displayData)
+	private void SetStationLecternInput(string id)
+	{
+		if (!CheckInitialized("DisplayControlComponent", "SetStationLecternInput"))
+			return;
+
+		var display = FindDisplay("SetStationLecternInput", id);
+		if (display == null) return;
+
+		foreach (var input in display.Inputs)
+		{
+			input.Selected = input.Tags.Contains("lectern");
+		}
+
+		SendDisplayStatus(display);
+	}
+
+	private void SetStationLocalInput(string id)
+	{
+		if (!CheckInitialized("DisplayControlComponent", "SetStationLocalInput"))
+			return;
+
+		var display = FindDisplay("SetStationLocalInput", id);
+		if (display == null) return;
+
+		foreach (var input in display.Inputs)
+		{
+			input.Selected = input.Tags.Contains("station");
+		}
+
+		SendDisplayStatus(display);
+	}
+	
+	private void SetDisplayData(ReadOnlyCollection<DisplayInfoContainer> displayData)
 	{
 		_displays.Clear();
 		foreach (var item in displayData)
@@ -130,81 +161,62 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 			_displays.Add(display);
 		}
 	}
-
-	public void SetStationLecternInput(string id)
+	
+	private void AppServiceOnDisplayConnectChange(object? sender, GenericDualEventArgs<string, bool> e)
 	{
-		if (!CheckInitialized("DisplayControlComponent", "SetStationLecternInput"))
-			return;
-
-		var display = FindDisplay("SetStationLecternInput", id);
+		if (!CheckInitialized("DisplayControlComponent", nameof(AppServiceOnDisplayConnectChange))) return;
+		var display = FindDisplay(nameof(AppServiceOnDisplayConnectChange), e.Arg1);
 		if (display == null) return;
-
-		foreach (var input in display.Inputs)
-		{
-			input.Selected = input.Tags.Contains("lectern");
-		}
-
+		display.IsOnline = e.Arg2;
 		SendDisplayStatus(display);
 	}
 
-	public void SetStationLocalInput(string id)
+	private void AppServiceOnDisplayPowerChange(object? sender, GenericDualEventArgs<string, bool> e)
 	{
-		if (!CheckInitialized("DisplayControlComponent", "SetStationLocalInput"))
-			return;
-
-		var display = FindDisplay("SetStationLocalInput", id);
+		if (!CheckInitialized("DisplayControlComponent", "AppServiceOnDisplayPowerChange")) return;
+		var display = FindDisplay("UpdateDisplayPower", e.Arg1);
 		if (display == null) return;
-
-		foreach (var input in display.Inputs)
-		{
-			input.Selected = input.Tags.Contains("station");
-		}
-
+		display.PowerState = e.Arg2;
 		SendDisplayStatus(display);
 	}
 
-	public void UpdateDisplayBlank(string id, bool newState)
+	private void AppServiceOnDisplayInputChanged(object? sender, GenericSingleEventArgs<string> e)
+	{
+		var isLectern = appService.DisplayInputLecternQuery(e.Arg);
+		if (!isLectern)
+		{
+			SetStationLecternInput(e.Arg);
+		}
+		else
+		{
+			SetStationLocalInput(e.Arg);
+		}
+	}
+
+	private void AppServiceOnDisplayFreezeChange(object? sender, GenericDualEventArgs<string, bool> e)
+	{
+		if (!CheckInitialized("DisplayControlComponent", "AppServiceOnDisplayFreezeChange"))
+			return;
+
+		var display = FindDisplay("UpdateDisplayFreeze", e.Arg1);
+		if (display == null) return;
+
+		display.Freeze = e.Arg2;
+		SendDisplayStatus(display);
+	}
+
+	private void AppServiceOnDisplayBlankChange(object? sender, GenericDualEventArgs<string, bool> e)
 	{
 		if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayBlank"))
 			return;
 
-		var display = FindDisplay("UpdateDisplayBlank", id);
+		var display = FindDisplay("UpdateDisplayBlank", e.Arg1);
 		if (display == null) return;
 
-		display.Blank = newState;
+		display.Blank = e.Arg2;
 		SendDisplayStatus(display);
 	}
-
-	public void UpdateDisplayFreeze(string id, bool newState)
-	{
-		if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayFreeze"))
-			return;
-
-		var display = FindDisplay("UpdateDisplayFreeze", id);
-		if (display == null) return;
-
-		display.Freeze = newState;
-		SendDisplayStatus(display);
-	}
-
-	public void UpdateDisplayPower(string id, bool newState)
-	{
-		if (!CheckInitialized("DisplayControlComponent", "UpdateDisplayPower")) return;
-		var display = FindDisplay("UpdateDisplayPower", id);
-		if (display == null) return;
-		display.PowerState = newState;
-		SendDisplayStatus(display);
-	}
-
-	public void UpdateDisplayConnectionStatus(string id, bool isOnline)
-	{
-		if (!CheckInitialized("DisplayControlComponent", nameof(UpdateDisplayConnectionStatus))) return;
-		var display = FindDisplay(nameof(UpdateDisplayConnectionStatus), id);
-		if (display == null) return;
-		display.IsOnline = isOnline;
-		SendDisplayStatus(display);
-	}
-
+	
 	private void HandleGetRequests(ResponseBase response)
 	{
 		if (GetHandlers.TryGetValue(response.Command.ToUpper(), out var handler))
@@ -285,11 +297,15 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 				SendError("Invalid screen POST request - missing Id or State", ApiHooks.DisplayChange);
 				return;
 			}
-			
-			var temp = response.Data.Value<bool>("State") ?
-				DisplayScreenUpRequest :
-				DisplayScreenDownRequest;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
+
+			if (response.Data.Value<bool>("State"))
+			{
+				appService.LowerScreen(id);
+			}
+			else
+			{
+				appService.RaiseScreen(id);
+			}
 		}
 		catch (Exception ex)
 		{
@@ -300,9 +316,6 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 
 	private void HandlePostPowerResponse(ResponseBase response)
 	{
-		var temp = DisplayPowerChangeRequest;
-		if (temp == null) return;
-		
 		try
 		{
 			var id = response.Data.Value<string>("Id");
@@ -313,8 +326,7 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 				return;
 			}
 			
-			temp.Invoke(this, new GenericDualEventArgs<string, bool>(id,
-				response.Data.Value<bool>("State")));
+			appService.SetDisplayPower(id, response.Data.Value<bool>("State"));
 		}
 		catch (Exception ex)
 		{
@@ -349,8 +361,14 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 				return;
 			}
 
-			var temp = input.Tags.Contains("lectern") ? StationLecternInputRequest : StationLocalInputRequest;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(targetId));
+			if (input.Tags.Contains("lectern"))
+			{
+				appService.SetInputLectern(targetId);
+			}
+			else
+			{
+				appService.SetInputStation(targetId);
+			}
 		}
 		catch (Exception ex)
 		{
@@ -369,9 +387,9 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 				SendError("Invalid freeze POST request - missing Id.", ApiHooks.DisplayChange);
 				return;
 			}
-			
-			var temp = DisplayFreezeChangeRequest;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
+
+			var currentState = appService.DisplayFreezeQuery(id);
+			appService.SetDisplayFreeze(id, !currentState);
 		}
 		catch (Exception ex)
 		{
@@ -393,8 +411,8 @@ internal class DisplayControlComponent : BaseComponent, IDisplayUserInterface
 				return;
 			}
 			
-			var temp = DisplayBlankChangeRequest;
-			temp?.Invoke(this, new GenericSingleEventArgs<string>(id));
+			var currentState = appService.DisplayBlankQuery(id);
+			appService.SetDisplayBlank(id, !currentState);
 		}
 		catch (Exception ex)
 		{

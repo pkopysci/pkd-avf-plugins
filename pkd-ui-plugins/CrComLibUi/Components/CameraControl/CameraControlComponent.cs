@@ -1,5 +1,6 @@
-using System.Collections.ObjectModel;
-using CrComLibUi.Api;
+namespace CrComLibUi.Components.CameraControl;
+
+using Api;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json.Linq;
 using pkd_application_service.CameraControl;
@@ -7,12 +8,12 @@ using pkd_application_service.UserInterface;
 using pkd_common_utils.DataObjects;
 using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
-using pkd_ui_service.Interfaces;
 
-namespace CrComLibUi.Components.CameraControl;
-
-internal class CameraControlComponent(BasicTriListWithSmartObject ui, UserInterfaceDataContainer uiData)
-    : BaseComponent(ui, uiData), ICameraUserInterface
+internal class CameraControlComponent(
+    BasicTriListWithSmartObject ui,
+    UserInterfaceDataContainer uiData,
+    ICameraControlApp appService)
+    : BaseComponent(ui, uiData), IDisposable
 {
 
     private const string ConfigCommand = "CONFIG";
@@ -23,12 +24,12 @@ internal class CameraControlComponent(BasicTriListWithSmartObject ui, UserInterf
     private const string PresetRecallCommand = "RECALL";
 
     private List<CameraInfoContainer> _cameras = [];
-    
-    public event EventHandler<GenericDualEventArgs<string, Vector2D>>? CameraPanTiltRequest;
-    public event EventHandler<GenericDualEventArgs<string, int>>? CameraZoomRequest;
-    public event EventHandler<GenericDualEventArgs<string, string>>? CameraPresetRecallRequest;
-    public event EventHandler<GenericDualEventArgs<string, string>>? CameraPresetSaveRequest;
-    public event EventHandler<GenericDualEventArgs<string, bool>>? CameraPowerChangeRequest;
+    private bool _disposed;
+
+    ~CameraControlComponent()
+    {
+        Dispose(false);
+    }
     
     public override void HandleSerialResponse(string response)
     {
@@ -53,52 +54,79 @@ internal class CameraControlComponent(BasicTriListWithSmartObject ui, UserInterf
         GetHandlers.Clear();
         PostHandlers.Clear();
         Initialized = false;
+
+        _cameras = appService.GetAllCameraDeviceInfo().ToList();
+        
         GetHandlers.Add(ConfigCommand, HandleGetConfig);
         GetHandlers.Add(StateCommand, HandleGetStateRequest);
         PostHandlers.Add(PtzCommand, HandlePostPtzRequest);
         PostHandlers.Add(ZoomCommand, HandlePostZoomRequest);
         PostHandlers.Add(PresetSaveCommand, HandlePostPresetSaveRequest);
         PostHandlers.Add(PresetRecallCommand, HandlePostPresetRecallRequest);
+        
+        appService.CameraControlConnectionChanged += AppServiceOnCameraControlConnectionChanged;
+        appService.CameraPowerStateChanged += AppServiceOnCameraPowerStateChanged;
+        
         Initialized = true;
     }
 
-    public void SetCameraData(ReadOnlyCollection<CameraInfoContainer> cameras)
+    private void AppServiceOnCameraPowerStateChanged(object? sender, GenericSingleEventArgs<string> e)
     {
-        _cameras = cameras.ToList();
-    }
-
-    public void SetCameraPowerState(string id, bool newState)
-    {
+        var id = e.Arg;
         var found = _cameras.FirstOrDefault(c => c.Id == id);
         if (found == null)
         {
-            Logger.Error($"CameraControlComponent.SetCameraPowerState({id}, {newState}) - no device with id found.");
+            Logger.Error($"CameraControlComponent.SetCameraPowerState() - no device with id {id} found.");
             return;
         }
         
-        found.PowerState = newState;
+        found.PowerState = appService.QueryCameraPowerStatus(id);
         var rx = MessageFactory.CreateGetResponseObject();
         rx.Command = StateCommand;
         rx.Data["Camera"] = JToken.FromObject(found);
         Send(rx, ApiHooks.Camera);
     }
 
-    public void SetCameraConnectionStatus(string id, bool newState)
+    private void AppServiceOnCameraControlConnectionChanged(object? sender, GenericSingleEventArgs<string> e)
     {
+        var id = e.Arg;
         var found = _cameras.FirstOrDefault(c => c.Id == id);
         if (found == null)
         {
-            Logger.Error($"CameraControlComponent.SetCameraConnectionStatus({id}, {newState}) - no device matching id.");
+            Logger.Error($"CameraControlComponent.SetCameraConnectionStatus() - no device matching id {id}.");
             return;
         }
         
-        found.IsOnline = newState;
+        found.IsOnline = appService.QueryCameraConnectionStatus(id);
         var rx = MessageFactory.CreateGetResponseObject();
         rx.Command = StateCommand;
         rx.Data["Camera"] = JToken.FromObject(found);
         Send(rx, ApiHooks.Camera);
     }
 
+    public override void SendConfig()
+    {
+        HandleGetConfig(MessageFactory.CreateGetResponseObject());
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+        if (disposing)
+        {
+            appService.CameraControlConnectionChanged -= AppServiceOnCameraControlConnectionChanged;
+            appService.CameraPowerStateChanged -= AppServiceOnCameraPowerStateChanged;
+        }
+        
+        _disposed = true;
+    }
+    
     private void HandleGetRequest(ResponseBase response)
     {
         if (GetHandlers.TryGetValue(response.Command, out var handler))
@@ -125,6 +153,7 @@ internal class CameraControlComponent(BasicTriListWithSmartObject ui, UserInterf
 
     private void HandleGetConfig(ResponseBase response)
     {
+        response.Command = ConfigCommand;
         response.Data["Cameras"] = JToken.FromObject(_cameras);
         Send(response, ApiHooks.Camera);
     }
@@ -175,8 +204,7 @@ internal class CameraControlComponent(BasicTriListWithSmartObject ui, UserInterf
         }
         
         var vector = new Vector2D() { X = xVal, Y = yVal };
-        var temp = CameraPanTiltRequest;
-        temp?.Invoke(this, new GenericDualEventArgs<string, Vector2D>(deviceId, vector));
+        appService.SendCameraPanTilt(deviceId, vector);
     }
 
     private void HandlePostZoomRequest(ResponseBase response)
@@ -197,9 +225,8 @@ internal class CameraControlComponent(BasicTriListWithSmartObject ui, UserInterf
                 SendError($"Invalid POST preset recall request. device {deviceId} does not support zoom.", ApiHooks.Camera);
                 return;
             }
-            
-            var temp = CameraZoomRequest;
-            temp?.Invoke(this, new GenericDualEventArgs<string, int>(deviceId, speed));
+
+            appService.SendCameraZoom(deviceId, speed);
         }
         catch (Exception)
         {
@@ -231,8 +258,7 @@ internal class CameraControlComponent(BasicTriListWithSmartObject ui, UserInterf
             return;
         }
 
-        var temp = CameraPresetRecallRequest;
-        temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, presetId));
+        appService.SendCameraPresetRecall(deviceId, presetId);
     }
 
     private void HandlePostPresetSaveRequest(ResponseBase response)
@@ -259,7 +285,6 @@ internal class CameraControlComponent(BasicTriListWithSmartObject ui, UserInterf
             return;
         }
 
-        var temp = CameraPresetSaveRequest;
-        temp?.Invoke(this, new GenericDualEventArgs<string, string>(deviceId, presetId));
+        appService.SendCameraPresetSave(deviceId, presetId);
     }
 }

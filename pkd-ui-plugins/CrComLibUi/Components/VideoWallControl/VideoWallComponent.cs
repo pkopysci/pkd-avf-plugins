@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using CrComLibUi.Api;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json.Linq;
@@ -6,30 +5,41 @@ using pkd_application_service.UserInterface;
 using pkd_application_service.VideoWallControl;
 using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
-using pkd_ui_service.Interfaces;
 
 namespace CrComLibUi.Components.VideoWallControl;
 
 internal class VideoWallComponent(
     BasicTriListWithSmartObject ui,
-    UserInterfaceDataContainer uiData)
-    : BaseComponent(ui, uiData), IVideoWallUserInterface
+    UserInterfaceDataContainer uiData,
+    IVideoWallApp appService)
+    : BaseComponent(ui, uiData)
 {
     private const string LayoutCommand = "LAYOUT";
     private const string RouteCommand = "ROUTE";
     private const string StatusCommand = "STATUS";
     private const string ConfigCommand = "CONFIG";
     private List<VideoWallControlData> _videoWalls = [];
-    
-    public event EventHandler<GenericTrippleEventArgs<string, string, string>>? VideoWallLayoutChangeRequest;
-    public event EventHandler<GenericTrippleEventArgs<string, string, string>>? VideoWallRouteRequest;
+
 
     public override void Initialize()
     {
+        _videoWalls = ConfigDataFactory.CreateControllerCollection(appService.GetAllVideoWalls());
+        
+        appService.VideoWallCellRouteChanged += AppServiceOnVideoWallCellRouteChanged;
+        appService.VideoWallConnectionStatusChanged += AppServiceOnVideoWallConnectionStatusChanged;
+        appService.VideoWallLayoutChanged += AppServiceOnVideoWallLayoutChanged;
+        
         GetHandlers.Add(ConfigCommand, HandleGetConfig);
         GetHandlers.Add(LayoutCommand, HandleGetActiveLayout);
         PostHandlers.Add(LayoutCommand, HandlePostLayoutSelect);
         PostHandlers.Add(RouteCommand, HandlePostRouteRequest);
+    }
+
+    public override void SendConfig()
+    {
+        var response = MessageFactory.CreateGetResponseObject();
+        response.Command = ConfigCommand;
+        HandleGetConfig(response);
     }
 
     public override void HandleSerialResponse(string response)
@@ -52,7 +62,7 @@ internal class VideoWallComponent(
                     HandlePostRequest(message);
                     break;
                 default:
-                    SendError($"Unsupported method: {message.Method}.",ApiHooks.VideoControl);
+                    SendError($"Unsupported method: {message.Method}.", ApiHooks.VideoControl);
                     break;
             }
         }
@@ -63,84 +73,81 @@ internal class VideoWallComponent(
         }
     }
 
-    public void SetVideoWallData(
-        ReadOnlyCollection<VideoWallInfoContainer> videoWalls)
+    private void AppServiceOnVideoWallLayoutChanged(object? sender, GenericDualEventArgs<string, string> e)
     {
-        _videoWalls = ConfigDataFactory.CreateControllerCollection(videoWalls);
-    }
-
-    public void UpdateActiveVideoWallLayout(string controlId,string canvasId, string layoutId)
-    {
-        var found = _videoWalls.FirstOrDefault(x => x.Id == controlId);
+        var found = _videoWalls.FirstOrDefault(x => x.Id == e.Arg1);
         if (found == null)
         {
-            Logger.Error($"VideoWallComponent.UpdateActiveVideoWallLayout() - no controller with id {controlId}");
+            Logger.Error($"VideoWallComponent.UpdateActiveVideoWallLayout() - no controller with id {e.Arg1}");
             return;
         }
 
-        var canvas = found.Canvases.FirstOrDefault(c => c.Id.Equals(canvasId));
+        var canvas = found.Canvases.FirstOrDefault(c => c.Id.Equals(e.Arg2));
         if (canvas == null)
         {
-            Logger.Error($"VideoWallComponent.UpdateActiveVideoWallLayout() - no canvas with id {canvasId}");
+            Logger.Error($"VideoWallComponent.UpdateActiveVideoWallLayout() - no canvas with id {e.Arg2}");
             return;
         }
-        
-        canvas.ActiveLayoutId  = layoutId;
-        
+
+        canvas.ActiveLayoutId = appService.QueryActiveVideoWallLayout(e.Arg1, e.Arg2);
+
         var message = MessageFactory.CreateGetResponseObject();
         message.Command = LayoutCommand;
-        message.Data["ControlId"] = controlId;
-        message.Data["CanvasId"] = canvasId;
-        message.Data["LayoutId"] = layoutId;
+        message.Data["ControlId"] = e.Arg1;
+        message.Data["CanvasId"] = e.Arg2;
+        message.Data["LayoutId"] = canvas.ActiveLayoutId;
         Send(message, ApiHooks.VideoWall);
     }
 
-    public void UpdateCellRoutedSource(string controlId, string canvasId, string cellId, string sourceId)
+    private void AppServiceOnVideoWallConnectionStatusChanged(object? sender, GenericSingleEventArgs<string> e)
     {
-        var wall = _videoWalls.FirstOrDefault(x => x.Id == controlId);
-        if (wall == null)
+        var found = _videoWalls.FirstOrDefault(x => x.Id == e.Arg);
+        if (found == null)
         {
-            Logger.Error($"VideoWallComponent.UpdateCellRoutedSource() - no controller with id {controlId}");
+            Logger.Error($"VideoWallComponent.UpdateVideoWallConnectionStatus() - no controller with Id {e.Arg}");
             return;
         }
-        
-        var canvas = wall.Canvases.FirstOrDefault(c => c.Id.Equals(canvasId));
+
+        found.IsOnline = appService.QueryVideoWallConnectionStatus(e.Arg);
+        var message = MessageFactory.CreateGetResponseObject();
+        message.Command = StatusCommand;
+        message.Data["ControlId"] = e.Arg;
+        message.Data["OnlineStatus"] = found.IsOnline;
+        Send(message, ApiHooks.VideoWall);
+    }
+
+    private void AppServiceOnVideoWallCellRouteChanged(object? sender, GenericTrippleEventArgs<string, string, string> e)
+    {
+        var wall = _videoWalls.FirstOrDefault(x => x.Id == e.Arg1);
+        if (wall == null)
+        {
+            Logger.Error($"VideoWallComponent.UpdateCellRoutedSource() - no controller with id {e.Arg1}");
+            return;
+        }
+
+        var canvas = wall.Canvases.FirstOrDefault(c => c.Id.Equals(e.Arg2));
         if (canvas == null)
         {
-            Logger.Error($"VideoWallComponent.UpdateCellRoutedSource() - no canvas with id {canvasId}");
+            Logger.Error($"VideoWallComponent.UpdateCellRoutedSource() - no canvas with id {e.Arg2}");
             return;
         }
 
         var layout = canvas.GetActiveLayout();
         if (layout == null) return;
-        layout.SetCellSource(cellId, sourceId);
+
+        var currentSource = appService.QueryVideoWallCellSource(e.Arg1, e.Arg2, e.Arg3);
         
+        layout.SetCellSource(e.Arg3, currentSource);
+
         var message = MessageFactory.CreateGetResponseObject();
         message.Command = RouteCommand;
-        message.Data["ControlId"] = controlId;
-        message.Data["CanvasId"] = canvasId;
-        message.Data["CellId"] = cellId;
-        message.Data["SourceId"] = sourceId;
+        message.Data["CtId"] = e.Arg1;
+        message.Data["CaId"] = e.Arg2;
+        message.Data["CeId"] = e.Arg3;
+        message.Data["ScId"] = currentSource;
         Send(message, ApiHooks.VideoWall);
     }
-
-    public void UpdateVideoWallConnectionStatus(string controlId, bool onlineStatus)
-    {
-        var found = _videoWalls.FirstOrDefault(x => x.Id == controlId);
-        if (found == null)
-        {
-            Logger.Error($"VideoWallComponent.UpdateVideoWallConnectionStatus() - no controller with Id {controlId}");
-            return;
-        }
-
-        found.IsOnline = onlineStatus;
-        var message = MessageFactory.CreateGetResponseObject();
-        message.Command = StatusCommand;
-        message.Data["ControlId"] = controlId;
-        message.Data["OnlineStatus"] = onlineStatus;
-        Send(message, ApiHooks.VideoWall);
-    }
-
+    
     private void HandleGetRequest(ResponseBase rxObj)
     {
         if (GetHandlers.TryGetValue(rxObj.Command, out var handler))
@@ -177,12 +184,12 @@ internal class VideoWallComponent(
     {
         var controlId = rxObj.Data.Value<string>("ControlId");
         var canvasId = rxObj.Data.Value<string>("CanvasId");
-        if (string.IsNullOrEmpty(controlId) ||  string.IsNullOrEmpty(canvasId))
+        if (string.IsNullOrEmpty(controlId) || string.IsNullOrEmpty(canvasId))
         {
             SendError("Invalid Layout GET request - ControlId or CanvasId missing.", ApiHooks.VideoWall);
             return;
         }
-        
+
         var controller = _videoWalls.FirstOrDefault(x => x.Id == controlId);
         if (controller == null)
         {
@@ -196,14 +203,14 @@ internal class VideoWallComponent(
             SendError($"Invalid layout GET request - no canvas with id {canvasId}", ApiHooks.VideoWall);
             return;
         }
-        
+
         var message = MessageFactory.CreateGetResponseObject();
         message.Command = LayoutCommand;
         message.Data["ControlId"] = controlId;
         message.Data["LayoutId"] = canvas.ActiveLayoutId;
         Send(message, ApiHooks.VideoWall);
     }
-    
+
     private void HandlePostLayoutSelect(ResponseBase rxObj)
     {
         var controlId = rxObj.Data.Value<string>("ControlId");
@@ -230,37 +237,38 @@ internal class VideoWallComponent(
                 ApiHooks.VideoWall);
             return;
         }
-        
-        if (!canvas.Layouts.Exists(x => x.Id == canvasId))
+
+        if (!canvas.Layouts.Exists(x => x.Id == layoutId))
         {
             SendError(
-                $"Invalid layout POST request: canvas {canvasId} does not contain a canvas with id {layoutId}.",
+                $"Invalid layout POST request: canvas {canvasId} does not contain a layout with id {layoutId}.",
                 ApiHooks.VideoWall);
             return;
         }
         
-        var temp = VideoWallLayoutChangeRequest;
-        temp?.Invoke(this, new GenericTrippleEventArgs<string, string, string>(controlId, canvasId, layoutId));
+        appService.SetActiveVideoWallLayout(controlId, canvasId, layoutId);
     }
 
     private void HandlePostRouteRequest(ResponseBase rxObj)
     {
-        var controlId = rxObj.Data.Value<string>("ControlId");
-        var cellId = rxObj.Data.Value<string>("CellId");
-        var sourceId = rxObj.Data.Value<string>("SourceId");
-        if (string.IsNullOrEmpty(controlId) || string.IsNullOrEmpty(cellId) || string.IsNullOrEmpty(sourceId))
+        var controlId = rxObj.Data.Value<string>("CtId");
+        var canvasId = rxObj.Data.Value<string>("CaId");
+        var cellId = rxObj.Data.Value<string>("CeId");
+        var sourceId = rxObj.Data.Value<string>("ScId");
+        if (string.IsNullOrEmpty(controlId) || string.IsNullOrEmpty(cellId) || string.IsNullOrEmpty(sourceId) ||
+            string.IsNullOrEmpty(canvasId))
         {
-            SendError("Invalid route POST request: missing ControlId, CellId, or SourceId.", ApiHooks.VideoWall);
+            SendError("Invalid route POST request: missing CtId, CaId, CeId, or ScId.", ApiHooks.VideoWall);
             return;
         }
-        
+
         var wall = _videoWalls.FirstOrDefault(x => x.Id == controlId);
         if (wall == null)
         {
             SendError($"Invalid route POST request: no controller with id {controlId}.", ApiHooks.VideoWall);
             return;
         }
-        
-        // todo
+
+        appService.SetVideoWallCellRoute(controlId, canvasId, cellId, sourceId);
     }
 }

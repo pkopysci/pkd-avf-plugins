@@ -38,8 +38,6 @@ public class VideoWallEmulator : IVideoWallDevice
     }
     
     
-    
-    
     public void Connect()
     {
         IsOnline = true;
