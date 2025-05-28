@@ -1,4 +1,5 @@
-﻿using pkd_common_utils.GenericEventArgs;
+﻿using pkd_common_utils.FileOps;
+using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
 using pkd_domain_service.Data.RoutingData;
 using pkd_hardware_service.VideoWallDevices;
@@ -7,7 +8,7 @@ namespace VideoWallEmulation;
 
 public class VideoWallEmulator : IVideoWallDevice
 {
-    private List<EmulatedVideoWallCanvas> _internalCanvases = [];
+    private List<EmulatedCanvas> _internalCanvases = [];
     
     public event EventHandler<GenericSingleEventArgs<string>>? VideoWallLayoutChanged;
     public event EventHandler<GenericDualEventArgs<string, string>>? VideoWallCellSourceChanged;
@@ -37,7 +38,6 @@ public class VideoWallEmulator : IVideoWallDevice
         }    
     }
     
-    
     public void Connect()
     {
         IsOnline = true;
@@ -56,8 +56,14 @@ public class VideoWallEmulator : IVideoWallDevice
     {
         Id = id;
         Label = label;
-        _internalCanvases = WallData.CreateCanvases();
-        Sources = WallData.CreateSources();
+       
+        var filePath = $"{DirectoryHelper.GetUserFolder()}/{Id}-config.json";
+        if (WallData.TryReadConfig(filePath, out var configData))
+        {
+            Sources = configData.Sources;
+            _internalCanvases = configData.Canvases;
+        }
+
         IsInitialized = true;
     }
 
@@ -109,15 +115,15 @@ public class VideoWallEmulator : IVideoWallDevice
             return;
         }
 
-        if (!canvas.TryGetVideoWallCell(cellId, out var cell))
+        if (!canvas.TryGetCell(cellId, out var cell))
         {
             Logger.Error($"VideoWallEmulator {Id} - SetCellSource() - active layout for {canvasId} does not have a cell with id {cellId}.");
             return;
         }
         
-        if (cell != null) cell.SourceId = sourceId;
+        cell.SourceId = sourceId;
         var temp = VideoWallCellSourceChanged;
-        temp?.Invoke(this, new GenericDualEventArgs<string,string>(canvasId, cell?.Id ?? string.Empty));
+        temp?.Invoke(this, new GenericDualEventArgs<string,string>(canvasId, cell.Id));
     }
 
     public string GetCellSourceId(string canvasId, string cellId)
@@ -129,12 +135,12 @@ public class VideoWallEmulator : IVideoWallDevice
             return string.Empty;
         }
         
-        if (!canvas.TryGetVideoWallCell(cellId, out var cell))
+        if (!canvas.TryGetCell(cellId, out var cell))
         {
             Logger.Error($"VideoWallEmulator {Id} - GetCellSourceId() - active layout for {canvasId} does not have a cell with id {cellId}.");
             return string.Empty;
         }
         
-        return (cell == null) ? string.Empty : cell.SourceId;
+        return cell.SourceId;
     }
 }
