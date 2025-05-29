@@ -37,6 +37,7 @@ internal class VideoWallComponent(
 
     public override void SendConfig()
     {
+        Logger.Debug("VideoWallComponent.SendConfig()\r\n");
         var response = MessageFactory.CreateGetResponseObject();
         response.Command = ConfigCommand;
         HandleGetConfig(response);
@@ -174,6 +175,8 @@ internal class VideoWallComponent(
 
     private void HandleGetConfig(ResponseBase rxObj)
     {
+        Logger.Debug("VideoWallComponent.HandleGetConfig()\r\n");
+        
         var message = MessageFactory.CreateGetResponseObject();
         message.Command = ConfigCommand;
         message.Data["Controllers"] = JToken.FromObject(_videoWalls);
