@@ -37,7 +37,6 @@ internal class VideoWallComponent(
 
     public override void SendConfig()
     {
-        Logger.Debug("VideoWallComponent.SendConfig()\r\n");
         var response = MessageFactory.CreateGetResponseObject();
         response.Command = ConfigCommand;
         HandleGetConfig(response);
@@ -91,7 +90,6 @@ internal class VideoWallComponent(
         }
 
         canvas.ActiveLayoutId = appService.QueryActiveVideoWallLayout(e.Arg1, e.Arg2);
-
         var message = MessageFactory.CreateGetResponseObject();
         message.Command = LayoutCommand;
         message.Data["ControlId"] = e.Arg1;
@@ -249,6 +247,7 @@ internal class VideoWallComponent(
             return;
         }
         
+        Logger.Debug($"{nameof(VideoWallComponent)}.{nameof(HandlePostLayoutSelect)}() - {controlId}, {canvasId}, {layoutId}\r\n");
         appService.SetActiveVideoWallLayout(controlId, canvasId, layoutId);
     }
 

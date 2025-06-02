@@ -1,0 +1,256 @@
+{
+    "Sources": [
+        {
+          "Id": "db01source01",
+          "Label": "HDMI",
+          "Icon": "wallplate",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 1,
+          "Tags": ["debrief:d01"]
+        },
+        {
+          "Id": "db01source02",
+          "Label": "PC",
+          "Icon": "laptop",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 2,
+          "Tags": ["debrief:d01"]
+        },
+        {
+          "Id": "source03",
+          "Label": "Station 1 Stream",
+          "Icon": "laptop",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 3,
+          "Tags": ["debrief:d01", "debrief:d02", "stationstream"]
+        },
+        {
+          "Id": "source04",
+          "Label": "Station 2 Stream",
+          "Icon": "laptop",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 4,
+          "Tags": ["debrief:d01", "debrief:d02", "stationstream"]
+        },
+        {
+          "Id": "db02source01",
+          "Label": "HDMI",
+          "Icon": "wallplate",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 5,
+          "Tags": ["debrief:d02"]
+        },
+        {
+          "Id": "db02source02",
+          "Label": "PC",
+          "Icon": "laptop",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 6,
+          "Tags": ["debrief:d02"]
+        },
+        {
+          "Id": "cam01",
+          "Label": "Lab 1  A",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 9,
+          "Tags": ["camera"]
+        },
+        {
+          "Id": "cam02",
+          "Label": "Lab 1 B",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 10,
+          "Tags": ["camera"]
+        },
+        {
+          "Id": "cam03",
+          "Label": "Lab 2  A",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 11,
+          "Tags": ["camera"]
+        },
+        {
+          "Id": "cam04",
+          "Label": "Lab 2 B",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 12,
+          "Tags": ["camera"]
+        },
+        {
+          "Id": "cam05",
+          "Label": "Lab 3  A",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 13,
+          "Tags": ["camera"]
+        },
+        {
+          "Id": "cam06",
+          "Label": "Lab 3 B",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 14,
+          "Tags": ["camera"]
+        },
+        {
+          "Id": "cam07",
+          "Label": "Lab 4  A",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 15,
+          "Tags": ["camera"]
+        },
+        {
+          "Id": "cam08",
+          "Label": "Lab 4 B",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 16,
+          "Tags": ["camera"]
+        },
+        {
+          "Id": "cam11",
+          "Label": "Nurse Station",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 17,
+          "Tags": ["camera"]
+        },
+        {
+          "Id": "cam09",
+          "Label": "Debrief 1",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 18,
+          "Tags": ["camera"]
+        },
+        {
+          "Id": "cam10",
+          "Label": "Debrief 2",
+          "Icon": "camera",
+          "Control": "",
+          "Matrix": "rtr01",
+          "Input": 19,
+          "Tags": ["camera"]
+        }
+      ],
+    "Canvases":[
+        {
+            "Id":"stationrecording01",
+            "Label":"Station 1 Recording",
+            "StartupLayoutId": "quad",
+            "MaxHeight": 2,
+            "MaxWidth": 2,
+            "HardwareOutput": 1,
+            "Layouts": [
+                {
+                    "Id":"fullscreen",
+                    "Label":"Full Screen",
+                    "Icon": "fullscreen",
+                    "Width": 1,
+                    "Height": 1,
+                    "Cells": [
+                        {
+                            "Id":"cell01",
+                            "Label": "Full Screen",
+                            "Icon":"fullscreen",
+                            "xPosition": 1,
+                            "yPosition": 1,
+                            "Tags":[]
+                        }
+                    ],
+                    "Tags":[]
+                },
+                {
+                    "Id":"sidebyside",
+                    "Label":"Side By Side",
+                    "Icon": "sidebyside",
+                    "Width": 2,
+                    "Height": 1,
+                    "Cells": [
+                        {
+                            "Id":"cell01",
+                            "Label": "left",
+                            "Icon":"left",
+                            "xPosition": 1,
+                            "yPosition": 1,
+                            "Tags":[]
+                        },
+                        {
+                            "Id":"cell02",
+                            "Label": "Right",
+                            "Icon":"right",
+                            "xPosition": 2,
+                            "yPosition": 1,
+                            "Tags":[]
+                        }
+                    ],
+                    "Tags":[]
+                },
+                {
+                    "Id":"quad",
+                    "Label":"Quad View",
+                    "Icon": "quadview",
+                    "Width": 2,
+                    "Height": 2,
+                    "Cells": [
+                        {
+                            "Id":"cell01",
+                            "Label": "Top Left",
+                            "Icon":"topleft",
+                            "xPosition": 1,
+                            "yPosition": 1,
+                            "Tags":[]
+                        },
+                        {
+                            "Id":"cell02",
+                            "Label": "Top Right",
+                            "Icon":"topright",
+                            "xPosition": 2,
+                            "yPosition": 1,
+                            "Tags":[]
+                        },
+                        {
+                            "Id":"cell03",
+                            "Label": "Bottom Left",
+                            "Icon":"bottomleft",
+                            "xPosition": 1,
+                            "yPosition": 2,
+                            "Tags":[]
+                        },
+                        {
+                            "Id":"cell04",
+                            "Label": "Bottom Right",
+                            "Icon":"bottomright",
+                            "xPosition": 2,
+                            "yPosition": 2,
+                            "Tags":[]
+                        }
+                    ],
+                    "Tags":[]
+                }
+            ],
+            "Tags": []
+        }
+    ]
+}

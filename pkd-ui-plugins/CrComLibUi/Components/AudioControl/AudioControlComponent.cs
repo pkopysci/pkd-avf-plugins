@@ -116,14 +116,20 @@ internal class AudioControlComponent(
 
     private void AppServiceOnAudioDspConnectionStatusChanged(object? sender, GenericSingleEventArgs<string> e)
     {
+        
+        
         var deviceId = e.Arg;
         var found = _audioDevices.FirstOrDefault(x => x.Id == deviceId);
+        
+        
         if (found == null)
         {
             Logger.Error(
                 $"CrComLibUI.AudioControlComponent.UpdateAudioDeviceConnectionStatus() - no device with id {deviceId}");
             return;
         }
+        
+        Logger.Debug($"AppServiceOnAudioDspConnectionStatusChanged: {e.Arg} = {found.IsOnline}");
 
         found.IsOnline = appService.QueryAudioDspConnectionStatus(deviceId);
         var message = MessageFactory.CreateGetResponseObject();

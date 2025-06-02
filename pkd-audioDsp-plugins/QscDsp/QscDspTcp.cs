@@ -1,19 +1,20 @@
-﻿using pkd_hardware_service.Redundancy;
-#pragma warning disable CS8601 // Possible null reference assignment.
+﻿#pragma warning disable CS8601 // Possible null reference assignment.
 
 namespace QscDsp
 {
+	using System;
+	using System.Collections.Generic;
+	using System.Linq;
 	using Crestron.SimplSharp;
 	using pkd_common_utils.GenericEventArgs;
 	using pkd_common_utils.Logging;
 	using pkd_common_utils.Validation;
 	using pkd_hardware_service.AudioDevices;
 	using pkd_hardware_service.BaseDevice;
+	using pkd_hardware_service.Redundancy;
 	using pkd_hardware_service.Routable;
 	using QscQsys;
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
+	using Timer = System.Timers.Timer;
 
 	/// <summary>
 	/// QSC control implementation for DSP control.
@@ -35,6 +36,7 @@ namespace QscDsp
 		private string? _password;
 		private int _port;
 		private QsysCore? _core;
+		private Timer? _connectTimer;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QscDsp"/> class.
@@ -201,6 +203,8 @@ namespace QscDsp
 		{
 			if (IsInitialized)
 			{
+				_connectTimer?.Stop();
+				_connectTimer?.Dispose();
 				_core = new QsysCore();
 
 #if DEBUG
@@ -220,6 +224,11 @@ namespace QscDsp
 					_username ?? string.Empty,
 					_password ?? string.Empty,
 					0);
+
+				_connectTimer = new Timer(3000);
+				_connectTimer.AutoReset = false;
+				_connectTimer.Elapsed += (_, _) => NotifyOnlineStatus();
+				_connectTimer.Start();
 			}
 			else
 			{
@@ -496,6 +505,9 @@ namespace QscDsp
 		{
 			Logger.Debug("QscDspTcp {0}.OnCoreConnected() - {1}", Id, state);
 
+			_connectTimer?.Stop();
+			_connectTimer?.Dispose();
+			
 			if (state > 0)
 			{
 				RegisterNamedControls();
@@ -517,7 +529,7 @@ namespace QscDsp
 		private void OnCoreRegistered(SimplSharpString id, ushort value)
 		{
 			Logger.Debug("QscDspTcp {0} - OnCoreRegistered({1})", Id, value);
-
+			
 			_coreRegistered = value > 0;
 			IsOnline = _coreRegistered;
 			NotifyOnlineStatus();
@@ -630,6 +642,8 @@ namespace QscDsp
 			if (_disposed) return;
 			if (disposing)
 			{
+				_connectTimer?.Stop();
+				_connectTimer?.Dispose();
 				ClearControls();
 				if (_core != null)
 				{
