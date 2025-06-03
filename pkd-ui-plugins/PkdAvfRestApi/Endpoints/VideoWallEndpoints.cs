@@ -5,7 +5,6 @@ using pkd_application_service;
 using pkd_application_service.VideoWallControl;
 using pkd_common_utils.Logging;
 using PkdAvfRestApi.Contracts;
-using PkdAvfRestApi.Contracts.Video.Routing;
 using PkdAvfRestApi.Contracts.Video.VideoWall;
 
 // ReSharper disable SuspiciousTypeConversion.Global
@@ -32,36 +31,31 @@ internal static class VideoWallEndpoints
         group.MapGet("/", () =>
         {
             if (_appService == null) return Results.BadRequest("Video walls not supported.");
-            try
-            {
-                List<VideoWallDto> dtos = [];
-                foreach (var wall in _appService.GetAllVideoWalls())
-                {
-                    dtos.Add(CreateVideoWallDto(wall));
-                }
-
-                return Results.Ok(dtos);
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, "AVF REST API - GET Video Walls.");
-                return Results.Problem("Internal Server Error");
-            }
+            return VideoWallContracts.GetAllControllers(_appService);
         });
 
         group.MapGet("/{id}", (string id) =>
         {
             if (_appService == null) return Results.BadRequest("Video walls not supported.");
-            try
-            {
-                var found = _appService.GetAllVideoWalls().FirstOrDefault(vw => vw.Id == id);
-                return found is null ? Results.NotFound() : Results.Ok(CreateVideoWallDto(found));
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, $"AVF REST API - GET Video Wall {id}.");
-                return Results.Problem("Internal Server Error");
-            }
+            return VideoWallContracts.GetSingleVideoWall(_appService, id);
+        });
+
+        group.MapGet("/{id}/canvases", (string id) =>
+        {
+            if (_appService == null) return Results.BadRequest("Video walls not supported.");
+            return VideoWallContracts.GetAllWallCanvases(_appService, id);
+        });
+
+        group.MapGet("/{id}/canvases/{canvasId}", (string id, string canvasId) =>
+        {
+            if (_appService == null) return Results.BadRequest("Video walls not supported.");
+            return VideoWallContracts.GetSingleVideoWallCanvas(_appService, id, canvasId);
+        });
+
+        group.MapGet("/{id}/canvases/{canvasId}/layouts", (string id, string canvasId) =>
+        {
+            if (_appService == null) return Results.BadRequest("Video walls not supported.");
+            return VideoWallContracts.GetCanvasLayouts(_appService, id, canvasId);
         });
 
         group.MapPut("/layout", (SetVideoWallLayoutDto data) =>
@@ -134,66 +128,5 @@ internal static class VideoWallEndpoints
         });
 
         return group;
-    }
-
-    private static VideoWallDto CreateVideoWallDto(VideoWallInfoContainer videoWall)
-    {
-        List<VideoWallCanvasDto> canvases = [];
-        foreach (var canvas in videoWall.Canvases)
-        {
-            List<VideoWallLayoutDto> layouts = [];
-            foreach (var layout in canvas.Layouts)
-            {
-                List<VideoWallCellDto> cells = [];
-                foreach (var cell in layout.Cells)
-                {
-                    cells.Add(new VideoWallCellDto(
-                        Id: cell.Id,
-                        XPosition: cell.XPosition,
-                        YPosition: cell.YPosition,
-                        SourceId: cell.SourceId
-                    ));
-                }
-
-                layouts.Add(new VideoWallLayoutDto(
-                    Id: layout.Id,
-                    Label: layout.Label,
-                    Cells: cells,
-                    VideoWallControlId: layout.VideoWallControlId,
-                    Width: layout.Width,
-                    Height: layout.Height
-                ));
-            }
-
-            canvases.Add(new VideoWallCanvasDto(
-                canvas.Id,
-                canvas.Label,
-                _appService?.QueryActiveVideoWallLayout(videoWall.Id, canvas.Id) ?? string.Empty,
-                [],
-                layouts));
-        }
-
-        List<VideoInputDto> sources = [];
-        foreach (var input in videoWall.Sources)
-        {
-            sources.Add(new VideoInputDto(
-                Id: input.Id,
-                Label: input.Label,
-                Icon: input.Icon,
-                HasSync: true, // TODO: Update this when HasSync is supported
-                Tags: input.Tags
-            ));
-        }
-
-        return new VideoWallDto(
-            Id: videoWall.Id,
-            Label: videoWall.Label,
-            Manufacturer: videoWall.Manufacturer,
-            Model: videoWall.Model,
-            Canvases: canvases,
-            Tags: videoWall.Tags,
-            IsOnline: videoWall.IsOnline,
-            Sources: sources
-        );
     }
 }

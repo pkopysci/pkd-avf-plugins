@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using pkd_common_utils.Logging;
 using PkdAvfRestApi.Configuration;
 using PkdAvfRestApi.Tools;
 
@@ -26,9 +27,10 @@ public sealed class ProgramService : BackgroundService
     {
         try
         {
-            _logger.LogInformation("Program service started");
-            _logger.LogInformation("Control System: {ControlSystem}", _controlSystemContext.ControlSystem.ControllerPrompt);
-            _logger.LogInformation("Configuration: {ConfigurationPath}", _hostConfig.ConfigurationPath);
+            Logger.Info($"REST API started.");
+            //_logger.LogInformation("Program service started");
+            // _logger.LogInformation("Control System: {ControlSystem}", _controlSystemContext.ControlSystem.ControllerPrompt);
+            // _logger.LogInformation("Configuration: {ConfigurationPath}", _hostConfig.ConfigurationPath);
         }
         catch (OperationCanceledException ex) when (ex.CancellationToken == stoppingToken)
         {
@@ -36,7 +38,7 @@ public sealed class ProgramService : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred in the program service");
+            Logger.Error(ex, "An error occurred in the REST API.");
         }
 
         return Task.CompletedTask;
