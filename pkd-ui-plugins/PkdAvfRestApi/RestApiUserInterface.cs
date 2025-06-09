@@ -79,8 +79,11 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUse
 
         services.AddHostedService<ProgramService>();
         services.AddEndpointsApiExplorer();
+        services.AddCors();
 
+       
         _app = builder.Build();
+        _app.UseCors(b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
         _app.MapSystemEndpoints(_applicationService);
         _app.MapDisplayEndpoints(_applicationService);
         _app.MapGlobalVideoEndpoints(_applicationService);
@@ -90,6 +93,7 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUse
         _app.MapLightingEndpoints(_applicationService);
         _app.MapTunerEndpoints(_applicationService);
         _app.MapCameraEndpoints(_applicationService);
+        
 
         _app.Lifetime.ApplicationStarted.Register(() =>
         {
