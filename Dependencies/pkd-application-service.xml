@@ -470,6 +470,13 @@
             subscribes to all events triggered by the internal subject-specific control objects.
             </summary>
         </member>
+        <member name="M:pkd_application_service.ApplicationService.OnRoutingControlRouteChange(System.Object,pkd_common_utils.GenericEventArgs.GenericSingleEventArgs{System.String})">
+            <summary>
+            Event handler for when the routing control component indicates a route was changed.
+            </summary>
+            <param name="sender">The RoutingComponent that triggered the change</param>
+            <param name="args">Arg1 = ID of the destination that changed.</param>
+        </member>
         <member name="M:pkd_application_service.ApplicationService.SetAvrVideoFreeze(System.Boolean)">
             <summary>
             Iterate through all AVRs in the system configuration and set their video freeze state to the given value, if

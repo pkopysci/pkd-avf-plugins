@@ -1,12 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using AxisCameras.Http;
 using pkd_common_utils.DataObjects;
-using pkd_common_utils.GenericEventArgs;
 using pkd_common_utils.Logging;
-using pkd_common_utils.Validation;
 using pkd_hardware_service.BaseDevice;
 using pkd_hardware_service.CameraDevices;
-using pkd_hardware_service.PowerControl;
 
 namespace AxisCameras;
 
