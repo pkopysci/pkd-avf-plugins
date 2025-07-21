@@ -9,7 +9,7 @@
 	using System;
 	using System.Collections.Generic;
 
-	public class AvSwitchEmulator : BaseDevice, IAvSwitcher, IVideoControllable, IAudioControl
+	public class AvSwitchEmulator : BaseDevice, IAvSwitcher, IVideoControllable, IAudioControl, IVideoInputSyncDevice
 	{
 		private readonly Dictionary<uint, uint> _outputs = new();
 		private readonly Dictionary<string, AudioChannel> _audioOuts = new();
@@ -25,19 +25,16 @@
 			Model = "Av-Switch Emulator";
 		}
 		
-		/// <inheritdoc/>
 		public event EventHandler<GenericDualEventArgs<string, uint>>? VideoRouteChanged;
-		
-		/// <inheritdoc/>
 		public event EventHandler<GenericSingleEventArgs<string>>? VideoBlankChanged;
-		
-		/// <inheritdoc/>
 		public event EventHandler<GenericSingleEventArgs<string>>? VideoFreezeChanged;
 		
 		public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputLevelChanged;
 		public event EventHandler<GenericDualEventArgs<string, string>>? AudioInputMuteChanged;
 		public event EventHandler<GenericDualEventArgs<string, string>>? AudioOutputLevelChanged;
 		public event EventHandler<GenericDualEventArgs<string, string>>? AudioOutputMuteChanged;
+
+		public event EventHandler<GenericSingleEventArgs<uint>>? VideoInputSyncStateChanged;
 
 		/// <inheritdoc/>
 		public bool FreezeState { get; private set; }
@@ -271,5 +268,7 @@
 		{
 			Logger.Debug($"AvSwitchEmulator {Id} - AddPreset({id}, {index})");
 		}
+
+		public bool QueryVideoInputSyncState(uint input) => true;
 	}
 }
