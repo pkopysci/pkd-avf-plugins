@@ -5,5 +5,6 @@ internal record VideoInputDto(
     string Label,
     string Icon,
     bool HasSync,
+    bool SupportsSync,
     List<string> Tags
 );

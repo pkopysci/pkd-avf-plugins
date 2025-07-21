@@ -172,7 +172,8 @@ internal static class VideoWallContracts
             Id: sourceInfo.Id,
             Label: sourceInfo.Label,
             Icon: sourceInfo.Icon,
-            HasSync: true, // TODO: Update this when HasSync is supported
+            HasSync: sourceInfo.HasSync,
+            SupportsSync: sourceInfo.SupportSync,
             Tags: sourceInfo.Tags
         );
     }

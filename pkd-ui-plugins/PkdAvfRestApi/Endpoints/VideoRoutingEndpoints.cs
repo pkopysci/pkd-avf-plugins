@@ -169,7 +169,8 @@ internal static class VideoRoutingEndpoints
             Id: input.Id,
             Label: input.Label,
             Icon: input.Icon,
-            HasSync: true, // TODO: Update this when sync is supported.
+            HasSync: input.HasSync,
+            SupportsSync: input.SupportSync,
             Tags: input.Tags);
     }
 
