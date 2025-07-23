@@ -23,7 +23,7 @@ internal static class DisplayEndpoints
         var group = app.MapGroup("video/displays");
 
         group.MapGet("/supported", () => Results.Ok(new SupportedDto(_appService != null)));
-        
+
         group.MapGet("/", () =>
             {
                 if (_appService == null) return Results.Ok(new List<DisplayDto>());

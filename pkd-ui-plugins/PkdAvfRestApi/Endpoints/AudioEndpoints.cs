@@ -150,6 +150,74 @@ internal static class AudioEndpoints
             }
         });
 
+        group.MapPut("/inputs/{id}/level", (string id, SetAudioLevelDto body) =>
+        {
+            if (_appService == null) return Results.BadRequest("Audio control not supported.");
+            try
+            {
+                var found = _appService.GetAudioInputChannels().FirstOrDefault(x => x.Id == id);
+                if (found == null) return Results.NotFound();
+                if (_appService.QueryAudioInputLevel(id) != body.Level) _appService.SetAudioInputLevel(id, body.Level);
+                return Results.NoContent();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"AVF REST API - PUT audio input {id}.");
+                return Results.Problem("Internal Server Error");
+            }
+        });
+        
+        group.MapPut("/inputs/{id}/mute", (string id, SetAudioMuteDto body) =>
+        {
+            if (_appService == null) return Results.BadRequest("Audio control not supported.");
+            try
+            {
+                var found = _appService.GetAudioInputChannels().FirstOrDefault(x => x.Id == id);
+                if (found == null) return Results.NotFound();
+                if (_appService.QueryAudioInputMute(id) != body.Mute) _appService.SetAudioInputMute(id, body.Mute);
+                return Results.NoContent();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"AVF REST API - PUT audio input {id}.");
+                return Results.Problem("Internal Server Error");
+            }
+        });
+        
+        group.MapPut("/outputs/{id}/level", (string id, SetAudioLevelDto body) =>
+        {
+            if (_appService == null) return Results.BadRequest("Audio control not supported.");
+            try
+            {
+                var found = _appService.GetAudioOutputChannels().FirstOrDefault(x => x.Id == id);
+                if (found == null) return Results.NotFound();
+                if (_appService.QueryAudioOutputLevel(id) != body.Level) _appService.SetAudioOutputLevel(id, body.Level);
+                return Results.NoContent();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"AVF REST API - PUT audio input {id}.");
+                return Results.Problem("Internal Server Error");
+            }
+        });
+        
+        group.MapPut("/outputs/{id}/mute", (string id, SetAudioMuteDto body) =>
+        {
+            if (_appService == null) return Results.BadRequest("Audio control not supported.");
+            try
+            {
+                var found = _appService.GetAudioOutputChannels().FirstOrDefault(x => x.Id == id);
+                if (found == null) return Results.NotFound();
+                if (_appService.QueryAudioOutputMute(id) != body.Mute) _appService.SetAudioOutputMute(id, body.Mute);
+                return Results.NoContent();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"AVF REST API - PUT audio input {id}.");
+                return Results.Problem("Internal Server Error");
+            }
+        });
+
         group.MapPut("outputs/{id}", (string id, SetAudioOutputDto body) =>
         {
             if (_appService == null) return Results.BadRequest("Audio control not supported.");
