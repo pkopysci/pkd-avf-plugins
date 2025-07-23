@@ -122,6 +122,9 @@
         <member name="E:pkd_application_service.ApplicationService.RouteChanged">
             <inheritdoc/>
         </member>
+        <member name="E:pkd_application_service.ApplicationService.VideoInputSyncChanged">
+            <inheritdoc/>
+        </member>
         <member name="E:pkd_application_service.ApplicationService.AudioOutputRouteChanged">
             <inheritdoc/>
         </member>
@@ -312,6 +315,9 @@
             <inheritdoc/>
         </member>
         <member name="M:pkd_application_service.ApplicationService.ReportGraph">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.ApplicationService.QueryVideoInputSyncStatus(System.String)">
             <inheritdoc/>
         </member>
         <member name="M:pkd_application_service.ApplicationService.QueryCurrentRoute(System.String)">
@@ -794,6 +800,9 @@
         <member name="E:pkd_application_service.AvRouting.AvRoutingApp.RouterConnectChange">
             <inheritdoc/>
         </member>
+        <member name="E:pkd_application_service.AvRouting.AvRoutingApp.VideoInputSyncChanged">
+            <inheritdoc/>
+        </member>
         <member name="M:pkd_application_service.AvRouting.AvRoutingApp.QueryRouterConnectionStatus(System.String)">
             <inheritdoc/>
         </member>
@@ -813,6 +822,9 @@
             <inheritdoc/>
         </member>
         <member name="M:pkd_application_service.AvRouting.AvRoutingApp.QueryCurrentRoute(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.AvRoutingApp.QueryVideoInputSyncStatus(System.String)">
             <inheritdoc/>
         </member>
         <member name="M:pkd_application_service.AvRouting.AvRoutingApp.Dispose">
@@ -860,12 +872,25 @@
             Args package contains the ID of the device that changed.
             </summary>
         </member>
+        <member name="E:pkd_application_service.AvRouting.IAvRoutingApp.VideoInputSyncChanged">
+            <summary>
+            Triggered when a video input sync drops or is established on an AVR device that supports <see cref="T:pkd_hardware_service.AvSwitchDevices.IVideoInputSyncDevice"/>.
+            Arg is the id of the video input that changed.
+            </summary>
+        </member>
         <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.QueryRouterConnectionStatus(System.String)">
             <summary>
             Request the current online/offline status of the target AV routing device.
             </summary>
             <param name="id">The unique ID of the device to query.</param>
             <returns>True if the device is online, false otherwise.</returns>
+        </member>
+        <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.QueryVideoInputSyncStatus(System.String)">
+            <summary>
+            Query the sync status of a video input. This will return false if the input does not support sync detection.
+            </summary>
+            <param name="id">The unique id of the video source to query.</param>
+            <returns>true of sync is detected, false if not or if the input does not support sync detection.</returns>
         </member>
         <member name="M:pkd_application_service.AvRouting.IAvRoutingApp.GetAllAvSources">
             <summary>

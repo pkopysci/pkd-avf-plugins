@@ -16,16 +16,10 @@ internal static class VideoRoutingEndpoints
 
     public static RouteGroupBuilder MapVideoRoutingEndpoints(this WebApplication app, IApplicationService appService)
     {
-        // IApplicationService may not always implement IDisplayControl App in the future.
+        // IApplicationService may not always implement IAvRoutingApp App in the future.
         // ReSharper disable once RedundantCast
         _appService = appService as IAvRoutingApp;
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if (_appService == null)
-        {
-            Logger.Warn(
-                "AVF REST Api - Video Routing Endpoints - provided IApplicationService does not implement IAvRoutingApp.");
-        }
-
+ 
         var group = app.MapGroup("video/routing");
 
         group.MapGet("/supported", () => Results.Ok(new SupportedDto(_appService != null)));
@@ -169,7 +163,8 @@ internal static class VideoRoutingEndpoints
             Id: input.Id,
             Label: input.Label,
             Icon: input.Icon,
-            HasSync: true, // TODO: Update this when sync is supported.
+            HasSync: input.HasSync,
+            SupportsSync: input.SupportSync,
             Tags: input.Tags);
     }
 

@@ -20,11 +20,6 @@ internal static class CameraEndpoints
     public static RouteGroupBuilder MapCameraEndpoints(this WebApplication app, IApplicationService appService)
     {
         _appService = appService as ICameraControlApp;
-        if (_appService == null)
-        {
-            Logger.Warn(
-                "AVF REST Api - Video Wall Endpoints - provided IApplicationService does not implement IVideoWallApp.");
-        }
 
         var group = app.MapGroup("endpoints/cameras");
 

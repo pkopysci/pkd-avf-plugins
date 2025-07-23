@@ -19,15 +19,12 @@ internal static class LightingEndpoints
     public static RouteGroupBuilder MapLightingEndpoints(this WebApplication app, IApplicationService appService)
     {
         _appService = appService as ILightingControlApp;
-        if (_appService == null)
-        {
-            Logger.Warn(
-                "AVF REST Api - Lighting Endpoints - provided IApplicationService does not implement ILightingControlApp.");
-        }
-        
+
+
         var group = app.MapGroup("lighting");
-        
-        group.MapGet("supported", () => new SupportedDto(_appService != null));
+
+        group.MapGet("supported", () =>
+            new SupportedDto(_appService != null && _appService.GetAllLightingDeviceInfo().Count > 0));
 
         group.MapGet("controllers", () =>
         {
@@ -39,7 +36,7 @@ internal static class LightingEndpoints
                 {
                     controllers.Add(CreateLightingController(control));
                 }
-                
+
                 return Results.Ok(controllers);
             }
             catch (Exception ex)
@@ -48,10 +45,11 @@ internal static class LightingEndpoints
                 return Results.Problem("Internal Server Error");
             }
         });
-        
+
         group.MapGet("controllers/{id}", (string id) =>
         {
-            if (_appService == null) return Results.BadRequest("Lighting not supported.");
+            if (_appService == null || _appService.GetAllLightingDeviceInfo().Count == 0)
+                return Results.BadRequest("Lighting not supported.");
             try
             {
                 var found = _appService.GetAllLightingDeviceInfo().FirstOrDefault(x => x.Id == id);
@@ -63,10 +61,11 @@ internal static class LightingEndpoints
                 return Results.Problem("Internal Server Error");
             }
         });
-        
+
         group.MapGet("/zones/{controlId}", (string controlId) =>
         {
-            if (_appService == null) return Results.BadRequest("Lighting not supported.");
+            if (_appService == null || _appService.GetAllLightingDeviceInfo().Count == 0)
+                return Results.BadRequest("Lighting not supported.");
             try
             {
                 var controller = _appService.GetAllLightingDeviceInfo().FirstOrDefault(x => x.Id == controlId);
@@ -77,7 +76,7 @@ internal static class LightingEndpoints
                 {
                     zones.Add(CreateLightingZone(controller.Id, zone));
                 }
-                
+
                 return Results.Ok(zones);
             }
             catch (Exception ex)
@@ -86,15 +85,16 @@ internal static class LightingEndpoints
                 return Results.Problem("Internal Server Error");
             }
         });
-        
+
         group.MapGet("/zones/{controlId}/{zoneId}", (string controlId, string zoneId) =>
         {
-            if (_appService == null) return Results.BadRequest("Lighting not supported.");
+            if (_appService == null || _appService.GetAllLightingDeviceInfo().Count == 0)
+                return Results.BadRequest("Lighting not supported.");
             try
             {
                 var control = _appService.GetAllLightingDeviceInfo().FirstOrDefault(x => x.Id == controlId);
                 if (control == null) return Results.NotFound("ControlId");
-                
+
                 var zone = control.Zones.FirstOrDefault(x => x.Id == zoneId);
                 return zone == null ? Results.NotFound("ZoneId") : Results.Ok(CreateLightingZone(control.Id, zone));
             }
@@ -107,18 +107,19 @@ internal static class LightingEndpoints
 
         group.MapGet("/scenes/{controlId}", (string controlId) =>
         {
-            if (_appService == null) return Results.BadRequest("Lighting not supported.");
+            if (_appService == null || _appService.GetAllLightingDeviceInfo().Count == 0)
+                return Results.BadRequest("Lighting not supported.");
             try
             {
                 var control = _appService.GetAllLightingDeviceInfo().FirstOrDefault(x => x.Id == controlId);
                 if (control == null) return Results.NotFound("ControlId");
-                
+
                 List<LightingSceneDto> scenes = [];
                 foreach (var scene in control.Scenes)
                 {
                     scenes.Add(CreateLightingScene(control.Id, scene));
                 }
-                
+
                 return Results.Ok(scenes);
             }
             catch (Exception ex)
@@ -127,15 +128,16 @@ internal static class LightingEndpoints
                 return Results.Problem("Internal Server Error");
             }
         });
-        
+
         group.MapGet("/scenes/{controlId}/{sceneId}", (string controlId, string sceneId) =>
         {
-            if (_appService == null) return Results.BadRequest("Lighting not supported.");
+            if (_appService == null || _appService.GetAllLightingDeviceInfo().Count == 0)
+                return Results.BadRequest("Lighting not supported.");
             try
             {
                 var control = _appService.GetAllLightingDeviceInfo().FirstOrDefault(x => x.Id == controlId);
                 if (control == null) return Results.NotFound("ControlId");
-                
+
                 var scene = control.Scenes.FirstOrDefault(x => x.Id == sceneId);
                 return scene == null ? Results.NotFound("SceneId") : Results.Ok(CreateLightingScene(control.Id, scene));
             }
@@ -148,7 +150,8 @@ internal static class LightingEndpoints
 
         group.MapPut("/zones/{controlId}", (string controlId, SetLightingLoadDto body) =>
         {
-            if (_appService == null) return Results.BadRequest("Lighting not supported.");
+            if (_appService == null || _appService.GetAllLightingDeviceInfo().Count == 0)
+                return Results.BadRequest("Lighting not supported.");
             try
             {
                 if (string.IsNullOrEmpty(body.ZoneId))
@@ -160,13 +163,13 @@ internal static class LightingEndpoints
                 {
                     return Results.BadRequest("Invalid Load. range is 0-100.");
                 }
-                
+
                 var control = _appService.GetAllLightingDeviceInfo().FirstOrDefault(x => x.Id == controlId);
                 if (control == null) return Results.NotFound("ControlId");
-                
+
                 var zone = control.Zones.FirstOrDefault(x => x.Id == body.ZoneId);
                 if (zone == null) return Results.NotFound("ZoneId");
-                
+
                 _appService.SetLightingLoad(controlId, body.ZoneId, body.Load);
                 return Results.NoContent();
             }
@@ -179,17 +182,18 @@ internal static class LightingEndpoints
 
         group.MapPut("scenes/{controlId}", (string controlId, SetLightingSceneDto body) =>
         {
-            if (_appService == null) return Results.BadRequest("Lighting not supported.");
+            if (_appService == null || _appService.GetAllLightingDeviceInfo().Count == 0)
+                return Results.BadRequest("Lighting not supported.");
             try
             {
                 if (string.IsNullOrEmpty(body.SceneId))
                 {
                     return Results.BadRequest("Missing SceneId.");
                 }
-                
+
                 var control = _appService.GetAllLightingDeviceInfo().FirstOrDefault(x => x.Id == controlId);
                 if (control == null) return Results.NotFound("ControlId");
-                
+
                 var zone = control.Scenes.FirstOrDefault(x => x.Id == body.SceneId);
                 if (zone == null) return Results.NotFound("SceneId");
 
@@ -202,7 +206,7 @@ internal static class LightingEndpoints
                 return Results.Problem("Internal Server Error");
             }
         });
-        
+
         return group;
     }
 
@@ -228,7 +232,7 @@ internal static class LightingEndpoints
             Scenes: scenes
         );
     }
-    
+
     private static LightingSceneDto CreateLightingScene(string controlId, LightingItemInfoContainer scene)
     {
         return new LightingSceneDto(

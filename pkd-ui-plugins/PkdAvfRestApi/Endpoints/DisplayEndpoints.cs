@@ -19,12 +19,6 @@ internal static class DisplayEndpoints
         // IApplicationService may not always implement IDisplayControl App in the future.
         // ReSharper disable once RedundantCast
         _appService = service as IDisplayControlApp;
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if (_appService == null)
-        {
-            Logger.Warn(
-                "AVF REST Api - Display Endpoints - provided IApplicationService does not implement IDisplayControlApp.");
-        }
 
         var group = app.MapGroup("video/displays");
 
