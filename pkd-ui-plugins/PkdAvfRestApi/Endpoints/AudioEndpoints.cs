@@ -20,11 +20,6 @@ internal static class AudioEndpoints
     public static RouteGroupBuilder MapAudioEndpoints(this WebApplication app, IApplicationService appService)
     {
         _appService = appService as IAudioControlApp;
-        if (_appService == null)
-        {
-            Logger.Warn(
-                "AVF REST Api - Audio Endpoints - provided IApplicationService does not implement IAudioControlApp.");
-        }
 
         var group = app.MapGroup("audio");
 

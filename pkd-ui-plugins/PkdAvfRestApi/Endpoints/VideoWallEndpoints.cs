@@ -18,45 +18,34 @@ internal static class VideoWallEndpoints
     public static RouteGroupBuilder MapVideoWallEndpoints(this WebApplication app, IApplicationService appService)
     {
         _appService = appService as IVideoWallApp;
-        if (_appService == null)
-        {
-            Logger.Warn(
-                "AVF REST Api - Video Wall Endpoints - provided IApplicationService does not implement IVideoWallApp.");
-        }
-
         var group = app.MapGroup("video/videoWalls");
 
         group.MapGet("/supported", () => Results.Ok(new SupportedDto(_appService != null)));
 
-        group.MapGet("/", () =>
-        {
-            if (_appService == null) return Results.BadRequest("Video walls not supported.");
-            return VideoWallContracts.GetAllControllers(_appService);
-        });
+        group.MapGet("/",
+            () => _appService == null
+                ? Results.BadRequest("Video walls not supported.")
+                : VideoWallContracts.GetAllControllers(_appService));
 
-        group.MapGet("/{id}", (string id) =>
-        {
-            if (_appService == null) return Results.BadRequest("Video walls not supported.");
-            return VideoWallContracts.GetSingleVideoWall(_appService, id);
-        });
+        group.MapGet("/{id}",
+            (string id) => _appService == null
+                ? Results.BadRequest("Video walls not supported.")
+                : VideoWallContracts.GetSingleVideoWall(_appService, id));
 
-        group.MapGet("/{id}/canvases", (string id) =>
-        {
-            if (_appService == null) return Results.BadRequest("Video walls not supported.");
-            return VideoWallContracts.GetAllWallCanvases(_appService, id);
-        });
+        group.MapGet("/{id}/canvases",
+            (string id) => _appService == null
+                ? Results.BadRequest("Video walls not supported.")
+                : VideoWallContracts.GetAllWallCanvases(_appService, id));
 
-        group.MapGet("/{id}/canvases/{canvasId}", (string id, string canvasId) =>
-        {
-            if (_appService == null) return Results.BadRequest("Video walls not supported.");
-            return VideoWallContracts.GetSingleVideoWallCanvas(_appService, id, canvasId);
-        });
+        group.MapGet("/{id}/canvases/{canvasId}",
+            (string id, string canvasId) => _appService == null
+                ? Results.BadRequest("Video walls not supported.")
+                : VideoWallContracts.GetSingleVideoWallCanvas(_appService, id, canvasId));
 
-        group.MapGet("/{id}/canvases/{canvasId}/layouts", (string id, string canvasId) =>
-        {
-            if (_appService == null) return Results.BadRequest("Video walls not supported.");
-            return VideoWallContracts.GetCanvasLayouts(_appService, id, canvasId);
-        });
+        group.MapGet("/{id}/canvases/{canvasId}/layouts",
+            (string id, string canvasId) => _appService == null
+                ? Results.BadRequest("Video walls not supported.")
+                : VideoWallContracts.GetCanvasLayouts(_appService, id, canvasId));
 
         group.MapPut("/layout", (SetVideoWallLayoutDto data) =>
         {
@@ -72,10 +61,13 @@ internal static class VideoWallEndpoints
                 if (wall == null) return Results.NotFound($"Video Wall with id {data.VideoWall} not found.");
 
                 var canvas = wall.Canvases.FirstOrDefault(c => c.Id.Equals(data.Canvas));
-                if (canvas == null) return Results.NotFound($"Video Wall with id {data.VideoWall} - canvas {data.Canvas} not found.");
-                
+                if (canvas == null)
+                    return Results.NotFound($"Video Wall with id {data.VideoWall} - canvas {data.Canvas} not found.");
+
                 var layout = canvas.Layouts.FirstOrDefault(l => l.Id == data.Layout);
-                if (layout == null) return Results.NotFound($"Layout id {data.Layout} not found for {data.VideoWall} - canvas {data.Canvas}.");
+                if (layout == null)
+                    return Results.NotFound(
+                        $"Layout id {data.Layout} not found for {data.VideoWall} - canvas {data.Canvas}.");
 
                 _appService.SetActiveVideoWallLayout(data.VideoWall, data.Canvas, data.Layout);
                 return Results.NoContent();
@@ -102,8 +94,9 @@ internal static class VideoWallEndpoints
                 if (wall == null) return Results.NotFound($"VideoWall with id {data.VideoWall} not found.");
 
                 var canvas = wall.Canvases.FirstOrDefault(c => c.Id.Equals(data.Canvas));
-                if (canvas == null) return Results.NotFound($"Video Wall {data.VideoWall} - canvas {data.Canvas} not found.");
-                
+                if (canvas == null)
+                    return Results.NotFound($"Video Wall {data.VideoWall} - canvas {data.Canvas} not found.");
+
                 var activeLayout = _appService.QueryActiveVideoWallLayout(wall.Id, canvas.Id);
                 var layout = canvas.Layouts.FirstOrDefault(layout => layout.Id == activeLayout);
                 if (layout?.Cells.FindIndex(x => x.Id == data.Cell) < 0)

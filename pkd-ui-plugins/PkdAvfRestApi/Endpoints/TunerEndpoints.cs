@@ -22,10 +22,6 @@ internal static class TunerEndpoints
     public static RouteGroupBuilder MapTunerEndpoints(this WebApplication app, IApplicationService appService)
     {
         _appService = appService as ITransportControlApp;
-        if (_appService == null)
-            Logger.Warn(
-                "AVF REST Api - Video Wall Endpoints - provided IApplicationService does not implement IVideoWallApp.");
-
         var group = app.MapGroup("endpoints/tuners");
 
         group.MapGet("/supported", () => Results.Ok(new SupportedDto(_appService != null)));
