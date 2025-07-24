@@ -81,9 +81,10 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUse
         services.AddEndpointsApiExplorer();
         services.AddCors();
 
-       
         _app = builder.Build();
         _app.UseCors(b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+        _app.UseMiddleware<BasicAuthMiddleware>();
+        
         _app.MapSystemEndpoints(_applicationService);
         _app.MapDisplayEndpoints(_applicationService);
         _app.MapGlobalVideoEndpoints(_applicationService);
@@ -103,6 +104,7 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUse
                 PortForwardFactory.TryCreateTcp(new PortForward(port));
             }
         });
+
 
         IsInitialized = true;
     }
