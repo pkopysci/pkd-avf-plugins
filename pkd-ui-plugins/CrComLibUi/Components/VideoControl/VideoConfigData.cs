@@ -38,6 +38,9 @@ internal class VideoSource
 	[DefaultValue("")]
 	[JsonProperty(nameof(Control), DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string Control { get; set; } = string.Empty;
+    
+	[JsonProperty(nameof(SupportsSync))]
+    public bool SupportsSync {  get; set; }
 
 	[DefaultValue("false")]
 	[JsonProperty(nameof(HasSync), DefaultValueHandling = DefaultValueHandling.Populate)]

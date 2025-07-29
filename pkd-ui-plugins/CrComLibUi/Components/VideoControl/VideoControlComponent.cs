@@ -27,8 +27,8 @@ internal class VideoControlComponent(
 	private const string CommandFreeze = "GLOBALFREEZE";
 	private const string CommandBlank = "GLOBALBLANK";
 	private const string CommandStatus = "STATUS";
-	private readonly List<VideoDestinationInfo> _destinations = [];
-	private ReadOnlyCollection<AvSourceInfoContainer> _sources = new([]);
+	private readonly List<VideoDestination> _destinations = [];
+	private readonly List<VideoSource> _sources = [];
 	private ReadOnlyCollection<InfoContainer> _routers = new([]);
 	private bool _globalBlankState;
 	private bool _globalFreezeState;
@@ -88,6 +88,7 @@ internal class VideoControlComponent(
 		
 		appService.RouteChanged += AppServiceOnRouteChanged;
 		appService.RouterConnectChange += AppServiceOnRouterConnectChange;
+		appService.VideoInputSyncChanged += AppServiceOnInputSyncChanged;
 		if (appService is IApplicationService genericApp)
 		{
 			genericApp.GlobalVideoBlankChanged += GenericAppOnGlobalVideoBlankChanged;
@@ -163,20 +164,48 @@ internal class VideoControlComponent(
 		message.Data = JObject.FromObject(dataObj);
 		Send(message, ApiHooks.VideoControl);
 	}
+
+	private void AppServiceOnInputSyncChanged(object? sender, GenericSingleEventArgs<string> e)
+	{
+		var source = _sources.FirstOrDefault(x => x.Id.Equals(e.Arg));
+		if (source == null) return;
+		source.HasSync = appService.QueryVideoInputSyncStatus(e.Arg);
+		
+	}
 	
 	private void SetRoutingData(
 		ReadOnlyCollection<AvSourceInfoContainer> sources,
 		ReadOnlyCollection<InfoContainer> destinations,
 		ReadOnlyCollection<InfoContainer> avRouters)
 	{
-		_sources = sources;
 		_routers = avRouters;
+		
+		_sources.Clear();
 		_destinations.Clear();
+		
+		foreach (var source in sources)
+		{
+			_sources.Add(new VideoSource()
+			{
+				Icon = source.Icon,
+				Id = source.Id,
+				Label = source.Label,
+				Control = source.ControlId,
+				SupportsSync = source.SupportSync,
+				HasSync = source.HasSync,
+				Tags = source.Tags,
+			});
+		}
+		
 		foreach (var dest in destinations)
 		{
-			_destinations.Add(new VideoDestinationInfo(dest.Id, dest.Label, dest.Icon, dest.Tags)
+			_destinations.Add(new VideoDestination()
 			{
+				Icon = dest.Icon,
+				Id = dest.Id,
+				Label = dest.Label,
 				CurrentSourceId = string.Empty,
+				Tags = dest.Tags,
 			});
 		}
 	}
@@ -277,31 +306,9 @@ internal class VideoControlComponent(
 				IsOnline = avr.IsOnline,
 			});
 		}
-		foreach (var source in _sources)
-		{
-			config.Sources.Add(new VideoSource()
-			{
-				Icon = source.Icon,
-				Id = source.Id,
-				Label = source.Label,
-				Control = source.ControlId,
-				HasSync = true,
-				Tags = source.Tags,
-			});
-		}
 
-		foreach (var dest in _destinations)
-		{
-			config.Destinations.Add(new VideoDestination()
-			{
-				Icon = dest.Icon,
-				Id = dest.Id,
-				Label = dest.Label,
-				CurrentSourceId = dest.CurrentSourceId,
-				Tags = dest.Tags,
-			});
-		}
-
+		config.Sources = _sources;
+		config.Destinations = _destinations;
 		return config;
 	}
 }
