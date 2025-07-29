@@ -80,10 +80,13 @@ public class RestApiUserInterface : IUserInterface, ICrestronUserInterface, IUse
         services.AddHostedService<ProgramService>();
         services.AddEndpointsApiExplorer();
         services.AddCors();
-
+        services.AddAuthorization();
+        
         _app = builder.Build();
+        _app.UseHttpsRedirection();
         _app.UseCors(b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
         _app.UseMiddleware<BasicAuthMiddleware>();
+        _app.UseAuthorization();
         
         _app.MapSystemEndpoints(_applicationService);
         _app.MapDisplayEndpoints(_applicationService);
