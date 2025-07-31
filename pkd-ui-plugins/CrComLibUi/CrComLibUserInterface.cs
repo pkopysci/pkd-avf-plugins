@@ -195,6 +195,9 @@ public class CrComLibUserInterface :
             case "TSW-1070":
                 _ui = new Tsw1070(_ipId, _parent);
                 break;
+            case "XPANEL":
+                _ui = new XpanelForSmartGraphics(_ipId, _parent);
+                break;
             default:
                 Logger.Error("CrComLibUi.CrComLibUserInterface.RebuildInterface() - Unsupported model: {0}",
                     _uiData.Model);

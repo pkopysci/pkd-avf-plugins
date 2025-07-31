@@ -23,9 +23,13 @@ internal class LightingZoneData : LightingItem
 
 internal class LightingData : LightingItem
 {
+	public string Model { get; set; } = string.Empty;
+	
 	public List<LightingSceneData> Scenes { get; init; } = [];
 
 	public List<LightingZoneData> Zones { get; init; } = [];
 		
 	public string SelectedSceneId { get; set; } = string.Empty;
+	
+	public bool IsOnline { get; set; }
 }

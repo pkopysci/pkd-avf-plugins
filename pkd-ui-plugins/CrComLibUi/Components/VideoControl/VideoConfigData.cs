@@ -10,6 +10,10 @@ internal class AvRouter
 	[DefaultValue("AVR-ID-NOTSET")]
 	[JsonProperty(nameof(Id), DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string Id { get; set; } = string.Empty;
+	
+	[DefaultValue("Not Set")]
+	[JsonProperty(nameof(Model), DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string Model { get; set; } = string.Empty;
 
 	[DefaultValue("Default AVR Label")]
 	[JsonProperty(nameof(Label), DefaultValueHandling = DefaultValueHandling.Populate)]

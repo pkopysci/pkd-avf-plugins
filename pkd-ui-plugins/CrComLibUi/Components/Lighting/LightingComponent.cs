@@ -117,11 +117,13 @@ internal class LightingComponent(
 
 			var data = new LightingData()
 			{
+				Model = controller.Model,
 				Id = controller.Id,
 				Label = controller.Label,
 				Tags = controller.Tags,
 				Scenes = scenes,
-				Zones = zones
+				Zones = zones,
+				IsOnline = controller.IsOnline,
 			};
 
 			_lights.Add(data);
@@ -177,6 +179,8 @@ internal class LightingComponent(
 			Logger.Error($"CrComLibUi.LightingComponent.UpdateLightingControlConnectionStatus() - no controller with id {e.Arg2}");
 			return;
 		}
+
+		control.IsOnline = e.Arg2;
 		
 		var message = MessageFactory.CreateGetResponseObject();
 		message.Command = CommandStatus;
@@ -301,7 +305,7 @@ internal class LightingComponent(
 				return;
 			}
 			
-			var control = _lights.FirstOrDefault(x => x.Id == zoneId);
+			var control = _lights.FirstOrDefault(x => x.Id == controlId);
 			if (control == null)
 			{
 				SendError(

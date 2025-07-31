@@ -27,6 +27,7 @@ internal class VideoControlComponent(
 	private const string CommandFreeze = "GLOBALFREEZE";
 	private const string CommandBlank = "GLOBALBLANK";
 	private const string CommandStatus = "STATUS";
+	private const string CommandInput = "INPUT";
 	private readonly List<VideoDestination> _destinations = [];
 	private readonly List<VideoSource> _sources = [];
 	private ReadOnlyCollection<InfoContainer> _routers = new([]);
@@ -170,7 +171,11 @@ internal class VideoControlComponent(
 		var source = _sources.FirstOrDefault(x => x.Id.Equals(e.Arg));
 		if (source == null) return;
 		source.HasSync = appService.QueryVideoInputSyncStatus(e.Arg);
-		
+
+		var message = MessageFactory.CreateGetResponseObject();
+		message.Command = CommandInput;
+		message.Data["Input"] = JObject.FromObject(source);
+		Send(message, ApiHooks.VideoControl);
 	}
 	
 	private void SetRoutingData(
@@ -302,6 +307,7 @@ internal class VideoControlComponent(
 			config.AvRouters.Add(new AvRouter()
 			{
 				Id = avr.Id,
+				Model =  avr.Model,
 				Label = avr.Label,
 				IsOnline = avr.IsOnline,
 			});

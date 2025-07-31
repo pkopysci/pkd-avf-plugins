@@ -52,6 +52,7 @@ public class VideoWallControlData
     public string Id { get; init; } = string.Empty;
     public string Label { get; init; } = string.Empty;
     public string Icon { get; init; } = string.Empty;
+    public string Model { get; init; } = string.Empty;
     public bool IsOnline { get; set; }
     public List<string> Tags { get; set; } = [];
     public List<VideoWallCanvasData> Canvases { get; set; } = [];
@@ -79,6 +80,7 @@ public static class ConfigDataFactory
             controllerCollection.Add(new VideoWallControlData()
             {
                 Id = wall.Id,
+                Model = wall.Model,
                 Label = wall.Label,
                 Icon = wall.Icon,
                 Tags = wall.Tags,
