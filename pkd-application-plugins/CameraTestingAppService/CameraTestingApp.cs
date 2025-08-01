@@ -122,8 +122,8 @@ public class CameraTestingApp : ApplicationService, ICameraControlApp
 
         return new CameraInfoContainer(config.Id, config.Label, string.Empty, config.Tags, device.IsOnline)
         {
-            Model = device.Model,
-            Manufacturer = device.Manufacturer,
+            Model = string.IsNullOrEmpty(device.Model) ? config.Model : device.Model,
+            Manufacturer = string.IsNullOrEmpty(device.Manufacturer) ? config.Manufacturer : device.Manufacturer,
             SupportsZoom = device is IZoomDevice,
             SupportsPanTilt = device is IPanTiltDevice,
             SupportsSavingPresets = (device is IPresetDevice { SupportsSavingPresets: true }),
